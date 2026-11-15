@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grade 5 Math Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=IBM+Plex+Mono:wght@600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="hub">
+    <header>
+      <h1>Grade 5 Math Lab</h1>
+      <p class="sub" id="sub"></p>
+    </header>
+    <div class="now" id="now"></div>
+    <h2>Class units</h2>
+    <div class="grid-cards" id="units"></div>
+    <h2>Paper-method arenas</h2>
+    <div class="grid-cards" id="games"></div>
+    <footer style="margin-top:28px;color:var(--muted);font-size:14px">
+      Aligned to FCPS Grade 5 Math, FCPS Grade 5 Advanced Math, and the 2023 Virginia Math SOL. Each unit has a Core path and an Advanced (Go Further) path.
+    </footer>
+  </div>
+  <script src="js/catalog.js"></script>
+  <script>
+    const C = CATALOG;
+    document.getElementById('sub').textContent = C.sub;
+    const today = new Date().toISOString().slice(0, 10);
+    const live = C.units.find(u => today >= u.dates[0] && today <= u.dates[1]);
+    const upcoming = C.units.find(u => u.dates[0] > today);
+    const cur = live || upcoming || C.units[C.units.length - 1];
+    const label = live ? 'Now in class' : (upcoming ? 'Up next in class' : 'Now in class');
+    document.getElementById('now').innerHTML = `<b>${label}:</b> Unit ${cur.num}, ${cur.title}. Start with its <b>Learn</b> tab. Dates are estimates from the FCPS calendar.`;
+    function card(u, ready) {
+      const tag = u === cur ? '<span class="tag-now">Now</span>' : '';
+      const href = ready ? u.file : '#';
+      const extra = ready ? '' : ' style="opacity:.7"';
+      const note = ready ? u.blurb : 'Coming next in this lab.';
+      return `<a class="card" href="${href}"${extra}><span class="n">${u.emoji}</span><span><b>Unit ${u.num} · ${u.title}${tag}</b><span>${note}</span></span></a>`;
+    }
+    const ready = new Set(['u4']);
+    document.getElementById('units').innerHTML = C.units.map(u => card(u, ready.has(u.id))).join('');
+    document.getElementById('games').innerHTML = C.games.map(g =>
+      `<a class="card" href="#" style="opacity:.7"><span class="n">${g.emoji}</span><span><b>${g.title}</b><span>Coming next in this lab.</span></span></a>`
+    ).join('');
+  </script>
+</body>
+</html>
