@@ -966,7 +966,6 @@ function paperDivide(dividend, divisor) {
       <main class="stage" id="stage"></main>
       <button class="brain" id="brain">Brain break</button>
       <div class="overlay" id="break"><div class="modal"><div class="emo" id="bE"></div><p id="bT"></p><button class="btn" id="bC">I'm ready</button></div></div>
-      <div id="print-root"></div>
     `;
     root.innerHTML = '';
     root.appendChild(shell);
@@ -993,7 +992,7 @@ function paperDivide(dividend, divisor) {
       shell.querySelector('#break').classList.add('show');
     };
     shell.querySelector('#bC').onclick = () => shell.querySelector('#break').classList.remove('show');
-    shell.querySelector('#printBtn').onclick = () => buildPrint(UNIT, M.lvl, shell.querySelector('#print-root'));
+    shell.querySelector('#printBtn').onclick = () => buildPrint(UNIT, M.lvl);
 
     function show(tab) {
       M.tab = tab; save();
@@ -1142,7 +1141,34 @@ function paperDivide(dividend, divisor) {
     show(M.tab || 'learn');
   }
 
-  function buildPrint(UNIT, lvl, root) {
+  function getPrintRoot() {
+    let root = document.getElementById('print-root');
+    if (root && root.parentElement !== document.body) {
+      root.remove();
+      root = null;
+    }
+    if (!root) {
+      root = document.createElement('div');
+      root.id = 'print-root';
+      document.body.appendChild(root);
+    }
+    return root;
+  }
+
+  function openPrintDialog() {
+    const cleanup = () => document.body.classList.remove('is-printing');
+    document.body.classList.add('is-printing');
+    window.addEventListener('afterprint', cleanup, { once: true });
+    const fonts = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+    fonts.catch(() => {}).then(() => new Promise((r) => setTimeout(r, 80))).then(() => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => { try { w.print(); } catch (e) { cleanup(); } });
+      });
+    });
+  }
+
+  function buildPrint(UNIT, lvl) {
+    const root = getPrintRoot();
     const T = (lvl === 'advanced' ? UNIT.advanced : UNIT.core);
     const items = [];
     const skills = T.skills || [];
@@ -1181,17 +1207,23 @@ function paperDivide(dividend, divisor) {
       return `<div class="pq"><div class="qn">${i + 1}.</div><b>${ans}</b></div>`;
     });
     const levelName = lvl === 'advanced' ? 'Advanced' : 'Core';
-    root.innerHTML = pages.map((pg, p) => `
-      <section class="print-page">
-        <div class="print-head"><h1>${UNIT.emoji} ${UNIT.title} · ${levelName} Practice</h1><div>Grade 5 · Page ${p + 1} of 2</div></div>
-        <div class="print-grid">${pg.map((pack, i) => renderQ(pack, i + p * 10)).join('')}</div>
-      </section>`).join('') + `
-      <section class="print-page print-key">
-        <div class="print-head"><h1>Answer Key · ${UNIT.title} · ${levelName}</h1><div>Keep this page separate</div></div>
-        <div class="print-grid">${keyItems.join('')}</div>
-      </section>`;
-    w.print();
+    if (!items.length) {
+      root.innerHTML = `<section class="print-page"><div class="print-head"><h1>${UNIT.emoji} ${UNIT.title}</h1></div><p>No practice items were ready. Close this dialog and try Print pack again.</p></section>`;
+    } else {
+      const filled = pages.filter((pg) => pg.length);
+      root.innerHTML = filled.map((pg, p) => `
+        <section class="print-page">
+          <div class="print-head"><h1>${UNIT.emoji} ${UNIT.title} · ${levelName} Practice</h1><div>Grade 5 · Page ${p + 1} of ${filled.length}</div></div>
+          <div class="print-grid">${pg.map((pack, i) => renderQ(pack, i + p * 10)).join('')}</div>
+        </section>`).join('') + `
+        <section class="print-page print-key">
+          <div class="print-head"><h1>Answer Key · ${UNIT.title} · ${levelName}</h1><div>Keep this page separate</div></div>
+          <div class="print-grid">${keyItems.join('')}</div>
+        </section>`;
+    }
+    formatFractionsIn(root);
+    openPrintDialog();
   }
 
-  w.Lab = { mount, renderItem, playLesson, U, optsClass, optsLayout, formatHTML, formatFractionsIn, formatFractionString, isShortAnswer };
+  w.Lab = { mount, renderItem, playLesson, U, optsClass, optsLayout, formatHTML, formatFractionsIn, formatFractionString, isShortAnswer, buildPrint, getPrintRoot };
 })(window);
