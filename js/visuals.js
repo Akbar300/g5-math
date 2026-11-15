@@ -117,16 +117,23 @@
       if (digits.includes('.')) cols.push({ h: '', v: '.', side: 'dot' });
       b.split('').forEach((ch, i) => cols.push({ h: namesD[i] || '', v: ch, side: 'd' }));
     } else cols = digits;
-    const cw = 70, W = cols.length * cw + 16, H = 88;
+    /* Digit boxes are 70 wide; the decimal point gets a narrow 22-wide slot so it sits close to both sides. */
+    const cw = 70, dw = 22, H = 88;
+    const widths = cols.map((c) => (c.side === 'dot' ? dw : cw));
+    const W = widths.reduce((a, b) => a + b, 0) + 16;
     const s = svg(W, H);
+    let x = 8;
     cols.forEach((c, i) => {
-      const x = 8 + i * cw;
       const on = highlight == null ? false : highlight === i || highlight === c.h;
       if (c.side !== 'dot') {
-        s.appendChild(el('rect', { x, y: 22, width: cw - 8, height: 58, rx: 10, fill: on ? 'var(--remember-bg)' : (c.side === 'd' ? '#e8f8f4' : '#eef4ff'), stroke: 'var(--ink)', 'stroke-width': '2' }));
+        s.appendChild(el('rect', { x, y: 22, width: cw - 8, height: 58, rx: 10, fill: on ? '#fff4cc' : (c.side === 'd' ? '#e8f8f4' : '#eef4ff'), stroke: 'var(--ink)', 'stroke-width': '2' }));
+        if (c.h) s.appendChild(el('text', { x: x + (cw - 8) / 2, y: 16, 'text-anchor': 'middle', 'font-size': '10', 'font-weight': '800', fill: 'var(--muted)' }, [c.h]));
+        /* Boxes are always light, so the digit is always dark (readable in dark mode too). */
+        s.appendChild(el('text', { x: x + (cw - 8) / 2, y: 62, 'text-anchor': 'middle', 'font-size': '26', 'font-weight': '800', fill: '#1b2437' }, [c.v]));
+      } else {
+        s.appendChild(el('text', { x: x + dw / 2 - 4, y: 70, 'text-anchor': 'middle', 'font-size': '34', 'font-weight': '800', fill: 'var(--ink)' }, [c.v]));
       }
-      if (c.h) s.appendChild(el('text', { x: x + (cw - 8) / 2, y: 16, 'text-anchor': 'middle', 'font-size': '10', 'font-weight': '800', fill: 'var(--muted)' }, [c.h]));
-      s.appendChild(el('text', { x: x + (c.side === 'dot' ? 6 : (cw - 8) / 2), y: 62, 'text-anchor': 'middle', 'font-size': '26', 'font-weight': '800', fill: 'var(--ink)' }, [c.v]));
+      x += widths[i];
     });
     return wrap(s);
   }
