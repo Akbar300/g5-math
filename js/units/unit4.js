@@ -294,16 +294,16 @@
           cards: [
             {
               t: 'One whole, cut into 100',
-              html: `<p>This square is one whole. It is cut into 100 equal tiny squares. Each tiny square is one hundredth, or ${fr(1, 100)}, or 0.01.</p>` + V.hundredGrid(100, { fill: '#0fb39c', label: '100 / 100 = 1 whole' })
+              html: `<p>This square is one whole. It is cut into 100 equal tiny squares. Each tiny square is one hundredth, or ${fr(1, 100)}, or 0.01.</p>`
             },
             {
               t: 'Twenty hundredths',
-              html: `<p>20 tiny squares are shaded. That is 20 hundredths = ${fr(20, 100)} = ${fr(1, 5)} = <b>0.20</b> or <b>0.2</b>.</p>` + V.hundredGrid(20, { label: '20 hundredths' }),
+              html: `<p>20 tiny squares are shaded. That is 20 hundredths = ${fr(20, 100)} = ${fr(1, 5)} = <b>0.20</b> or <b>0.2</b>.</p>`,
               remember: 'Trailing zeros after the decimal point do not change the value: 0.20 = 0.2.'
             },
             {
               t: 'Tenths sit in the first place',
-              html: V.placeValue('0.47') + `<p>In <b>0.47</b>, the 4 is 4 tenths and the 7 is 7 hundredths. Together they are ${fr(47, 100)}.</p>`,
+              html: `<p>In <b>0.47</b>, the 4 is 4 tenths and the 7 is 7 hundredths. Together they are ${fr(47, 100)}.</p>`,
               try: () => genD2F()
             }
           ]
@@ -314,11 +314,11 @@
             {
               t: 'Friendly denominators',
               html: `<p>When the denominator is a factor of 100 (2, 4, 5, 10, 20, 25, 50, 100), you can rename the fraction as hundredths, then as a decimal.</p>
-                     <p>${fr(3, 4)} = ${fr(75, 100)} = <b>0.75</b> because 4 × 25 = 100 and 3 × 25 = 75.</p>` + V.fractionBar(3, 4, { fill: '#e85d04', label: '3 of 4 parts' })
+                     <p>${fr(3, 4)} = ${fr(75, 100)} = <b>0.75</b> because 4 × 25 = 100 and 3 × 25 = 75.</p>`
             },
             {
               t: 'Try the rename',
-              html: `<p>${fr(2, 5)}: 5 × 20 = 100, so 2 × 20 = 40. ${fr(2, 5)} = ${fr(40, 100)} = 0.40 = 0.4.</p>` + V.hundredGrid(40, { fill: '#2f80ed', label: '40 hundredths' }),
+              html: `<p>${fr(2, 5)}: 5 × 20 = 100, so 2 × 20 = 40. ${fr(2, 5)} = ${fr(40, 100)} = 0.40 = 0.4.</p>`,
               try: () => genF2D(),
               remember: 'Multiply the top and the bottom by the same number until the bottom is 100. Then the top is the decimal’s hundredths.'
             }
@@ -331,7 +331,6 @@
               t: 'Eighths have three decimal digits',
               html: `<p>One eighth is 0.125. You can build every eighth from that:</p>
                     <p>${fr(1, 8)}=0.125 · ${fr(2, 8)}=0.25 · ${fr(3, 8)}=0.375 · ${fr(4, 8)}=0.5<br>${fr(5, 8)}=0.625 · ${fr(6, 8)}=0.75 · ${fr(7, 8)}=0.875</p>`
-                + V.fractionBar(3, 8, { fill: '#6c4ee0', label: '3 eighths = 0.375' })
             },
             {
               t: 'Thirds repeat',
@@ -400,8 +399,7 @@
           cards: [
             {
               t: 'Out of 100',
-              html: `<p>Percent means “per hundred.” ${fr(3, 4)} = 0.75 = 75 hundredths = <b>75%</b>.</p>`
-                + V.hundredGrid(75, { fill: '#ffc43d', label: '75% of the grid' }),
+              html: `<p>Percent means “per hundred.” ${fr(3, 4)} = 0.75 = 75 hundredths = <b>75%</b>.</p>`,
               remember: 'Fraction, decimal, and percent can name the exact same amount.'
             },
             {

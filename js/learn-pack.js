@@ -10,6 +10,9 @@
   const num = (q, a, why) => ({ type: 'num', fmt: 'TYPE IN', q, a, why });
   const ms = (q, ch, a, why) => ({ type: 'ms', fmt: 'SELECT ALL', q, ch, a, why });
   const nline = (q, a, why, min, max) => ({ type: 'nline', q, a, why, min: min == null ? 0 : min, max: max == null ? 10 : max, step: 1 });
+  /* Hands-on widgets from js/interact.js, with a static fallback. */
+  const ixGrid = (o) => (w.IX ? w.IX.hundredGrid(o) : V.hundredGrid(o.start || 0, { fill: o.fill }));
+  const ixBar = (o) => (w.IX ? w.IX.fractionBar(o) : V.fractionBar(o.n || 0, o.d || 4, { fill: o.fill }));
 
   const pack = {
     /* ---------- Unit 1 ---------- */
@@ -385,7 +388,7 @@
         ]
       },
       'One whole, cut into 100': {
-        viz: () => V.hundredGrid(100, { fill: '#6c4ee0', label: '100 hundredths = 1 whole' }),
+        viz: () => ixGrid({ start: 100, fill: '#6c4ee0', tip: 'Clear it, then shade it back. Every square is 0.01.' }),
         steps: ['A 10-by-10 grid is one whole.', 'Each small square is ' + fr(1, 100) + ' or 0.01.', 'All 100 squares make 1.'],
         trap: 'Shaded 1 row is 10 squares: 0.10, not 0.01 and not 0.1 of a single square.',
         aap: 'AAP: 1000 thousandths also make one whole. 0.250 = 250 thousandths = 25 hundredths = ' + fr(1, 4) + '.',
@@ -395,7 +398,7 @@
         ]
       },
       'Twenty hundredths': {
-        viz: () => V.fractionBar(20, 100, { fill: '#0fb39c', label: '20/100 = 1/5' }),
+        viz: () => ixGrid({ start: 20, fill: '#0fb39c', challenges: [{ n: 1, d: 5 }, { n: 1, d: 10 }, { n: 3, d: 10 }, { n: 2, d: 5 }, { n: 1, d: 20 }] }),
         steps: [fr(20, 100) + ' is 20 hundredths, or 0.20.', 'Simplify: divide 20 and 100 by 20 to get ' + fr(1, 5) + '.', '0.20 = 0.2 = ' + fr(1, 5) + '.'],
         trap: '20/100 is not 20. The denominator tells the size of each piece.',
         aap: 'AAP: ' + fr(45, 100) + ' = 0.45 = ' + fr(9, 20) + '. Find a second name besides the decimal.',
@@ -405,7 +408,7 @@
         ]
       },
       'Tenths sit in the first place': {
-        viz: () => V.placeValue('0.47'),
+        viz: () => (w.IX ? w.IX.stack(V.placeValue('0.47'), ixGrid({ start: 47, fill: '#2f80ed', tip: 'Full rows are tenths. Single squares are hundredths.', challenges: [{ dec: '0.4' }, { dec: '0.04' }, { dec: '0.74' }, { dec: '0.09' }, { dec: '0.6' }] })) : V.placeValue('0.47')),
         steps: ['Read the places from the point: tenths, then hundredths.', 'In 0.47, the 4 is 4 tenths and the 7 is 7 hundredths.', '0.47 = ' + fr(47, 100) + '.'],
         trap: 'The first digit after the point is tenths, not hundredths. 0.4 is much larger than 0.04.',
         aap: 'AAP: in 3.05 the 5 is hundredths (the tenths place is 0). 3.05 = 3 + ' + fr(5, 100) + '.',
@@ -417,7 +420,7 @@
     },
     u4c2: {
       'Friendly denominators': {
-        viz: () => V.fractionBar(1, 4, { fill: '#6c4ee0', label: '1/4 = 25/100' }),
+        viz: () => ixBar({ d: 4, n: 3, dens: [2, 4, 5, 10, 20], fill: '#e85d04', tip: 'Try 4 parts, then 5, then 20. Watch the hundredths name.' }),
         steps: ['Factors of 100 (2, 4, 5, 10, 20, 25, 50) rename easily as hundredths.', fr(1, 4) + ' = ' + fr(25, 100) + ' = 0.25.', fr(3, 5) + ' = ' + fr(60, 100) + ' = 0.60.'],
         trap: 'To rename, multiply the numerator and the denominator by the same number. Changing only one part breaks the value.',
         aap: 'AAP: ' + fr(7, 20) + ' = ' + fr(35, 100) + ' = 0.35. For 8ths you need thousandths: ' + fr(1, 8) + ' = 0.125.',
@@ -427,7 +430,7 @@
         ]
       },
       'Try the rename': {
-        viz: () => V.hundredGrid(75, { fill: '#ffc43d', label: '75/100 = 3/4' }),
+        viz: () => ixGrid({ start: 0, fill: '#ffc43d', challenges: [{ n: 2, d: 5 }, { n: 3, d: 4 }, { n: 7, d: 20 }, { n: 1, d: 4 }, { n: 9, d: 10 }, { n: 1, d: 2 }, { n: 11, d: 25 }] }),
         steps: ['Write the fraction with a denominator of 100 when you can.', '75 hundredths is 0.75 and also ' + fr(3, 4) + '.', 'Check by simplifying or by multiplying back.'],
         trap: '0.75 is not 75 and not ' + fr(75, 10) + '. The 75 sits in the hundredths.',
         aap: 'AAP: rename ' + fr(11, 25) + ' as a decimal. 25 × 4 = 100, so ' + fr(44, 100) + ' = 0.44.',
@@ -439,7 +442,7 @@
     },
     u4c3: {
       'Eighths have three decimal digits': {
-        viz: () => V.fractionBar(1, 8, { fill: '#0fb39c', label: '1/8 = 0.125' }),
+        viz: () => ixBar({ d: 8, n: 3, dens: [2, 4, 8], fill: '#6c4ee0', tip: 'Shade eighths one at a time. Each one adds 0.125.' }),
         steps: [fr(1, 8) + ' = 0.125 because 8 × 125 = 1,000 (thousandths).', 'The eighths to memorize: 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875.', fr(1, 4) + ' is also 2 eighths, so 0.25.'],
         trap: fr(1, 8) + ' is not 0.8 or 0.18. It needs three decimal digits.',
         aap: 'AAP: ' + fr(3, 8) + ' = 0.375 and ' + fr(7, 8) + ' = 0.875. Halfway between 0.75 and 1 is 0.875, not 0.8.',
@@ -449,7 +452,7 @@
         ]
       },
       'Thirds repeat': {
-        viz: () => V.fractionBar(1, 3, { fill: '#6c4ee0', label: '1/3 = 0.333…' }),
+        viz: () => ixBar({ d: 3, n: 1, dens: [3, 6, 9, 2, 4], fill: '#ff5a36', tip: 'Thirds, sixths and ninths repeat. Halves and fourths stop.' }),
         steps: [fr(1, 3) + ' = 0.333… (the 3s keep going).', fr(2, 3) + ' = 0.666…', 'A bar over the repeating digit is a precise way to write it.'],
         trap: '0.3 is 3 tenths, which is a little less than ' + fr(1, 3) + '. Do not stop at one digit and call it exact.',
         aap: 'AAP: ' + fr(1, 6) + ' = 0.1666… and ' + fr(1, 9) + ' = 0.111…. Repeating decimals are still exact fractions.',
@@ -507,7 +510,7 @@
     },
     u4a3: {
       'Out of 100': {
-        viz: () => V.hundredGrid(75, { fill: '#ffc43d', label: '75% of the grid' }),
+        viz: () => ixGrid({ start: 75, pct: true, fill: '#ffc43d', challenges: [{ pct: 25 }, { pct: 60 }, { n: 1, d: 2 }, { pct: 5 }, { dec: '0.35' }, { n: 4, d: 5 }] }),
         steps: ['Percent means “per hundred.”', fr(3, 4) + ' = 0.75 = 75 hundredths = 75%.', 'The same amount has a fraction name, a decimal name, and a percent name.'],
         trap: '75% is 0.75, not 75 and not 7.5. Move the point two places when you go between a percent and a decimal.',
         aap: 'AAP: 4% is 0.04, not 0.4. 150% is 1.5, more than one whole.',
@@ -575,7 +578,7 @@
     },
     u5L3: {
       'A tenth of a tenth': {
-        viz: () => V.hundredGrid(1, { fill: '#0fb39c', label: '0.1 × 0.1 = 0.01' }),
+        viz: () => (w.IX ? w.IX.overlapGrid({ a: 3, b: 4 }) : V.hundredGrid(12, { fill: '#0fb39c', label: '0.3 × 0.4 = 0.12' })),
         steps: ['0.1 × 0.1 is one tenth of one tenth: 0.01, a hundredth.', 'Each factor has one decimal place, so the product has two.', 'A tenth of a tenth is smaller than a tenth.'],
         trap: '0.1 × 0.1 is not 0.1 and not 0.2. Multiplication by a tenth makes a number smaller.',
         aap: 'AAP: 0.1 × 0.1 × 0.1 = 0.001 (thousandths). Watch the places pile up.',
@@ -585,7 +588,7 @@
         ]
       },
       'Smaller than you think': {
-        viz: () => V.fractionBar(6, 100, { fill: '#6c4ee0', label: '0.2 × 0.3 = 0.06' }),
+        viz: () => (w.IX ? w.IX.overlapGrid({ a: 2, b: 3, tip: 'Try 0.1 × 0.1, then 0.5 × 0.5. Is the overlap ever bigger than a factor?' }) : V.hundredGrid(6, { fill: '#6c4ee0', label: '0.2 × 0.3 = 0.06' })),
         steps: ['A decimal less than 1 shrinks the other factor.', '0.2 × 0.3 = 0.06, which is less than both 0.2 and 0.3.', 'Estimate: a little less than 1/4 of 0.3, or a little more than 1/5 of 0.3.'],
         trap: 'Thinking “multiplication always makes a bigger number” is true for wholes greater than 1, not for tenths.',
         aap: 'AAP: 0.04 × 0.5 = 0.020 = 0.02. Half of 4 hundredths is 2 hundredths.',
@@ -778,7 +781,7 @@
     /* ---------- Unit 7 ---------- */
     u7L1: {
       'Per hundred': {
-        viz: () => V.hundredGrid(40, { fill: '#ffc43d', label: '40% of the grid' }),
+        viz: () => ixGrid({ start: 40, pct: true, fill: '#ffc43d', challenges: [{ pct: 8 }, { pct: 65 }, { pct: 1 }, { pct: 100 }, { pct: 30 }] }),
         steps: ['Percent means per hundred: 40% is 40 out of 100.', 'That is also ' + fr(40, 100) + ' = ' + fr(2, 5) + ' = 0.40.', 'A hundredths grid is a picture of every percent from 1 to 100.'],
         trap: '40% is not 40 and not 0.040. Between a percent and a decimal, the point moves two places.',
         aap: 'AAP: 8% of a number is 0.08 times that number, not 0.8. 250% is 2.5 times the number.',
@@ -788,7 +791,7 @@
         ]
       },
       'Benchmarks to know cold': {
-        viz: () => V.fractionBar(1, 2, { fill: '#0fb39c', label: '1/2 = 0.5 = 50%' }),
+        viz: () => ixBar({ d: 2, n: 1, dens: [2, 3, 4, 5, 8, 10], pct: true, fill: '#0fb39c' }),
         steps: [fr(1, 2) + ' = 0.5 = 50%. ' + fr(1, 4) + ' = 0.25 = 25%. ' + fr(3, 4) + ' = 0.75 = 75%.', fr(1, 5) + ' = 0.2 = 20%. ' + fr(1, 10) + ' = 0.1 = 10%.', 'These benchmarks help you estimate other percents quickly.'],
         trap: fr(1, 3) + ' is not 30%. It is about 33%, or 33.3…%. 30% is 3/10.',
         aap: 'AAP: 12.5% is ' + fr(1, 8) + '. 37.5% is ' + fr(3, 8) + '. The eighths sit halfway between the quarter benchmarks.',
@@ -810,7 +813,7 @@
         ]
       },
       'Your turn': {
-        viz: () => V.hundredGrid(60, { fill: '#6c4ee0', label: '3/5 = 0.6 = 60%' }),
+        viz: () => ixGrid({ start: 0, pct: true, fill: '#6c4ee0', challenges: [{ n: 3, d: 5 }, { dec: '0.08' }, { pct: 45 }, { n: 7, d: 10 }, { n: 1, d: 4 }] }),
         steps: ['Pick one name you know.', 'Convert to the other two.', 'Check by converting back.'],
         trap: fr(3, 5) + ' is 60%, not 35% (do not just glue the digits together).',
         aap: 'AAP: 0.08 = 8% = ' + fr(2, 25) + '. 8 hundredths simplify by 4.',

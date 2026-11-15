@@ -14,7 +14,7 @@ var lessons = [
   {t:'Count decimal places too', h:'<p>Another check: count the decimal places in the factors.</p><div class="big">2.35 × 1.2 → 2 + 1 = 3 places</div><p>235 × 12 = 2820, so the product is <b>2.820</b> = 2.82.</p>', tr:{type:'num', nocalc:true, q:'Find 4.6 × 3. Estimate first!', a:13.8, why:'Estimate 5 × 3 = 15. 46 × 3 = 138 → 13.8.'}}
  ]},
  {id:'u5L3', name:'Decimal × decimal', icon:'🟦', cards:[
-  {t:'A tenth of a tenth', h:'<p>0.3 × 0.4 means "3 tenths of 4 tenths". On a hundred grid, shade 3 columns and 4 rows. The overlap is the product.</p>' + L.gridOverlap(3, 4) + '<div class="big">0.3 × 0.4 = 0.12</div><p>The overlap is 12 small squares: 12 hundredths.</p>', trap:'0.3 × 0.4 is NOT 1.2. Multiplying two numbers less than 1 gives an answer SMALLER than both.'},
+  {t:'A tenth of a tenth', h:'<p>0.3 × 0.4 means "3 tenths of 4 tenths". On a hundred grid, shade 3 columns and 4 rows. The overlap is the product.</p><div class="big">0.3 × 0.4 = 0.12</div><p>The overlap is 12 small squares: 12 hundredths.</p>', trap:'0.3 × 0.4 is NOT 1.2. Multiplying two numbers less than 1 gives an answer SMALLER than both.'},
   {t:'Smaller than you think', h:'<p>When you multiply by a number <b>less than 1</b>, the answer shrinks: 8 × 0.5 = 4 (half of 8).</p>', tr:mc('Which is the product 0.6 × 0.2?', '0.12', [['1.2', 'Two decimals less than 1 make a smaller product. Count places: 1 + 1 = 2.'], ['0.8', 'That is the sum.'], ['12', 'Place the decimal point: 2 decimal places.']], '6 × 2 = 12, with 2 decimal places → 0.12.')}
  ]},
  {id:'u5L4', name:'Divide by a whole number', icon:'➗', cards:[
