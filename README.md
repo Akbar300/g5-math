@@ -7,7 +7,7 @@ A calm, game-first practice lab for FCPS Grade 5 math and the 2023 Virginia Math
 - Multi-step computation uses a paper-style work area (carries, partial products, long-division rows).
 - Print pack: US Letter, full color, two columns, two question pages plus an answer key on its own page.
 
-This is a static site. Open `index.html` locally, use GitHub Pages, or deploy the folder to Vercel with no build step.
+All 11 class units and both paper arenas are live. This is a static site: open `index.html` locally, use GitHub Pages, or deploy the folder to Vercel with no build step.
 
 ## Units
 
