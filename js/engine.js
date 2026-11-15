@@ -147,105 +147,172 @@
     return wrap;
   }
 
-  function paperDivide(dividend, divisor) {
-    // Typeable long-division tableau sized to the problem
+function paperDivide(dividend, divisor) {
     const q = Math.floor(dividend / divisor);
     const rem = dividend % divisor;
     const D = String(dividend);
-    const Q = String(q);
+    const n = D.length;
+    const digits = D.split('').map(Number);
+
+    // Simulate the paper algorithm; record the column of each quotient digit.
+    const qCols = Array(n).fill('');
+    const steps = [];
+    let cur = 0, pos = 0, started = false;
+    while (pos < n) {
+      cur = cur * 10 + digits[pos];
+      const col = pos;
+      pos++;
+      if (cur < divisor && !started && pos < n) continue;
+      const qd = Math.floor(cur / divisor);
+      qCols[col] = String(qd);
+      started = true;
+      const prod = qd * divisor;
+      const diff = cur - prod;
+      steps.push({
+        col, qd, prod, diff, cur,
+        prodStr: String(prod),
+        diffStr: String(diff),
+        bring: pos < n ? digits[pos] : null
+      });
+      cur = diff;
+    }
+    if (qCols.join('').replace(/^0+/, '') !== String(q) && String(q) !== qCols.join('').replace(/^0+/, '0')) {
+      // Fallback: right-align the known quotient if simulation drifted.
+      const Q = String(q);
+      for (let i = 0; i < n; i++) qCols[i] = (i >= n - Q.length) ? Q[i - (n - Q.length)] : '';
+    }
+
     const wrap = document.createElement('div');
     wrap.className = 'paper-wrap';
     const paper = document.createElement('div');
-    paper.className = 'paper';
+    paper.className = 'paper ldiv';
     paper.style.display = 'grid';
-    const cols = D.length + 2;
-    // We'll build a compact classic layout with labeled rows
-    const html = document.createElement('div');
-    html.style.fontFamily = 'var(--mono)';
-    html.style.fontWeight = '800';
-    const qRow = document.createElement('div');
-    qRow.style.display = 'flex'; qRow.style.alignItems = 'center'; qRow.style.gap = '4px'; qRow.style.marginLeft = '48px';
-    Q.split('').forEach((ch) => {
+    paper.style.gridTemplateColumns = 'auto 18px repeat(' + n + ', var(--ldiv-cell)) auto';
+    paper.style.columnGap = 'var(--ldiv-gap)';
+    paper.setAttribute('aria-label', 'Long division of ' + dividend + ' divided by ' + divisor);
+
+    const mkCell = (expect, extra) => {
       const inp = document.createElement('input');
-      inp.className = 'cell'; inp.maxLength = 1; inp.inputMode = 'numeric'; inp.dataset.expect = ch;
-      qRow.appendChild(inp);
+      inp.className = 'cell';
+      inp.maxLength = extra && extra.full ? 3 : 1;
+      inp.inputMode = 'numeric';
+      inp.dataset.expect = String(expect);
+      if (extra && extra.full) inp.dataset.full = '1';
+      if (extra && extra.width) inp.style.width = extra.width;
+      inp.addEventListener('input', () => {
+        inp.value = extra && extra.full ? inp.value.replace(/\D/g, '').slice(0, 3) : inp.value.replace(/\D/g, '').slice(0, 1);
+      });
+      return inp;
+    };
+    const place = (el, col, row, span) => {
+      // col: -2 divisor, -1 bracket, 0..n-1 digits, n remainder
+      el.style.gridColumn = (col + 3) + (span && span > 1 ? ' / span ' + span : '');
+      el.style.gridRow = String(row);
+      paper.appendChild(el);
+    };
+
+    // Row 1: quotient digits, aligned over the dividend.
+    qCols.forEach((ch, i) => {
+      if (ch === '') {
+        const spacer = document.createElement('div');
+        place(spacer, i, 1);
+        return;
+      }
+      const inp = mkCell(ch);
+      place(inp, i, 1);
     });
     if (rem) {
-      const rlab = document.createElement('span'); rlab.style.marginLeft = '8px'; rlab.style.fontSize = '16px'; rlab.textContent = 'R';
-      const rInp = document.createElement('input'); rInp.className = 'cell'; rInp.style.width = '40px'; rInp.maxLength = 3; rInp.inputMode = 'numeric'; rInp.dataset.expect = String(rem); rInp.dataset.full = '1';
-      qRow.appendChild(rlab); qRow.appendChild(rInp);
+      const rbox = document.createElement('div');
+      rbox.className = 'ldiv-r';
+      rbox.appendChild(document.createTextNode('R'));
+      rbox.appendChild(mkCell(rem, { full: true, width: '40px' }));
+      place(rbox, n, 1);
     }
-    const mid = document.createElement('div');
-    mid.style.display = 'flex'; mid.style.alignItems = 'flex-start'; mid.style.gap = '6px'; mid.style.marginTop = '4px';
+
+    // Row 2: overline + top of the bracket. Row 3: divisor, curve, dividend.
+    const bar = document.createElement('div');
+    bar.className = 'ldiv-bar';
+    bar.style.gridColumn = '2 / span ' + (n + 1);
+    bar.style.gridRow = '2';
+    paper.appendChild(bar);
+
     const divL = document.createElement('div');
-    divL.style.fontSize = '22px'; divL.style.paddingTop = '8px'; divL.textContent = String(divisor);
-    const box = document.createElement('div');
-    box.style.borderTop = '3px solid #1b2437';
-    box.style.borderLeft = '3px solid #1b2437';
-    box.style.borderRadius = '0 0 0 12px';
-    box.style.padding = '4px 6px 8px 8px';
-    const dRow = document.createElement('div');
-    dRow.style.display = 'flex'; dRow.style.gap = '2px';
-    D.split('').forEach((ch) => {
+    divL.className = 'ldiv-divisor';
+    divL.textContent = String(divisor);
+    place(divL, -2, 3);
+
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 18 40');
+    svg.setAttribute('preserveAspectRatio', 'xMidYMin meet');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.classList.add('ldiv-bracket');
+    svg.style.gridColumn = '2';
+    svg.style.gridRow = '2 / 4';
+    const path = document.createElementNS(svgNS, 'path');
+    // Closing-paren curve whose top meets the overline.
+    path.setAttribute('d', 'M 17 1.5 C 4 7, 2.2 16, 2.2 24 C 2.2 32, 6 38.5, 15.5 40');
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', 'currentColor');
+    path.setAttribute('stroke-width', '2.6');
+    path.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(path);
+    paper.appendChild(svg);
+
+    D.split('').forEach((ch, i) => {
       const s = document.createElement('span');
-      s.style.display = 'inline-flex'; s.style.width = '28px'; s.style.justifyContent = 'center'; s.style.fontSize = '20px';
-      s.textContent = ch; dRow.appendChild(s);
+      s.className = 'ldiv-d';
+      s.textContent = ch;
+      place(s, i, 3);
     });
-    box.appendChild(dRow);
 
-    // work rows: successive products and differences
-    let remain = 0, idx = 0, first = true;
-    const work = [];
-    const digits = D.split('').map(Number);
-    // simulate long division to get expected rows
-    let cur = 0, qDigits = [];
-    let pos = 0;
-    while (pos < digits.length) {
-      cur = cur * 10 + digits[pos];
-      pos++;
-      if (cur < divisor && qDigits.length === 0 && pos < digits.length) continue;
-      const qd = Math.floor(cur / divisor);
-      qDigits.push(qd);
-      const prod = qd * divisor;
-      work.push({ prod, cur, diff: cur - prod, bring: pos < digits.length ? digits[pos] : null });
-      cur = cur - prod;
-    }
-    work.forEach((step, i) => {
-      const pRow = document.createElement('div');
-      pRow.style.display = 'flex'; pRow.style.gap = '2px'; pRow.style.marginTop = '4px';
-      String(step.prod).split('').forEach((ch) => {
-        const inp = document.createElement('input');
-        inp.className = 'cell'; inp.maxLength = 1; inp.inputMode = 'numeric'; inp.dataset.expect = ch;
-        pRow.appendChild(inp);
+    // Work rows: product, underline, difference (+ brought-down digit on the same row).
+    let row = 4;
+    steps.forEach((step) => {
+      const pStr = step.prodStr;
+      const pStart = step.col - pStr.length + 1;
+      const minus = document.createElement('div');
+      minus.className = 'ldiv-minus';
+      minus.textContent = '−';
+      place(minus, -1, row);
+      pStr.split('').forEach((ch, i) => {
+        const inp = mkCell(ch);
+        place(inp, pStart + i, row);
       });
-      box.appendChild(pRow);
+      row++;
       const line = document.createElement('div');
-      line.style.borderTop = '2px solid #1b2437'; line.style.margin = '2px 0';
-      box.appendChild(line);
-      const df = document.createElement('div');
-      df.style.display = 'flex'; df.style.gap = '2px';
-      String(step.diff).split('').forEach((ch) => {
-        const inp = document.createElement('input');
-        inp.className = 'cell'; inp.maxLength = 1; inp.inputMode = 'numeric'; inp.dataset.expect = ch;
-        df.appendChild(inp);
+      line.className = 'ldiv-minusbar';
+      const lineStart = Math.max(0, pStart);
+      const lineLen = step.col - lineStart + 1;
+      line.style.gridColumn = (lineStart + 3) + ' / span ' + lineLen;
+      line.style.gridRow = String(row);
+      paper.appendChild(line);
+      row++;
+      const dStr = step.diffStr;
+      const dStart = step.col - dStr.length + 1;
+      dStr.split('').forEach((ch, i) => {
+        const inp = mkCell(ch);
+        place(inp, dStart + i, row);
       });
-      box.appendChild(df);
+      if (step.bring != null) {
+        const inp = mkCell(step.bring);
+        place(inp, step.col + 1, row);
+      }
+      row++;
     });
 
-    mid.appendChild(divL); mid.appendChild(box);
-    paper.appendChild(qRow);
-    paper.appendChild(mid);
     wrap.appendChild(paper);
     wrap.check = () => {
       const cells = [...wrap.querySelectorAll('input.cell[data-expect]')];
       let ok = true;
       cells.forEach((c) => {
-        if (c.value !== c.dataset.expect) { ok = false; c.classList.add('wrong'); } else { c.classList.remove('wrong'); }
+        if (c.value !== c.dataset.expect) { ok = false; c.classList.add('wrong'); c.classList.remove('right'); }
+        else { c.classList.remove('wrong'); c.classList.add('right'); }
       });
       return ok && cells.length > 0;
     };
     wrap.reveal = () => {
-      wrap.querySelectorAll('input.cell[data-expect]').forEach((c) => { c.value = c.dataset.expect; });
+      wrap.querySelectorAll('input.cell[data-expect]').forEach((c) => { if (c.dataset.expect) c.value = c.dataset.expect; });
     };
     return wrap;
   }
@@ -403,6 +470,7 @@
         const r = document.createElement('div'); r.className = 'remember'; r.innerHTML = c.remember; body.appendChild(r);
       }
       const tryHost = document.createElement('div');
+      tryHost.className = 'try-slot';
       if (c.try) {
         renderItem(tryHost, typeof c.try === 'function' ? c.try() : c.try, { label: 'Try it' });
         body.appendChild(tryHost);
@@ -423,6 +491,9 @@
       };
       nav.appendChild(next);
       card.appendChild(nav);
+      requestAnimationFrame(function () {
+        try { window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); } catch (e) { window.scrollTo(0, 0); }
+      });
     };
     draw();
   }
@@ -453,6 +524,7 @@
           <button data-l="core" class="${M.lvl !== 'advanced' ? 'on' : ''}">Core</button>
           <button data-l="advanced" class="${M.lvl === 'advanced' ? 'on' : ''}">Advanced</button>
         </div>
+        <button type="button" class="icon-btn theme-toggle" data-theme-toggle></button>
         <button class="icon-btn" id="printBtn">Print pack</button>
         <div class="xp" id="xp">⭐ ${M.xp} XP</div>
       </div>
@@ -468,6 +540,7 @@
     `;
     root.innerHTML = '';
     root.appendChild(shell);
+    if (w.G5Theme) G5Theme.sync();
 
     const stage = shell.querySelector('#stage');
     const setXP = () => { shell.querySelector('#xp').textContent = '⭐ ' + M.xp + ' XP'; };
@@ -505,7 +578,7 @@
       const T = track();
       stage.innerHTML = `<h2>Learn · ${M.lvl === 'advanced' ? 'Advanced' : 'Core'}</h2>
         <p class="lede">${T.intro || 'Short lesson cards, then one try-it. About 5–8 minutes. No rush.'}</p>
-        <div class="lesson-chips" id="chips"></div><div id="lessonHost"></div>`;
+        <div class="lesson-chips" id="chips"></div><div id="lessonHost" class="stage-host"></div>`;
       const chips = stage.querySelector('#chips');
       const host = stage.querySelector('#lessonHost');
       const open = (k) => {
@@ -544,7 +617,7 @@
           <span class="stat" id="stSolved">0 solved</span>
           <span class="stat" id="stStreak">streak 0</span>
         </div>
-        <div id="pHost" class="q-card"></div>`;
+        <div id="pHost" class="stage-host"></div>`;
       let skill = 'all', n = 5, solved = 0, streak = 0, qi = 0, cur = null;
       const skillSeg = stage.querySelector('#skillSeg');
       const allBtn = document.createElement('button'); allBtn.className = 'on'; allBtn.textContent = 'All skills';
@@ -607,7 +680,7 @@
       const items = (typeof T.test === 'function' ? T.test() : (T.test || [])).slice();
       stage.innerHTML = `<h2>Test Lab · ${M.lvl === 'advanced' ? 'Advanced' : 'Core'}</h2>
         <p class="lede">SOL-style formats. Every part must be right. One question at a time — take all the time you need.</p>
-        <div id="tHost"></div>`;
+        <div id="tHost" class="stage-host"></div>`;
       const host = stage.querySelector('#tHost');
       let i = 0, right = 0;
       const draw = () => {

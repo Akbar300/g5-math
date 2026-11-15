@@ -6,6 +6,7 @@ A calm, game-first practice lab for FCPS Grade 5 math and the 2023 Virginia Math
 - Practice folds fresh questions and an endless dojo into one place. No timers unless you want them later.
 - Multi-step computation uses a paper-style work area (carries, partial products, long-division rows).
 - Print pack: US Letter, full color, two columns, two question pages plus an answer key on its own page.
+- Light and dark mode, remembered on this device, and a left-hand tab sidebar on wide screens so short answers and work stay on one view with less scrolling.
 
 All 11 class units and both paper arenas are live. This is a static site: open `index.html` locally, use GitHub Pages, or deploy the folder to Vercel with no build step.
 
