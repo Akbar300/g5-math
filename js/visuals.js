@@ -229,7 +229,7 @@
       const x = quad ? 120 + pt.x * s : 28 + pt.x * s;
       const y = quad ? 120 - pt.y * s : 220 - pt.y * s;
       sEl.appendChild(el('circle', { cx: x, cy: y, r: 6, fill: '#ff5a36', stroke: 'var(--ink)', 'stroke-width': '2' }));
-      if (pt.label) sEl.appendChild(el('text', { x: x + 8, y: y - 8, 'font-size': '11', 'font-weight': '800' }, [pt.label]));
+      if (pt.label) sEl.appendChild(el('text', { x: x + 8, y: y - 8, 'font-size': '11', 'font-weight': '800', fill: 'var(--ink)' }, [pt.label]));
     });
     return wrap(sEl);
   }
@@ -246,8 +246,52 @@
     return wrap(s);
   }
 
+  function areaRect(l, w, { unit = '', fill = '#0fb39c' } = {}) {
+    const scale = Math.min(200 / Math.max(l, 1), 130 / Math.max(w, 1), 36);
+    const W = Math.max(48, l * scale), H = Math.max(36, w * scale);
+    const padL = 44, padT = 28, padB = 16, padR = 16;
+    const s = svg(W + padL + padR, H + padT + padB);
+    s.appendChild(el('rect', { x: padL, y: padT, width: W, height: H, fill, 'fill-opacity': '0.4', stroke: 'var(--ink)', 'stroke-width': '2.5', rx: '4' }));
+    s.appendChild(el('text', { x: padL + W / 2, y: padT - 8, 'text-anchor': 'middle', 'font-size': '14', 'font-weight': '800', fill: 'var(--ink)' }, [String(l) + (unit ? ' ' + unit : '')]));
+    s.appendChild(el('text', { x: padL - 8, y: padT + H / 2, 'text-anchor': 'end', 'dominant-baseline': 'middle', 'font-size': '14', 'font-weight': '800', fill: 'var(--ink)' }, [String(w) + (unit ? ' ' + unit : '')]));
+    const area = (Math.round(l * w * 1000) / 1000);
+    s.appendChild(el('text', { x: padL + W / 2, y: padT + H / 2 + 5, 'text-anchor': 'middle', 'font-size': '16', 'font-weight': '800', fill: 'var(--ink)' }, [String(area)]));
+    return wrap(s);
+  }
+
+  function metricLadder(on) {
+    const units = ['km', 'hm', 'dam', 'm', 'dm', 'cm', 'mm'];
+    const s = svg(420, 70);
+    units.forEach((u, i) => {
+      const x = 16 + i * 58;
+      const hit = u === on;
+      s.appendChild(el('rect', { x, y: 18, width: 50, height: 32, rx: '8', fill: hit ? '#0fb39c' : 'var(--viz-empty)', stroke: 'var(--ink)', 'stroke-width': '2' }));
+      s.appendChild(el('text', { x: x + 25, y: 39, 'text-anchor': 'middle', 'font-size': '13', 'font-weight': '800', fill: hit ? '#072821' : 'var(--ink)' }, [u]));
+      if (i < units.length - 1) {
+        s.appendChild(el('text', { x: x + 54, y: 14, 'text-anchor': 'middle', 'font-size': '9', 'font-weight': '800', fill: 'var(--muted)' }, ['×10']));
+      }
+    });
+    return wrap(s);
+  }
+
+  function cycleSteps(labels) {
+    const n = labels.length, W = 440, H = 78, bw = Math.min(96, (W - 20 - (n - 1) * 24) / n);
+    const s = svg(W, H);
+    labels.forEach((lab, i) => {
+      const x = 10 + i * (bw + 24);
+      s.appendChild(el('rect', { x, y: 16, width: bw, height: 46, rx: '10', fill: 'var(--why-bg)', stroke: 'var(--ink)', 'stroke-width': '2' }));
+      s.appendChild(el('text', { x: x + bw / 2, y: 44, 'text-anchor': 'middle', 'font-size': '11', 'font-weight': '800', fill: 'var(--ink)' }, [lab]));
+      if (i < n - 1) {
+        s.appendChild(el('path', { d: `M ${x + bw + 3} 39 L ${x + bw + 18} 39`, stroke: 'var(--ink)', 'stroke-width': '2', 'stroke-linecap': 'round' }));
+        s.appendChild(el('path', { d: `M ${x + bw + 12} 33 L ${x + bw + 18} 39 L ${x + bw + 12} 45`, fill: 'none', stroke: 'var(--ink)', 'stroke-width': '2', 'stroke-linecap': 'round' }));
+      }
+    });
+    return wrap(s);
+  }
+
   w.V = {
     hundredGrid, fractionBar, numberLine, placeValue, linePlot, stemLeaf, pie, barGraph, plane, angle,
+    areaRect, metricLadder, cycleSteps,
     fr(n, d) { return `<span class="frac"><span class="n">${n}</span><span class="d">${d}</span></span>`; },
     mixed(w, n, d) { return `<span class="mix">${w}${this.fr(n, d)}</span>`; }
   };

@@ -156,16 +156,18 @@
 
   /* One tap = one action. Swallow the click that follows touchend, but allow a real second tap. */
   function bindTap(el, fn) {
-    let touchHandled = false;
+    /* Fire on the real tap. Ignore only the leftover click that some browsers
+       send after touchend — a second genuine tap still gets through. */
+    let ignoreClick = false;
     el.addEventListener('touchend', (e) => {
-      e.preventDefault();
-      touchHandled = true;
-      setTimeout(() => { touchHandled = false; }, 400);
+      if (e.cancelable) e.preventDefault();
+      ignoreClick = true;
+      setTimeout(() => { ignoreClick = false; }, 700);
       if (el.disabled) return;
       fn(e);
     }, { passive: false });
     el.addEventListener('click', (e) => {
-      if (touchHandled) return;
+      if (ignoreClick) { e.preventDefault(); e.stopPropagation(); return; }
       if (el.disabled) return;
       fn(e);
     });
@@ -784,33 +786,124 @@ function paperDivide(dividend, divisor) {
   }
 
   /* ---------- Learn player ---------- */
+  function normalizeTries(raw) {
+    if (!raw) return [];
+    const arr = Array.isArray(raw) ? raw : [raw];
+    return arr.filter(Boolean).map((x) => (typeof x === 'function' ? x : () => x));
+  }
+
+  function mountViz(host, viz) {
+    if (!viz) return;
+    let out = typeof viz === 'function' ? viz() : viz;
+    if (out == null || out === '') return;
+    if (out instanceof Node) {
+      if (out.classList && out.classList.contains('viz')) { host.appendChild(out); return; }
+      const box = document.createElement('div'); box.className = 'viz'; box.appendChild(out); host.appendChild(box); return;
+    }
+    const box = document.createElement('div');
+    box.className = 'viz';
+    box.innerHTML = String(out);
+    if (box.children.length === 1 && box.firstElementChild.classList && box.firstElementChild.classList.contains('viz')) {
+      host.appendChild(box.firstElementChild);
+      return;
+    }
+    host.appendChild(box);
+  }
+
+  function decorateCard(lesson, card) {
+    const extra = (w.G5Learn && typeof w.G5Learn.forCard === 'function') ? w.G5Learn.forCard(lesson, card) : null;
+    const out = extra ? Object.assign({}, card, extra) : Object.assign({}, card);
+    if (extra && extra.html == null && card.html) out.html = card.html;
+    const fromCard = normalizeTries(card.tries || card.try);
+    const fromPack = extra ? normalizeTries(extra.tries || extra.try) : [];
+    out.tries = fromCard.concat(fromPack).slice(0, 3);
+    if (!out.trap && card.trap) out.trap = card.trap;
+    if (!out.steps && card.steps) out.steps = card.steps;
+    if (!out.remember && card.remember) out.remember = card.remember;
+    return out;
+  }
+
   function playLesson(host, lesson, onDone) {
     host.innerHTML = '';
     const card = document.createElement('div'); card.className = 'lesson-card';
     host.appendChild(card);
     let i = 0;
     const draw = () => {
-      const c = lesson.cards[i];
-      card.innerHTML = `<h3>${c.t || lesson.name}</h3><div class="lesson-body">${c.html || ''}</div>`;
-      const body = card.querySelector('.lesson-body');
+      const c = decorateCard(lesson, lesson.cards[i]);
+      card.innerHTML = '';
+      const title = document.createElement('h3');
+      title.innerHTML = c.t || lesson.name;
+      card.appendChild(title);
+      const body = document.createElement('div');
+      body.className = 'lesson-body' + ((c.tries && c.tries.length) ? ' lesson-split' : '');
+      const main = document.createElement('div');
+      main.className = 'lesson-main';
+      if (c.html) {
+        const explain = document.createElement('div');
+        explain.className = 'lesson-explain';
+        explain.innerHTML = c.html;
+        main.appendChild(explain);
+      }
+      mountViz(main, c.viz);
+      if (c.steps && c.steps.length) {
+        const ex = document.createElement('div');
+        ex.className = 'worked';
+        ex.innerHTML = '<div class="worked-label">Worked example</div><ol class="steps">' +
+          c.steps.map((s) => '<li>' + s + '</li>').join('') + '</ol>';
+        main.appendChild(ex);
+      }
+      if (c.example) {
+        const ex = document.createElement('div');
+        ex.className = 'worked';
+        ex.innerHTML = '<div class="worked-label">Worked example</div>' + c.example;
+        main.appendChild(ex);
+      }
+      if (c.trap) {
+        const t = document.createElement('div');
+        t.className = 'trap';
+        t.innerHTML = '<span class="callout-k">Common trap</span> ' + c.trap;
+        main.appendChild(t);
+      }
+      if (c.aap) {
+        const t = document.createElement('div');
+        t.className = 'aap';
+        const aapHtml = typeof c.aap === 'string' ? c.aap : (c.aap.html || c.aap.text || '');
+        t.innerHTML = '<span class="callout-k">AAP stretch</span> ' + aapHtml;
+        main.appendChild(t);
+      }
       if (c.remember) {
-        const r = document.createElement('div'); r.className = 'remember'; r.innerHTML = c.remember; body.appendChild(r);
+        const r = document.createElement('div'); r.className = 'remember'; r.innerHTML = c.remember; main.appendChild(r);
       }
-      const tryHost = document.createElement('div');
-      tryHost.className = 'try-slot';
-      if (c.try) {
-        const loadTry = () => {
-          tryHost.innerHTML = '';
-          renderItem(tryHost, typeof c.try === 'function' ? c.try() : c.try, {
-            label: 'Try it',
-            nextLabel: 'Try another',
-            onNext: loadTry
-          });
-          formatFractionsIn(tryHost);
-        };
-        loadTry();
-        body.appendChild(tryHost);
+      body.appendChild(main);
+      if (c.tries && c.tries.length) {
+        const prac = document.createElement('div');
+        prac.className = 'lesson-practice';
+        const ph = document.createElement('h4');
+        ph.textContent = c.tries.length === 1 ? 'Try it' : 'Try these';
+        prac.appendChild(ph);
+        c.tries.forEach((fn, k) => {
+          const slot = document.createElement('div');
+          slot.className = 'try-slot';
+          const load = () => {
+            slot.innerHTML = '';
+            let it = null;
+            for (let t = 0; t < 16 && !it; t++) {
+              try { it = fn(); } catch (e) { it = null; }
+            }
+            if (!it) return;
+            renderItem(slot, it, {
+              label: 'Try ' + (k + 1),
+              nextLabel: 'Try another',
+              onNext: load
+            });
+            formatFractionsIn(slot);
+          };
+          load();
+          prac.appendChild(slot);
+        });
+        body.appendChild(prac);
       }
+      card.appendChild(body);
       const nav = document.createElement('div'); nav.className = 'row-btns';
       if (i > 0) {
         const back = document.createElement('button'); back.className = 'btn ghost'; back.textContent = 'Back';

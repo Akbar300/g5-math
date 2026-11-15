@@ -32,16 +32,26 @@
     return it;
   }
 
+  function asTryFn(x) {
+    return function () {
+      const it = typeof x === 'function' ? x() : x;
+      return toLab(it) || it;
+    };
+  }
   function cardify(c) {
-    let html = c.h || c.html || '';
-    if (c.steps && c.steps.length) {
-      html += '<ol class="steps">' + c.steps.map(function (s) { return '<li>' + s + '</li>'; }).join('') + '</ol>';
-    }
+    const rawTry = c.tries || c.try || c.tr;
+    const tryList = rawTry ? (Array.isArray(rawTry) ? rawTry : [rawTry]).filter(Boolean).map(asTryFn) : undefined;
     return {
       t: c.t,
-      html: html,
-      remember: c.key || c.trap,
-      try: c.tr ? function () { return toLab(typeof c.tr === 'function' ? c.tr() : c.tr); } : undefined
+      html: c.h || c.html || '',
+      viz: c.viz,
+      steps: c.steps,
+      example: c.example,
+      trap: c.trap,
+      aap: c.aap,
+      remember: c.key || undefined,
+      try: tryList && tryList.length === 1 ? tryList[0] : undefined,
+      tries: tryList && tryList.length ? tryList : undefined
     };
   }
 
