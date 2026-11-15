@@ -28,7 +28,7 @@
         fill: i < shaded ? fill : 'var(--viz-empty)', stroke: 'var(--ink)', 'stroke-width': '1'
       }));
     }
-    if (label) s.appendChild(el('text', { x: W / 2, y: H - 6, 'text-anchor': 'middle', 'font-size': '13', 'font-weight': '800', fill: 'var(--ink)' }, [label]));
+    if (label) svgLabel(s, W / 2, H - 6, label, { 'font-size': 13, fill: 'var(--ink)' });
     return wrap(s);
   }
 
@@ -41,8 +41,43 @@
         fill: i < n ? fill : 'var(--viz-empty)', stroke: 'var(--ink)', 'stroke-width': '2'
       }));
     }
-    if (label) s.appendChild(el('text', { x: w / 2, y: h + 10, 'text-anchor': 'middle', 'font-size': '13', 'font-weight': '800', fill: 'var(--ink)' }, [label]));
+    if (label) svgLabel(s, w / 2, h + 10, label, { 'font-size': 13, fill: 'var(--ink)' });
     return wrap(s);
+  }
+
+
+  function parseFracLabel(text) {
+    const t = String(text == null ? '' : text).trim();
+    let m = t.match(/^(-?\d+)\s+(\d+)\s*\/\s*(\d+)$/);
+    if (m) return { kind: 'mixed', w: m[1], n: m[2], d: m[3] };
+    m = t.match(/^(-?\d+)\s*\/\s*(\d+)$/);
+    if (m) return { kind: 'frac', n: m[1], d: m[2] };
+    return { kind: 'text', t };
+  }
+  function svgLabel(parent, x, y, text, attrs) {
+    attrs = attrs || {};
+    const parsed = parseFracLabel(text);
+    const fill = attrs.fill || 'var(--ink)';
+    const size = +(attrs['font-size'] || 12);
+    const weight = attrs['font-weight'] || '800';
+    if (parsed.kind === 'text') {
+      parent.appendChild(el('text', { x, y, 'text-anchor': attrs['text-anchor'] || 'middle', 'font-size': String(size), 'font-weight': weight, fill }, [parsed.t]));
+      return;
+    }
+    const fs = Math.max(9, size - 1);
+    const g = el('g', { fill, 'font-weight': weight, 'font-size': String(fs), 'text-anchor': 'middle' });
+    const num = parsed.n, den = parsed.d;
+    const wide = Math.max(String(num).length, String(den).length) * fs * 0.62 + 4;
+    let cx = +x, cy = +y;
+    if (parsed.kind === 'mixed') {
+      const wOff = String(parsed.w).length * fs * 0.42;
+      g.appendChild(el('text', { x: cx - wide / 2 - 1, y: cy + fs * 0.25, 'font-size': String(size), 'dominant-baseline': 'middle' }, [parsed.w]));
+      cx = cx + wOff * 0.4;
+    }
+    g.appendChild(el('text', { x: cx, y: cy - fs * 0.55 }, [num]));
+    g.appendChild(el('line', { x1: cx - wide / 2, y1: cy, x2: cx + wide / 2, y2: cy, stroke: fill, 'stroke-width': '1.6', 'stroke-linecap': 'round' }));
+    g.appendChild(el('text', { x: cx, y: cy + fs * 0.95 }, [den]));
+    parent.appendChild(g);
   }
 
   function numberLine(min, max, marks, { w = 420, h = 80 } = {}) {
@@ -56,13 +91,13 @@
       const x = L + ((v - min) / span) * (R - L);
       s.appendChild(el('line', { x1: x, y1: Y - 7, x2: x, y2: Y + 7, stroke: 'var(--ink)', 'stroke-width': '2' }));
       if (Math.abs(v * 10 - Math.round(v * 10)) < 1e-6) {
-        s.appendChild(el('text', { x, y: Y + 22, 'text-anchor': 'middle', 'font-size': '12', 'font-weight': '800', fill: 'var(--muted)' }, [String(v)]));
+        svgLabel(s, x, Y + 22, String(v), { 'font-size': 12, fill: 'var(--muted)' });
       }
     });
     (marks || []).forEach((m) => {
       const x = L + ((m.pos - min) / span) * (R - L);
       s.appendChild(el('circle', { cx: x, cy: Y, r: 7, fill: m.color || '#ff5a36', stroke: 'var(--ink)', 'stroke-width': '2' }));
-      s.appendChild(el('text', { x, y: 16, 'text-anchor': 'middle', 'font-size': '13', 'font-weight': '800', fill: 'var(--ink)' }, [m.label || String(m.pos)]));
+      svgLabel(s, x, 16, m.label || String(m.pos), { 'font-size': 13, fill: 'var(--ink)' });
     });
     return wrap(s);
   }
@@ -109,7 +144,7 @@
     for (let v = lo; v <= hi; v++) {
       const x = L + ((v - lo) / Math.max(hi - lo, 1)) * (R - L);
       s.appendChild(el('line', { x1: x, y1: Y - 5, x2: x, y2: Y + 5, stroke: 'var(--ink)', 'stroke-width': '2' }));
-      s.appendChild(el('text', { x, y: Y + 18, 'text-anchor': 'middle', 'font-size': '12', 'font-weight': '800', fill: 'var(--muted)' }, [String(v)]));
+      svgLabel(s, x, Y + 18, String(v), { 'font-size': 12, fill: 'var(--muted)' });
       const n = counts[v] || 0;
       for (let i = 0; i < n; i++) {
         s.appendChild(el('circle', { cx: x, cy: Y - 14 - i * 16, r: 6, fill: '#2f80ed', stroke: 'var(--ink)', 'stroke-width': '1.5' }));
@@ -150,11 +185,7 @@
         fill: cols[i % cols.length], stroke: 'var(--ink)', 'stroke-width': '2'
       }));
       if (labels && labels[i] && p >= 8) {
-        s.appendChild(el('text', {
-          x: (cx + (R * 0.55) * Math.cos(am)).toFixed(1),
-          y: (cy + (R * 0.55) * Math.sin(am) + 4).toFixed(1),
-          'text-anchor': 'middle', 'font-size': '11', 'font-weight': '800', fill: 'var(--ink)'
-        }, [labels[i]]));
+        svgLabel(s, (cx + (R * 0.55) * Math.cos(am)).toFixed(1), (cy + (R * 0.55) * Math.sin(am) + 4).toFixed(1), labels[i], { 'font-size': 11, fill: 'var(--ink)' });
       }
       a0 = a1;
     });
@@ -171,7 +202,7 @@
     cats.forEach((c, i) => {
       const bh = (vals[i] / max) * 100;
       s.appendChild(el('rect', { x: L + 10 + i * bw, y: B - bh, width: bw - 12, height: bh, fill: color, stroke: 'var(--ink)', 'stroke-width': '1.5' }));
-      s.appendChild(el('text', { x: L + 10 + i * bw + (bw - 12) / 2, y: B + 16, 'text-anchor': 'middle', 'font-size': '11', 'font-weight': '800' }, [c]));
+      svgLabel(s, L + 10 + i * bw + (bw - 12) / 2, B + 16, c, { 'font-size': 11, fill: 'var(--ink)' });
       s.appendChild(el('text', { x: L + 10 + i * bw + (bw - 12) / 2, y: B - bh - 4, 'text-anchor': 'middle', 'font-size': '11', 'font-weight': '800' }, [String(vals[i])]));
     });
     return wrap(s);

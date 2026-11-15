@@ -118,7 +118,15 @@ a{color:inherit}
 .frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .18em;line-height:1.05;font-weight:800;font-family:var(--mono)}
 .frac .n{border-bottom:2.5px solid currentColor;padding:0 .28em 1px}
 .frac .d{padding:1px .28em 0}
-.mix{display:inline-flex;align-items:center;gap:.15em}
+.mix{display:inline-flex;align-items:center;gap:.12em;vertical-align:middle}
+.mix .whole{font-weight:800;font-family:var(--mono);margin-right:.05em}
+.opt .frac,.tag .frac,.fb .frac,.why .frac,.q-text .frac,.remember .frac,.pq .frac{
+  font-size:.95em;margin:0 .06em;
+}
+.opt .frac .n,.opt .frac .d{padding:0 .12em;line-height:1.05}
+.opt{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:52px;cursor:pointer}
+.btn,.opt,.icon-btn,.chip,.seg button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.advance-row{margin-top:10px}
 
 /* Slim app chrome */
 .app-shell{
@@ -216,9 +224,11 @@ a{color:inherit}
 
 /* Answer layouts */
 .opts-row{display:flex;flex-wrap:nowrap;gap:8px;justify-content:flex-start;align-items:stretch}
-.opts-row .opt{flex:0 0 auto;min-width:64px;width:auto;padding:10px 16px}
-.opts-grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.opts-row .opt{flex:1 1 0;min-width:64px;width:auto;padding:8px 12px}
+.opts-grid,.opts-grid2{display:grid;grid-template-columns:repeat(var(--opts-cols,2),minmax(0,1fr));gap:8px}
+.opts-grid .opt,.opts-grid2 .opt{width:100%;padding:8px 12px}
 .opts-col{display:grid;grid-template-columns:1fr;gap:8px}
+.opts-col .opt{justify-content:flex-start;text-align:left;width:100%}
 .opt{background:var(--btn-face);border:2.5px solid var(--line);border-radius:14px;padding:10px 14px;font-weight:800;text-align:left;font-size:18px}
 .opt:hover,.opt:focus-visible{border-color:var(--ink);outline:none}
 .opt.sel{border-color:var(--blue);box-shadow:0 0 0 3px var(--sel-glow)}
@@ -228,6 +238,11 @@ a{color:inherit}
 .num-in{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .num-in input{border:2.5px solid var(--line);border-radius:12px;padding:8px 12px;font-size:22px;font-weight:800;font-family:var(--mono);width:160px;background:var(--paper-cell)}
 .num-in input:focus{border-color:var(--blue);outline:none}
+.nline-wrap{display:flex;flex-direction:column;gap:8px;align-items:stretch}
+.nline-ctrl{display:flex;align-items:center;gap:10px}
+.nline-ctrl input[type=range]{flex:1;min-height:44px;accent-color:var(--blue);touch-action:manipulation}
+.nline-val{font-family:var(--mono);font-weight:800;font-size:22px;min-width:3.5ch;text-align:center}
+
 
 /* Paper work areas */
 .paper-wrap{display:flex;justify-content:center;padding:6px 0;overflow:auto;max-width:100%}
@@ -256,13 +271,25 @@ a{color:inherit}
   row-gap:2px;
 }
 .ldiv-bar{
-  height:3px;
+  height:.085em;
+  min-height:2.5px;
   background:currentColor;
   border-radius:0 2px 0 0;
   align-self:start;
-  margin-left:-7px;
+  margin-left:0;
 }
-.ldiv-bracket{width:18px;height:100%;min-height:36px;overflow:visible;justify-self:stretch;align-self:stretch}
+.ldiv-bracket{
+  width:.55em;
+  min-width:10px;
+  /* Match original: slightly taller than the dividend digits, not the whole tableau. */
+  height:2.15em;
+  max-height:2.15em;
+  min-height:0;
+  overflow:visible;
+  justify-self:end;
+  align-self:start;
+  margin-top:0;
+}
 .ldiv-divisor{font-size:22px;line-height:1;padding:0 4px 0 0;text-align:right;align-self:center;font-variant-numeric:tabular-nums}
 .ldiv-d{width:var(--ldiv-cell);text-align:center;font-size:22px;line-height:32px}
 .ldiv-r{display:inline-flex;align-items:center;gap:6px;margin-left:8px;font-size:16px;white-space:nowrap}
@@ -314,12 +341,13 @@ a{color:inherit}
 }
 
 @media (max-width:820px){
-  .opts-grid2{grid-template-columns:1fr}
-  .opts-row{flex-wrap:wrap}
   .app-shell{padding:6px 10px 80px}
   .stage{padding:12px}
   .q-text{font-size:20px}
   .theme-toggle .theme-lbl{display:none}
+}
+@media (max-width:420px){
+  .opts-row{flex-wrap:nowrap}
 }
 
 /* Large screens: sidebar tabs, wider canvas, two-column content */

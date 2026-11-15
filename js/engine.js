@@ -31,12 +31,129 @@
   };
   w.U = U;
 
-  function optsClass(options) {
+
+  function fracHTML(n, d) {
+    return `<span class="frac"><span class="n">${n}</span><span class="d">${d}</span></span>`;
+  }
+  function mixedHTML(w, n, d) {
+    return `<span class="mix">${w}${fracHTML(n, d)}</span>`;
+  }
+
+  /* Display-only: turn 7/20 and 2 1/3 into stacked markup. Never used on answer keys for checking. */
+  function formatFractionString(str) {
+    let s = String(str);
+    const slots = [];
+    const stash = (re) => {
+      s = s.replace(re, (m) => {
+        slots.push(m);
+        return '\0' + (slots.length - 1) + '\0';
+      });
+    };
+    stash(/\bhttps?:\/\/[^\s<]+/gi);
+    stash(/\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/g);
+    stash(/\b\d{4}\/\d{1,2}\/\d{1,2}\b/g);
+    stash(/\b\d{1,4}\/\d{1,2}\/\d{1,4}\b/g);
+    s = s.replace(/(-?\d+)\s+(\d+)\s*\/\s*(\d+)/g, (_, w, n, d) => mixedHTML(w, n, d));
+    s = s.replace(/(-?\d+)\s*\/\s*(\d+)/g, (_, n, d) => fracHTML(n, d));
+    s = s.replace(/\0(\d+)\0/g, (_, i) => slots[+i]);
+    return s;
+  }
+
+  function formatFractionsIn(root) {
+    if (!root) return root;
+    const skipSel = 'script,style,textarea,input,svg,code,.frac,.mix,.paper,.ldiv,.paper-wrap';
+    const walk = (node) => {
+      if (node.nodeType === 1) {
+        if (node.matches && node.matches(skipSel)) return;
+        if (node.classList && (node.classList.contains('frac') || node.classList.contains('mix'))) return;
+        const kids = [...node.childNodes];
+        kids.forEach(walk);
+        return;
+      }
+      if (node.nodeType !== 3) return;
+      const t = node.nodeValue;
+      if (!t || !/\d\s*\/\s*\d/.test(t)) return;
+      const html = formatFractionString(t);
+      if (html === t) return;
+      const holder = document.createElement('span');
+      holder.innerHTML = html;
+      const parent = node.parentNode;
+      while (holder.firstChild) parent.insertBefore(holder.firstChild, node);
+      parent.removeChild(node);
+    };
+    walk(root);
+    return root;
+  }
+
+  function formatHTML(html) {
+    const box = document.createElement('div');
+    box.innerHTML = String(html == null ? '' : html);
+    formatFractionsIn(box);
+    return box.innerHTML;
+  }
+
+
+  /* One tap = one action. Swallow the click that follows touchend, but allow a real second tap. */
+  function bindTap(el, fn) {
+    let touchHandled = false;
+    el.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      touchHandled = true;
+      setTimeout(() => { touchHandled = false; }, 400);
+      if (el.disabled) return;
+      fn(e);
+    }, { passive: false });
+    el.addEventListener('click', (e) => {
+      if (touchHandled) return;
+      if (el.disabled) return;
+      fn(e);
+    });
+  }
+
+  function isShortAnswer(raw) {
+    const html = String(raw == null ? '' : raw);
+    if (/class="(?:frac|mix)"/.test(html) && U.strip(html).length <= 18 && !/[A-Za-z]{3,}/.test(U.strip(html))) return true;
+    const t = U.strip(html);
+    if (!t) return false;
+    if (/^-?\d+(\.\d+)?%?$/.test(t)) return true;
+    if (/^-?\d+\s+\d+\s*\/\s*\d+$/.test(t)) return true;
+    if (/^-?\d+\s*\/\s*\d+$/.test(t)) return true;
+    if (/^-?\d+\s*[Rr]\s*-?\d+$/.test(t)) return true;
+    if (/^-?\d+\s*:\s*-?\d+$/.test(t)) return true;
+    if (t.length <= 8 && !/\s/.test(t)) return true;
+    return false;
+  }
+
+  function optsLayout(options) {
     const texts = options.map((o) => U.strip(o));
-    const allShort = texts.every((t) => t.length <= 8 && !/\s/.test(t));
-    if (allShort) return 'opts-row';
-    const maxLen = Math.max(...texts.map((t) => t.length));
-    return maxLen > 42 ? 'opts-col' : 'opts-grid2';
+    const n = texts.length || 1;
+    const short = options.every(isShortAnswer);
+    const maxLen = Math.max(...texts.map((t) => t.length), 0);
+    const stage = document.querySelector('.stage');
+    const width = Math.max(200, (stage ? stage.clientWidth : document.documentElement.clientWidth) - 48);
+    const chipMin = short ? 68 : (maxLen > 28 ? 200 : 140);
+    const maxPerRow = Math.max(1, Math.floor((width + 8) / (chipMin + 8)));
+    let cols;
+    if (!short && maxLen > 42) cols = 1;
+    else if (short) {
+      if (n <= maxPerRow) cols = n;
+      else {
+        cols = 1;
+        for (let c = Math.min(maxPerRow, n); c >= 2; c--) {
+          const last = n % c;
+          if (last === 0 || last >= 2) { cols = c; break; }
+        }
+      }
+    } else if (n === 3 && maxPerRow < 3) cols = 1;
+    else cols = Math.min(2, maxPerRow, n);
+    let cls = 'opts-col';
+    if (cols === n && short) cls = 'opts-row';
+    else if (cols >= 2) cls = 'opts-grid';
+    return { cls, cols };
+  }
+
+  function optsClass(options) {
+    return optsLayout(options).cls;
   }
 
   function store(key, val) {
@@ -187,8 +304,9 @@ function paperDivide(dividend, divisor) {
     const paper = document.createElement('div');
     paper.className = 'paper ldiv';
     paper.style.display = 'grid';
-    paper.style.gridTemplateColumns = 'auto 18px repeat(' + n + ', var(--ldiv-cell)) auto';
+    paper.style.gridTemplateColumns = 'auto .55em repeat(' + n + ', var(--ldiv-cell)) auto';
     paper.style.columnGap = 'var(--ldiv-gap)';
+    paper.style.gridTemplateRows = 'auto 6px auto';
     paper.setAttribute('aria-label', 'Long division of ' + dividend + ' divided by ' + divisor);
 
     const mkCell = (expect, extra) => {
@@ -229,11 +347,11 @@ function paperDivide(dividend, divisor) {
       place(rbox, n, 1);
     }
 
-    // Row 2: overline + top of the bracket. Row 3: divisor, curve, dividend.
+    // Overline + ) curve sit on the dividend row (row 3), same as the original arena sign.
     const bar = document.createElement('div');
     bar.className = 'ldiv-bar';
     bar.style.gridColumn = '2 / span ' + (n + 1);
-    bar.style.gridRow = '2';
+    bar.style.gridRow = '3';
     paper.appendChild(bar);
 
     const divL = document.createElement('div');
@@ -243,18 +361,19 @@ function paperDivide(dividend, divisor) {
 
     const svgNS = 'http://www.w3.org/2000/svg';
     const svg = document.createElementNS(svgNS, 'svg');
-    svg.setAttribute('viewBox', '0 0 18 40');
-    svg.setAttribute('preserveAspectRatio', 'xMidYMin meet');
+    svg.setAttribute('viewBox', '0 0 10 100');
+    svg.setAttribute('preserveAspectRatio', 'none');
     svg.setAttribute('aria-hidden', 'true');
     svg.classList.add('ldiv-bracket');
     svg.style.gridColumn = '2';
-    svg.style.gridRow = '2 / 4';
+    svg.style.gridRow = '3';
     const path = document.createElementNS(svgNS, 'path');
-    // Closing-paren curve whose top meets the overline.
-    path.setAttribute('d', 'M 17 1.5 C 4 7, 2.2 16, 2.2 24 C 2.2 32, 6 38.5, 15.5 40');
+    // Original arena sign: ) curve (quadratic bulge toward the dividend) + overline.
+    path.setAttribute('d', 'M0 0 Q20 52 0 104');
     path.setAttribute('fill', 'none');
     path.setAttribute('stroke', 'currentColor');
-    path.setAttribute('stroke-width', '2.6');
+    path.setAttribute('stroke-width', '3.5');
+    path.setAttribute('vector-effect', 'non-scaling-stroke');
     path.setAttribute('stroke-linecap', 'round');
     svg.appendChild(path);
     paper.appendChild(svg);
@@ -322,6 +441,10 @@ function paperDivide(dividend, divisor) {
   /* ---------- Item renderer ---------- */
   function renderItem(host, item, opts) {
     opts = opts || {};
+    if (!item.type && (item.a != null || item.acc != null)) {
+      item = Object.assign({}, item, { type: 'num', q: item.q || item.label || '' });
+    }
+    if (item.q == null) item = Object.assign({}, item, { q: item.label || '' });
     const box = document.createElement('div');
     box.className = 'q-card';
     const meta = document.createElement('div');
@@ -338,60 +461,136 @@ function paperDivide(dividend, divisor) {
     const why = document.createElement('div'); why.className = 'why';
     if (item.why) why.innerHTML = item.why;
     box.appendChild(meta); box.appendChild(q); box.appendChild(body); box.appendChild(fb); box.appendChild(why);
+    formatFractionsIn(q);
+    if (item.why) formatFractionsIn(why);
     host.appendChild(box);
 
-    let done = false, tries = 0;
+    let done = false, tries = 0, lastOk = false;
+    const offerAdvance = (ok) => {
+      lastOk = !!ok;
+      if (!opts.onNext && ok) return; // sub-parts: no extra Next after a correct check
+      let row = box.querySelector('.advance-row');
+      if (!row) {
+        row = document.createElement('div');
+        row.className = 'row-btns advance-row';
+        const b = document.createElement('button');
+        b.className = 'btn';
+        b.type = 'button';
+        b.dataset.advance = '1';
+        bindTap(b, () => {
+          if (!done) {
+            done = true;
+            if (item.why) why.classList.add('show');
+            if (opts.onDone) opts.onDone(false, tries);
+          }
+          if (opts.onNext) opts.onNext(lastOk, tries);
+        });
+        row.appendChild(b);
+        fb.insertAdjacentElement('afterend', row);
+      }
+      const b = row.querySelector('[data-advance]');
+      b.textContent = opts.nextLabel || (opts.onNext ? (lastOk ? 'Next' : 'Try another') : 'Continue');
+      requestAnimationFrame(() => { try { b.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) {} });
+    };
     const finish = (ok) => {
       if (done) return;
       done = true;
+      lastOk = !!ok;
       fb.className = 'fb ' + (ok ? 'ok' : 'no');
-      fb.textContent = ok ? (tries === 0 ? '✅ First try!' : '✅ Got it!') : 'Not quite — look at the sample below.';
+      fb.innerHTML = ok ? (tries === 0 ? '✅ First try!' : '✅ Got it!') : 'Not quite — look at the sample below.';
+      formatFractionsIn(fb);
       if (item.why) why.classList.add('show');
       if (opts.onDone) opts.onDone(ok, tries);
+      offerAdvance(ok);
     };
 
     if (item.type === 'mc' || item.type === 'ms') {
       const ch = item.ch.slice();
-      // keep indices if not shuffled requested
       let order = ch.map((_, i) => i);
       if (!item.fixed) order = U.shuffle(order);
       const shown = order.map((i) => ch[i]);
-      const cls = optsClass(shown);
+      const layout = optsLayout(shown);
+      const cls = layout.cls;
+      const optionsAreShort = shown.every(isShortAnswer);
       const wrap = document.createElement('div');
       wrap.className = cls;
+      if (layout.cols) wrap.style.setProperty('--opts-cols', String(layout.cols));
       const letters = 'ABCDEFGH';
-      const chosen = new Set();
+      const selected = new Set();
+      const isMS = item.type === 'ms';
+      const paintSel = () => {
+        wrap.querySelectorAll('.opt').forEach((el, k) => {
+          const on = selected.has(k);
+          el.classList.toggle('sel', on);
+          el.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+      };
       shown.forEach((html, k) => {
         const b = document.createElement('button');
         b.className = 'opt';
         b.type = 'button';
-        b.innerHTML = (cls === 'opts-row' ? html : `<span class="let">${letters[k]}</span>${html}`);
-        b.addEventListener('click', () => {
+        b.setAttribute('aria-pressed', 'false');
+        b.innerHTML = (cls === 'opts-row' || (cls === 'opts-grid' && optionsAreShort) ? formatHTML(html) : `<span class="let">${letters[k]}</span>${formatHTML(html)}`);
+        bindTap(b, () => {
           if (done) return;
-          if (item.type === 'ms') {
-            if (chosen.has(k)) { chosen.delete(k); b.classList.remove('sel'); }
-            else { chosen.add(k); b.classList.add('sel'); }
-            return;
+          b.classList.remove('wrong');
+          if (isMS) {
+            if (selected.has(k)) selected.delete(k);
+            else selected.add(k);
+          } else if (selected.has(k)) {
+            selected.delete(k);
+          } else {
+            selected.clear();
+            selected.add(k);
           }
-          const pick = order[k];
-          const correct = pick === item.a || (Array.isArray(item.a) && item.a.includes(pick));
-          if (correct) { b.classList.add('right'); finish(tries === 0); }
-          else { b.classList.add('wrong'); b.disabled = true; tries++; fb.className = 'fb no'; fb.textContent = (item.traps && item.traps[pick]) ? '💡 ' + item.traps[pick] : 'Try another.'; if (tries >= 2) { why.classList.add('show'); } }
+          paintSel();
         });
         wrap.appendChild(b);
       });
       body.appendChild(wrap);
-      if (item.type === 'ms') {
-        const chk = document.createElement('button'); chk.className = 'btn teal'; chk.textContent = 'Check';
-        chk.addEventListener('click', () => {
-          if (done) return;
+      const chk = document.createElement('button');
+      chk.className = 'btn teal';
+      chk.type = 'button';
+      chk.textContent = 'Check';
+      bindTap(chk, () => {
+        if (done) return;
+        if (selected.size === 0) {
+          fb.className = 'fb no';
+          fb.textContent = isMS ? 'Select every right one — then press Check.' : 'Select an answer, then press Check.';
+          return;
+        }
+        if (isMS) {
           const want = (Array.isArray(item.a) ? item.a : [item.a]).slice().sort().join(',');
-          const got = [...chosen].map((k) => order[k]).sort().join(',');
-          if (got === want) { finish(tries === 0); wrap.querySelectorAll('.opt').forEach((el, k) => { if (chosen.has(k)) el.classList.add('right'); }); }
-          else { tries++; fb.className = 'fb no'; fb.textContent = 'Select every right one — and only those.'; if (tries >= 2) why.classList.add('show'); }
-        });
-        body.appendChild(chk);
-      }
+          const got = [...selected].map((k) => order[k]).sort().join(',');
+          if (got === want) {
+            wrap.querySelectorAll('.opt').forEach((el, k) => { if (selected.has(k)) el.classList.add('right'); });
+            finish(tries === 0);
+          } else {
+            tries++;
+            fb.className = 'fb no';
+            fb.textContent = 'Select every right one — and only those.';
+            if (tries >= 2) why.classList.add('show');
+            offerAdvance(false);
+          }
+        } else {
+          const pick = order[[...selected][0]];
+          const correct = pick === item.a || (Array.isArray(item.a) && item.a.includes(pick));
+          const btn = wrap.querySelectorAll('.opt')[[...selected][0]];
+          if (correct) {
+            if (btn) btn.classList.add('right');
+            finish(tries === 0);
+          } else {
+            if (btn) btn.classList.add('wrong');
+            tries++;
+            fb.className = 'fb no';
+            fb.innerHTML = (item.traps && item.traps[pick]) ? '💡 ' + formatHTML(item.traps[pick]) : 'Not quite — look at the sample below.';
+            formatFractionsIn(fb);
+            if (tries >= 2) why.classList.add('show');
+            offerAdvance(false);
+          }
+        }
+      });
+      body.appendChild(chk);
     } else if (item.type === 'num') {
       const row = document.createElement('div'); row.className = 'num-in';
       const inp = document.createElement('input'); inp.type = 'text'; inp.inputMode = item.inputMode || 'decimal';
@@ -401,42 +600,98 @@ function paperDivide(dividend, divisor) {
       const go = () => {
         if (done) return;
         if (U.eqNum(inp.value, item.a != null ? (item.acc || item.a) : item.acc)) finish(tries === 0);
-        else { tries++; fb.className = 'fb no'; fb.textContent = 'Not yet — try a different form or re-check the work.'; if (tries >= 2) why.classList.add('show'); }
+        else { tries++; fb.className = 'fb no'; fb.textContent = 'Not yet — try a different form or re-check the work.'; if (tries >= 2) why.classList.add('show'); offerAdvance(false); }
       };
-      chk.addEventListener('click', go);
+      bindTap(chk, go);
       inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
       row.appendChild(inp); row.appendChild(chk);
       body.appendChild(row);
+    } else if (item.type === 'nline') {
+      const min = item.min != null ? +item.min : 0;
+      const max = item.max != null ? +item.max : 10;
+      const step = item.step != null ? +item.step : 1;
+      const wrap = document.createElement('div');
+      wrap.className = 'nline-wrap';
+      const viz = document.createElement('div');
+      viz.className = 'viz';
+      wrap.appendChild(viz);
+      const ctrl = document.createElement('div');
+      ctrl.className = 'nline-ctrl';
+      const range = document.createElement('input');
+      range.type = 'range';
+      range.min = String(min);
+      range.max = String(max);
+      range.step = String(step);
+      range.value = String(min);
+      range.setAttribute('aria-label', 'Number line value');
+      const out = document.createElement('span');
+      out.className = 'nline-val';
+      const paint = () => {
+        const val = range.value;
+        out.textContent = val;
+        viz.innerHTML = '';
+        if (w.V && V.numberLine) {
+          viz.innerHTML = V.numberLine(min, max, [{ pos: +val, label: val }]);
+        }
+      };
+      range.addEventListener('input', paint);
+      paint();
+      ctrl.appendChild(range);
+      ctrl.appendChild(out);
+      wrap.appendChild(ctrl);
+      body.appendChild(wrap);
+      const chk = document.createElement('button');
+      chk.className = 'btn teal';
+      chk.type = 'button';
+      chk.textContent = 'Check';
+      bindTap(chk, () => {
+        if (done) return;
+        if (U.eqNum(range.value, item.a)) finish(tries === 0);
+        else {
+          tries++;
+          fb.className = 'fb no';
+          fb.textContent = 'Not yet — slide to a different mark and check again.';
+          if (tries >= 2) why.classList.add('show');
+          offerAdvance(false);
+        }
+      });
+      body.appendChild(chk);
     } else if (item.type === 'order') {
+
       const wrap = document.createElement('div');
       wrap.className = 'opts-row';
       const seq = [];
       const pool = document.createElement('div'); pool.className = 'opts-row';
       (item.items || []).forEach((html, i) => {
-        const b = document.createElement('button'); b.className = 'opt'; b.type = 'button'; b.innerHTML = html;
-        b.addEventListener('click', () => {
+        const b = document.createElement('button'); b.className = 'opt'; b.type = 'button'; b.innerHTML = formatHTML(html);
+        bindTap(b, () => {
           if (done) return;
-          seq.push(i); b.disabled = true; b.classList.add('sel');
+          if (seq.length && seq[seq.length - 1] === i && b.classList.contains('sel')) {
+            seq.pop(); b.disabled = false; b.classList.remove('sel');
+            return;
+          }
+          if (b.classList.contains('sel')) return;
+          seq.push(i); b.classList.add('sel');
           if (seq.length === item.items.length) {
             const ok = seq.every((v, k) => v === item.order[k]);
             if (ok) finish(tries === 0);
-            else { tries++; fb.className = 'fb no'; fb.textContent = 'That order is not quite right. Tap Reset and try again.'; seq.length = 0; pool.querySelectorAll('.opt').forEach((x) => { x.disabled = false; x.classList.remove('sel'); }); if (tries >= 2) why.classList.add('show'); }
+            else { tries++; fb.className = 'fb no'; fb.textContent = 'That order is not quite right. Tap a selected chip to undo, or Reset and try again.'; seq.length = 0; pool.querySelectorAll('.opt').forEach((x) => { x.classList.remove('sel'); }); if (tries >= 2) why.classList.add('show'); offerAdvance(false); }
           }
         });
         pool.appendChild(b);
       });
       const reset = document.createElement('button'); reset.className = 'btn ghost'; reset.textContent = 'Reset';
-      reset.addEventListener('click', () => { if (done) return; seq.length = 0; pool.querySelectorAll('.opt').forEach((x) => { x.disabled = false; x.classList.remove('sel'); }); });
+      bindTap(reset, () => { if (done) return; seq.length = 0; pool.querySelectorAll('.opt').forEach((x) => { x.classList.remove('sel'); }); });
       body.appendChild(pool); body.appendChild(reset);
     } else if (item.type === 'paper-mul' || item.type === 'paper-div') {
       const widget = item.type === 'paper-mul' ? paperMultiply(item.a, item.b) : paperDivide(item.a, item.b);
       body.appendChild(widget);
       const row = document.createElement('div'); row.className = 'row-btns';
       const chk = document.createElement('button'); chk.className = 'btn teal'; chk.textContent = 'Check my paper';
-      chk.addEventListener('click', () => {
+      bindTap(chk, () => {
         if (done) return;
         if (widget.check()) finish(tries === 0);
-        else { tries++; fb.className = 'fb no'; fb.textContent = 'A digit is off. Check carries, place-value zeros, and the last add (or remainder).'; if (tries >= 2) { widget.reveal(); why.classList.add('show'); } }
+        else { tries++; fb.className = 'fb no'; fb.textContent = 'A digit is off. Check carries, place-value zeros, and the last add (or remainder).'; if (tries >= 2) { widget.reveal(); why.classList.add('show'); } offerAdvance(false); }
       });
       row.appendChild(chk); body.appendChild(row);
     } else if (item.type === 'multi') {
@@ -472,7 +727,16 @@ function paperDivide(dividend, divisor) {
       const tryHost = document.createElement('div');
       tryHost.className = 'try-slot';
       if (c.try) {
-        renderItem(tryHost, typeof c.try === 'function' ? c.try() : c.try, { label: 'Try it' });
+        const loadTry = () => {
+          tryHost.innerHTML = '';
+          renderItem(tryHost, typeof c.try === 'function' ? c.try() : c.try, {
+            label: 'Try it',
+            nextLabel: 'Try another',
+            onNext: loadTry
+          });
+          formatFractionsIn(tryHost);
+        };
+        loadTry();
         body.appendChild(tryHost);
       }
       const nav = document.createElement('div'); nav.className = 'row-btns';
@@ -491,6 +755,7 @@ function paperDivide(dividend, divisor) {
       };
       nav.appendChild(next);
       card.appendChild(nav);
+      formatFractionsIn(card);
       requestAnimationFrame(function () {
         try { window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); } catch (e) { window.scrollTo(0, 0); }
       });
@@ -656,20 +921,27 @@ function paperDivide(dividend, divisor) {
           return;
         }
         const s = pickSkill();
-        cur = s.gen();
+        cur = null;
+        for (let t = 0; t < 24 && !cur; t++) cur = s.gen();
+        if (!cur) {
+          host.innerHTML = '<div class="remember">Could not build a question for this skill. Try another skill.</div>';
+          return;
+        }
         cur.skill = s.id;
         host.innerHTML = '';
         const cap = document.createElement('div'); cap.className = 'lede'; cap.textContent = `Question ${qi + 1}${n ? ' of ' + n : ''} · ${s.name}`;
         host.appendChild(cap);
         const holder = document.createElement('div'); host.appendChild(holder);
         renderItem(holder, cur, {
+          nextLabel: n ? 'Next' : 'Try another',
           onDone: (ok) => {
             credit(s.id, ok);
-            if (ok) { solved++; streak++; qi++; setTimeout(next, 650); }
+            if (ok) { solved++; streak++; }
             else { streak = 0; }
             stage.querySelector('#stSolved').textContent = solved + ' solved';
             stage.querySelector('#stStreak').textContent = 'streak ' + streak;
-          }
+          },
+          onNext: () => { qi++; next(); }
         });
       }
       next();
@@ -694,7 +966,9 @@ function paperDivide(dividend, divisor) {
         host.innerHTML = '';
         renderItem(host, items[i], {
           label: 'Q' + (i + 1) + ' of ' + items.length,
-          onDone: (ok) => { if (ok) right++; const n = document.createElement('button'); n.className = 'btn'; n.textContent = i === items.length - 1 ? 'See results' : 'Next question'; n.onclick = () => { i++; draw(); }; host.appendChild(n); }
+          nextLabel: i === items.length - 1 ? 'See results' : 'Next question',
+          onDone: (ok) => { if (ok) right++; },
+          onNext: () => { i++; draw(); }
         });
       };
       draw();
@@ -713,7 +987,11 @@ function paperDivide(dividend, divisor) {
       guard++;
       const s = skills[items.length % Math.max(skills.length, 1)] || skills[0];
       if (!s) break;
-      try { items.push({ skill: s.name, it: s.gen() }); } catch (e) {}
+      try {
+          let it = null;
+          for (let t = 0; t < 24 && !it; t++) it = s.gen();
+          if (it) items.push({ skill: s.name, it: it });
+        } catch (e) {}
     }
     const pages = [items.slice(0, 10), items.slice(10, 20)];
     const renderQ = (pack, i) => {
@@ -729,9 +1007,9 @@ function paperDivide(dividend, divisor) {
     const keyItems = items.map((pack, i) => {
       let ans = '';
       const it = pack.it;
-      if (it.type === 'mc') ans = 'ABCD'[it.a] + '. ' + U.strip((it.ch || [])[it.a] || '');
-      else if (it.type === 'ms') ans = (it.a || []).map((k) => 'ABCD'[k]).join(', ');
-      else if (it.type === 'num') ans = String(Array.isArray(it.a) ? it.a[0] : it.a);
+      if (it.type === 'mc') ans = 'ABCD'[it.a] + '. ' + formatHTML((it.ch || [])[it.a] || '');
+      else if (it.type === 'ms') ans = (it.a || []).map((k) => 'ABCD'[k] + '. ' + formatHTML((it.ch || [])[k] || '')).join(' ');
+      else if (it.type === 'num') ans = formatHTML(String(Array.isArray(it.a) ? it.a[0] : it.a));
       else if (it.type === 'paper-mul') ans = String(it.a * it.b);
       else if (it.type === 'paper-div') ans = String(Math.floor(it.a / it.b)) + (it.a % it.b ? ' R' + (it.a % it.b) : '');
       else ans = it.why ? U.strip(it.why).slice(0, 80) : '';
@@ -750,5 +1028,5 @@ function paperDivide(dividend, divisor) {
     w.print();
   }
 
-  w.Lab = { mount, renderItem, playLesson, U, optsClass };
+  w.Lab = { mount, renderItem, playLesson, U, optsClass, optsLayout, formatHTML, formatFractionsIn, formatFractionString, isShortAnswer };
 })(window);

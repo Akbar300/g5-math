@@ -46,7 +46,10 @@ var bg = {
     return mc(sg(a) + ' − ' + P(b) + ' = ?', sg(r), [[sg(a + b), 'Subtracting = adding the opposite: ' + sg(a) + ' + ' + P(-b) + '.'], [sg(-r), 'Check the sign.'], [sg(r + 1), 'Recheck the arithmetic.']], sg(a) + ' + ' + P(-b) + ' = ' + sg(r) + '.');
   }},
   inl: {name:'Integer number line', f:function(lv){
-    var a = nz(-8, 8), b = nz(-8, 8), r = a + b; if(r < -10 || r > 10) return null;
+    var a = nz(-8, 8), blo = Math.max(-8, -10 - a), bhi = Math.min(8, 10 - a);
+    var b = nz(blo, bhi), r = a + b, guard = 0;
+    while ((r < -10 || r > 10 || b === 0) && guard++ < 40) { b = nz(blo, bhi); r = a + b; }
+    if (r < -10 || r > 10) { b = a <= 0 ? 1 : -1; r = a + b; }
     return {type:'nline', q:'Slide to the value of <b>' + sg(a) + ' + ' + P(b) + '</b>.', min:-10, max:10, step:1, labels:{0:'−10',10:'0',20:'10'}, a:r, why:'Start at ' + sg(a) + ', move ' + Math.abs(b) + (b < 0 ? ' left' : ' right') + ': ' + sg(r) + '.'};
   }}
 };
@@ -55,8 +58,8 @@ var bridge = {
   intro:'The Advanced class does this unit with <b>negative numbers</b> (Advanced Unit 5: Integer Computation). Same idea as decimals: know the place you start, which way you move, and how far.',
   lessons:[{id:'u5B1', name:'Negative numbers', icon:'🌡️', cards:[
     {t:'Below zero', h:'<p>A thermometer goes below 0: −5° is 5 degrees below zero. On a number line, negatives sit to the <b>left</b> of 0.</p><p>−8 &lt; −3, because −8 is farther left. (Colder!)</p>', trap:'−8 is LESS than −3, even though 8 is bigger than 3.'},
-    {t:'Add on a number line', h:'<p>Adding a positive: move right. Adding a negative: move left.</p><div class="big">−4 + 6 = 2</div><p>Start at −4, move 6 right.</p>', tr:bg.inl.f()},
-    {t:'Subtract = add the opposite', h:'<div class="big">3 − 7 = 3 + (−7) = −4</div><div class="big">3 − (−7) = 3 + 7 = 10</div><p>Keep, change, flip.</p>', tr:bg.isub.f()}
+    {t:'Add on a number line', h:'<p>Adding a positive: move right. Adding a negative: move left.</p><div class="big">−4 + 6 = 2</div><p>Start at −4, move 6 right.</p>', tr:function(){ return bg.inl.f(); }},
+    {t:'Subtract = add the opposite', h:'<div class="big">3 − 7 = 3 + (−7) = −4</div><div class="big">3 − (−7) = 3 + 7 = 10</div><p>Keep, change, flip.</p>', tr:function(){ return bg.isub.f(); }}
   ]}],
   gens:bg, repIds:['iadd','isub','inl'],
   next:'Stay in the Advanced (Go Further) path of this unit for more practice.'
