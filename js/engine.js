@@ -545,7 +545,7 @@ function paperDivide(dividend, divisor) {
           if (!done) {
             done = true;
             if (item.why) why.classList.add('show');
-            if (opts.onDone) opts.onDone(false, tries);
+            if (opts.onDone) opts.onDone(false, tries, false);
           }
           if (opts.onNext) opts.onNext(lastOk, tries);
         });
@@ -556,16 +556,18 @@ function paperDivide(dividend, divisor) {
       b.textContent = opts.nextLabel || (opts.onNext ? (lastOk ? 'Next' : 'Try another') : 'Continue');
       requestAnimationFrame(() => { try { b.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) {} });
     };
-    const finish = (ok) => {
+    /* ok = right on the first try (what scoring uses). correct = the final answer is right. */
+    const finish = (ok, correct) => {
       if (done) return;
       done = true;
-      lastOk = !!ok;
-      fb.className = 'fb ' + (ok ? 'ok' : 'no');
-      fb.innerHTML = ok ? (tries === 0 ? '✅ First try!' : '✅ Got it!') : 'Not quite — look at the sample below.';
+      correct = correct !== false;
+      lastOk = !!ok || correct;
+      fb.className = 'fb ' + (correct ? 'ok' : 'no');
+      fb.innerHTML = ok ? '✅ First try!' : (correct ? '✅ Got it! That one counts as a second try.' : 'Not quite — look at the sample below.');
       formatFractionsIn(fb);
       if (item.why) why.classList.add('show');
-      if (opts.onDone) opts.onDone(ok, tries);
-      offerAdvance(ok);
+      if (opts.onDone) opts.onDone(ok, tries, correct);
+      offerAdvance(lastOk);
     };
 
     if (item.type === 'mc' || item.type === 'ms') {
@@ -673,6 +675,7 @@ function paperDivide(dividend, divisor) {
       const chk = document.createElement('button'); chk.className = 'btn teal'; chk.textContent = 'Check';
       const go = () => {
         if (done) return;
+        if (!String(inp.value).trim()) { try { inp.focus(); } catch (e) {} return; }
         if (U.eqNum(inp.value, item.a != null ? (item.acc || item.a) : item.acc)) finish(tries === 0);
         else { tries++; fb.className = 'fb no'; fb.textContent = 'Not yet — try a different form or re-check the work.'; if (tries >= 2) why.classList.add('show'); offerAdvance(false); }
       };
@@ -770,13 +773,13 @@ function paperDivide(dividend, divisor) {
       row.appendChild(chk); body.appendChild(row);
     } else if (item.type === 'multi') {
       const parts = item.parts || [];
-      let left = parts.length, missed = 0;
+      let left = parts.length, missed = 0, wrongEnd = 0;
       parts.forEach((p, i) => {
         const sub = document.createElement('div');
         sub.style.margin = '6px 0';
         renderItem(sub, p, {
           label: 'Part ' + String.fromCharCode(65 + i),
-          onDone: (ok) => { left--; if (!ok) missed++; if (left === 0) finish(missed === 0 && tries === 0); }
+          onDone: (ok, t, correct) => { left--; if (!ok) missed++; if (correct === false) wrongEnd++; if (left === 0) finish(missed === 0 && tries === 0, wrongEnd === 0); }
         });
         body.appendChild(sub);
       });
