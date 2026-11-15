@@ -24,6 +24,8 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:18px;line-height:1.45}
+body:has(.app-shell){overflow:hidden}
+body:has(.hub){overflow:auto;height:auto;min-height:100%}
 body{
   background:
     radial-gradient(900px 500px at 8% -10%, #ffe7c2 0%, transparent 55%),
@@ -41,7 +43,7 @@ a{color:inherit}
 .mix{display:inline-flex;align-items:center;gap:.15em}
 
 /* Slim app chrome */
-.app-shell{height:100%;display:flex;flex-direction:column;max-width:1280px;margin:0 auto;padding:8px 16px 10px}
+.app-shell{height:100%;display:flex;flex-direction:column;max-width:1280px;margin:0 auto;padding:6px 16px 6px;overflow:hidden}
 .app-bar{height:var(--chrome);display:flex;align-items:center;gap:10px;flex:0 0 auto}
 .app-bar .back{border:0;background:#fff;border:2px solid var(--line);border-radius:12px;padding:6px 12px;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
 .app-bar .back:hover{border-color:var(--ink)}
@@ -59,7 +61,7 @@ a{color:inherit}
 .tabs{height:var(--tabs);display:flex;gap:8px;align-items:center;flex:0 0 auto;margin:4px 0 8px}
 .tabs button{flex:1;height:40px;border:0;border-radius:14px;background:#fff;border:2px solid var(--line);font-weight:800;font-family:var(--display);font-size:16px}
 .tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-.stage{flex:1;min-height:0;background:var(--card);border:2px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:16px 20px;display:flex;flex-direction:column;overflow:hidden}
+.stage{flex:1;min-height:0;background:var(--card);border:2px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:12px 18px;display:flex;flex-direction:column;overflow:hidden}
 .stage h2{font-family:var(--display);margin:0 0 6px;font-size:24px}
 .lede{color:var(--muted);margin:0 0 10px;font-size:16px}
 
@@ -156,7 +158,7 @@ a{color:inherit}
 @media print{
   @page{size:letter;margin:.5in}
   .app-shell,.brain,.overlay, .hub header .no-print{display:none!important}
-  body{background:#fff;height:auto;font-size:11pt;color:#111}
+  html,body{overflow:visible!important;height:auto!important}body{background:#fff;height:auto;font-size:11pt;color:#111}
   #print-root{display:block!important;position:static;width:auto}
   .print-page{page-break-after:always;break-after:page}
   .print-page:last-child{page-break-after:auto}
@@ -179,3 +181,33 @@ a{color:inherit}
   .stage{padding:12px}
   .q-text{font-size:20px}
 }
+
+/* Aliases for ported V2 / G5 markup */
+.frac i{display:block;padding:0 .15em;font-style:normal;font-family:var(--mono);font-weight:800;line-height:1.05}
+.frac i:first-child{border-bottom:2.5px solid currentColor}
+.frac .fn{border-bottom:2.5px solid currentColor;padding:0 .15em 1px}
+.frac .fd{padding:1px .15em 0}
+.big{font-family:var(--display);font-size:clamp(20px,2.6vw,28px);margin:4px 0;font-weight:700}
+ol.steps{margin:8px 0 0 1.1em;padding:0}
+ol.steps li{margin:6px 0}
+.v2-tbl{border-collapse:collapse;margin:8px 0;font-size:16px}
+.v2-tbl th,.v2-tbl td{border:2px solid var(--line);padding:4px 10px;text-align:center}
+.v2-tbl td.q{background:#fff3a0;font-weight:800}
+.v2-grid100{display:grid;grid-template-columns:repeat(10,12px);gap:1px;width:max-content;margin:8px 0}
+.v2-grid100 i{width:12px;height:12px;background:#e8eef5;border:1px solid #9aa;display:block}
+.v2-grid100 i.f{background:#6c4ee0}
+.v2-counters{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0}
+.v2-counters i{width:14px;height:14px;border-radius:50%;background:#ddd;border:2px solid #333;display:block}
+.v2-counters i.f{background:#2f80ed}
+.v2-counters.grp{gap:10px}
+.v2-counters .g{display:flex;gap:4px}
+.v2-chipsrow{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0}
+.v2-chipsrow i{display:inline-flex;width:28px;height:28px;align-items:center;justify-content:center;border-radius:6px;font-weight:800;font-style:normal}
+.v2-chipsrow i.p{background:#7cffb2}
+.v2-chipsrow i.n{background:#ff8fab}
+.v2-chipsrow i.z{opacity:.35}
+svg.g5v,.g5vis svg{max-width:100%;height:auto;background:#fff;border-radius:12px}
+.g5vis{margin:6px 0;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
+.arena-shell{max-width:1280px}
+.arena-grid{display:grid;grid-template-columns:minmax(280px,1fr) minmax(320px,1.2fr);gap:16px;min-height:0;flex:1}
+@media (max-width:900px){.arena-grid{grid-template-columns:1fr}}
