@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="../favicon.svg">
+  <title>Division Arena</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=IBM+Plex+Mono:wght@600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+  <div id="app" class="app-shell arena-shell"></div>
+  <script src="../js/visuals.js"></script>
+  <script src="../js/engine.js"></script>
+  <script>
+  (function () {
+    const root = document.getElementById('app');
+    const LEVELS = [
+      { id: '1d', name: '÷ one digit', hint: 'A short tableau. Estimate each digit first.' },
+      { id: '2d', name: '÷ two digits', hint: 'Think “compatible numbers,” then adjust the digit.' },
+      { id: 'rem', name: 'With remainders', hint: 'The remainder must be smaller than the divisor.' }
+    ];
+    let lvl = '2d', n = 0, right = 0;
+
+    function item() {
+      let b, q, r;
+      if (lvl === '1d') { b = U.ri(3, 9); q = U.ri(15, 246); r = 0; }
+      else if (lvl === '2d') { b = U.ri(12, 36); q = U.ri(15, 89); r = 0; }
+      else { b = U.ri(12, 28); q = U.ri(15, 76); r = U.ri(1, b - 1); }
+      const a = b * q + r;
+      return { type: 'paper-div', fmt: 'PAPER', q: 'Divide <b>' + a + ' ÷ ' + b + '</b> on the paper grid.' + (r ? ' There will be a remainder.' : ' It should come out even.'), a: a, b: b, why: a + ' ÷ ' + b + ' = <b>' + q + (r ? ' R ' + r : '') + '</b>. Check: ' + b + ' × ' + q + (r ? ' + ' + r : '') + ' = ' + a + '.' };
+    }
+
+    function paint() {
+      root.innerHTML = `
+        <div class="app-bar">
+          <a class="back" href="../index.html">← Lab</a>
+          <h1><span>🤖</span> Division Arena</h1>
+          <div class="grow"></div>
+          <div class="xp">⭐ ${right} first-try of ${n}</div>
+        </div>
+        <div class="arena-grid">
+          <aside class="stage" style="overflow:auto">
+            <h2>Pick a lane</h2>
+            <p class="lede">Long division uses the full width. One problem at a time — no rush.</p>
+            <div class="lesson-chips" id="chips"></div>
+            <p class="lede" id="hint"></p>
+          </aside>
+          <section class="stage" id="work" style="overflow:auto"></section>
+        </div>`;
+      const chips = root.querySelector('#chips');
+      LEVELS.forEach((L) => {
+        const b = document.createElement('button');
+        b.className = 'chip' + (L.id === lvl ? ' on' : '');
+        b.textContent = L.name;
+        b.onclick = () => { lvl = L.id; paint(); };
+        chips.appendChild(b);
+      });
+      root.querySelector('#hint').textContent = (LEVELS.find((x) => x.id === lvl) || {}).hint || '';
+      next();
+    }
+    function next() {
+      const host = root.querySelector('#work');
+      host.innerHTML = '<h2>Your problem</h2>';
+      n++;
+      Lab.renderItem(host, item(), {
+        label: 'Problem ' + n,
+        onDone: (ok) => {
+          if (ok) right++;
+          root.querySelector('.xp').textContent = '⭐ ' + right + ' first-try of ' + n;
+          const b = document.createElement('button');
+          b.className = 'btn'; b.textContent = 'Next';
+          b.onclick = next; host.appendChild(b);
+        }
+      });
+    }
+    paint();
+  })();
+  </script>
+</body>
+</html>

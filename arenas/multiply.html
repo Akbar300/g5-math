@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="../favicon.svg">
+  <title>Multiply Arena</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=IBM+Plex+Mono:wght@600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+  <div id="app" class="app-shell arena-shell"></div>
+  <script src="../js/visuals.js"></script>
+  <script src="../js/engine.js"></script>
+  <script>
+  (function () {
+    const root = document.getElementById('app');
+    const LEVELS = [
+      { id: 'mental', name: 'Mental tricks', hint: '×10, ×100, doubles, and ×25. No paper needed.' },
+      { id: '2x2', name: '2-digit × 2-digit', hint: 'Partial products on the paper grid.' },
+      { id: '3x2', name: '3-digit × 2-digit', hint: 'Watch the place-value zeros on each row.' },
+      { id: '3x3', name: '3-digit × 3-digit', hint: 'Three partial-product rows, then add.' }
+    ];
+    let lvl = '2x2', n = 0, right = 0;
+
+    function mental() {
+      const k = U.pick([0, 1, 2, 3]);
+      if (k === 0) { const a = U.ri(12, 99); return { type: 'num', fmt: 'MENTAL', q: 'What is <b>' + a + ' × 10</b>?', a: a * 10, why: '× 10 moves every digit one place left: <b>' + (a * 10) + '</b>.' }; }
+      if (k === 1) { const a = U.ri(12, 99); return { type: 'num', fmt: 'MENTAL', q: 'What is <b>' + a + ' × 100</b>?', a: a * 100, why: '× 100 moves every digit two places left: <b>' + (a * 100) + '</b>.' }; }
+      if (k === 2) { const a = U.ri(15, 48); return { type: 'num', fmt: 'MENTAL', q: 'What is <b>' + a + ' × 2</b>?', a: a * 2, why: 'Double ' + a + ' is <b>' + (a * 2) + '</b>.' }; }
+      const a = U.ri(4, 24); return { type: 'num', fmt: 'MENTAL', q: 'What is <b>' + a + ' × 25</b>?', a: a * 25, why: a + ' × 25 = ' + a + ' × 100 ÷ 4 = <b>' + (a * 25) + '</b>.' };
+    }
+    function paper() {
+      let a, b;
+      if (lvl === '2x2') { a = U.ri(12, 98); b = U.ri(12, 98); }
+      else if (lvl === '3x2') { a = U.ri(108, 986); b = U.ri(12, 48); }
+      else { a = U.ri(108, 876); b = U.ri(108, 432); }
+      return { type: 'paper-mul', fmt: 'PAPER', q: 'Multiply <b>' + a + ' × ' + b + '</b>. Use the paper grid — carries and partial products.', a: a, b: b, why: a + ' × ' + b + ' = <b>' + (a * b) + '</b>.' };
+    }
+    function item() { return lvl === 'mental' ? mental() : paper(); }
+
+    function paint() {
+      root.innerHTML = `
+        <div class="app-bar">
+          <a class="back" href="../index.html">← Lab</a>
+          <h1><span>🤖</span> Multiply Arena</h1>
+          <div class="grow"></div>
+          <div class="xp">⭐ ${right} first-try of ${n}</div>
+        </div>
+        <div class="arena-grid">
+          <aside class="stage" style="overflow:auto">
+            <h2>Pick a lane</h2>
+            <p class="lede">The wide side is for paper. Calm pace — no timer.</p>
+            <div class="lesson-chips" id="chips"></div>
+            <p class="lede" id="hint"></p>
+          </aside>
+          <section class="stage" id="work" style="overflow:auto"></section>
+        </div>`;
+      const chips = root.querySelector('#chips');
+      LEVELS.forEach((L) => {
+        const b = document.createElement('button');
+        b.className = 'chip' + (L.id === lvl ? ' on' : '');
+        b.textContent = L.name;
+        b.onclick = () => { lvl = L.id; paint(); };
+        chips.appendChild(b);
+      });
+      root.querySelector('#hint').textContent = (LEVELS.find((x) => x.id === lvl) || {}).hint || '';
+      next();
+    }
+    function next() {
+      const host = root.querySelector('#work');
+      host.innerHTML = '<h2>Your problem</h2>';
+      const it = item();
+      n++;
+      Lab.renderItem(host, it, {
+        label: 'Problem ' + n,
+        onDone: (ok) => {
+          if (ok) right++;
+          root.querySelector('.xp').textContent = '⭐ ' + right + ' first-try of ' + n;
+          const b = document.createElement('button');
+          b.className = 'btn'; b.textContent = 'Next';
+          b.onclick = next; host.appendChild(b);
+        }
+      });
+    }
+    paint();
+  })();
+  </script>
+</body>
+</html>
