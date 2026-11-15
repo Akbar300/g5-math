@@ -235,6 +235,9 @@ a{color:inherit}
 .opt.right{border-color:var(--lime);background:var(--opt-right-bg)}
 .opt.wrong{border-color:var(--coral);background:var(--opt-wrong-bg)}
 .opt .let{display:inline-flex;width:26px;height:26px;border-radius:50%;border:2px solid currentColor;align-items:center;justify-content:center;margin-right:8px;font-size:14px}
+.opts-ms .let,.opt .let.chk{border-radius:4px;width:22px;height:22px;flex:0 0 auto}
+.opts-ms .opt.sel .let::after,.opt.sel .let.chk::after{content:"✓";font-size:14px;font-weight:900;line-height:1}
+.ms-hint{font-size:15px;font-weight:800;color:var(--blue);margin:0 0 8px}
 .num-in{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .num-in input{border:2.5px solid var(--line);border-radius:12px;padding:8px 12px;font-size:22px;font-weight:800;font-family:var(--mono);width:160px;background:var(--paper-cell)}
 .num-in input:focus{border-color:var(--blue);outline:none}

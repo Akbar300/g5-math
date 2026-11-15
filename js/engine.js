@@ -27,6 +27,67 @@
         if (frac) { const v = +frac[1] / +frac[2]; if (!isNaN(nw) && Math.abs(v - nw) < 1e-9) return true; }
         return false;
       });
+    },
+    valuesClose(a, b) {
+      return a != null && b != null && isFinite(a) && isFinite(b) && Math.abs(a - b) < 1e-9;
+    },
+    /* A single number-name: fraction, mixed number, decimal, percent, or a:b ratio. Expressions and words return null. */
+    parseChoiceValue(html) {
+      if (html == null) return null;
+      let t = String(html);
+      if (/<(svg|table|img)\b/i.test(t)) return null;
+      t = t.replace(/<span class="mix">\s*(-?\d+)\s*<span class="frac"><span class="n">(-?\d+)<\/span>\s*<span class="d">(-?\d+)<\/span><\/span>\s*<\/span>/g, ' $1 $2/$3 ');
+      t = t.replace(/<span class="frac"><span class="n">(-?\d+)<\/span>\s*<span class="d">(-?\d+)<\/span><\/span>/g, ' $1/$2 ');
+      t = t.replace(/<[^>]+>/g, ' ');
+      t = t.replace(/&nbsp;|&#160;/gi, ' ').replace(/&minus;|−/g, '-').replace(/&times;|×/g, '×');
+      t = t.replace(/\s+/g, ' ').trim();
+      if (!t) return null;
+      if (/[A-Za-z]/.test(t)) return null;
+      if (/[<>≤≥=×÷+]/.test(t)) return null;
+      if (/(?:^| )- /.test(t)) return null;
+      let m;
+      if ((m = t.match(/^(-?\d+(?:\.\d+)?)\s*%$/))) return Number(m[1]) / 100;
+      if ((m = t.match(/^(-?\d+)\s+(\d+)\s*\/\s*(\d+)$/))) {
+        const w = Number(m[1]), n = Number(m[2]), d = Number(m[3]);
+        if (!d) return null;
+        return w + (w < 0 ? -1 : 1) * (n / d);
+      }
+      if ((m = t.match(/^(-?\d+)\s*\/\s*(-?\d+)$/))) {
+        const d = Number(m[2]);
+        if (!d) return null;
+        return Number(m[1]) / d;
+      }
+      if ((m = t.match(/^(-?\d+)\s*:\s*(-?\d+)$/))) {
+        const d = Number(m[2]);
+        if (!d) return null;
+        return Number(m[1]) / d;
+      }
+      if ((m = t.match(/^-?\d+(?:\.\d+)?$/))) return Number(m[0]);
+      return null;
+    },
+    expandCorrectChoices(ch, marked) {
+      const idx = (Array.isArray(marked) ? marked : [marked]).map(Number).filter((i) => i >= 0 && i < ch.length);
+      const vals = ch.map((c) => this.parseChoiceValue(c));
+      const keys = idx.map((i) => vals[i]).filter((v) => v != null);
+      if (!keys.length) return idx.slice().sort((a, b) => a - b);
+      const out = [];
+      for (let i = 0; i < ch.length; i++) {
+        if (idx.indexOf(i) >= 0) { out.push(i); continue; }
+        if (vals[i] != null && keys.some((k) => this.valuesClose(k, vals[i]))) out.push(i);
+      }
+      return out.sort((a, b) => a - b);
+    },
+    normalizeChoiceItem(item) {
+      if (!item || !item.ch || !item.ch.length) return item;
+      if (item.type && item.type !== 'mc' && item.type !== 'ms') return item;
+      const marked = item.a != null ? item.a : item.ci;
+      if (marked == null) return item;
+      const idx = this.expandCorrectChoices(item.ch, marked);
+      if (idx.length > 1) {
+        return Object.assign({}, item, { type: 'ms', fmt: 'SELECT ALL', a: idx });
+      }
+      if (item.type === 'ms') return Object.assign({}, item, { a: idx });
+      return item;
     }
   };
   w.U = U;
@@ -445,6 +506,7 @@ function paperDivide(dividend, divisor) {
       item = Object.assign({}, item, { type: 'num', q: item.q || item.label || '' });
     }
     if (item.q == null) item = Object.assign({}, item, { q: item.label || '' });
+    if (item.type === 'mc' || item.type === 'ms') item = U.normalizeChoiceItem(item);
     const box = document.createElement('div');
     box.className = 'q-card';
     const meta = document.createElement('div');
@@ -518,6 +580,13 @@ function paperDivide(dividend, divisor) {
       const letters = 'ABCDEFGH';
       const selected = new Set();
       const isMS = item.type === 'ms';
+      if (isMS) {
+        wrap.classList.add('opts-ms');
+        const hint = document.createElement('div');
+        hint.className = 'ms-hint';
+        hint.textContent = 'Select all that apply. Tap every correct answer, then press Check.';
+        body.appendChild(hint);
+      }
       const paintSel = () => {
         wrap.querySelectorAll('.opt').forEach((el, k) => {
           const on = selected.has(k);
@@ -530,7 +599,10 @@ function paperDivide(dividend, divisor) {
         b.className = 'opt';
         b.type = 'button';
         b.setAttribute('aria-pressed', 'false');
-        b.innerHTML = (cls === 'opts-row' || (cls === 'opts-grid' && optionsAreShort) ? formatHTML(html) : `<span class="let">${letters[k]}</span>${formatHTML(html)}`);
+        const mark = isMS
+          ? `<span class="let chk" aria-hidden="true"></span>`
+          : ((cls === 'opts-row' || (cls === 'opts-grid' && optionsAreShort)) ? '' : `<span class="let">${letters[k]}</span>`);
+        b.innerHTML = mark + formatHTML(html);
         bindTap(b, () => {
           if (done) return;
           b.classList.remove('wrong');
@@ -990,7 +1062,7 @@ function paperDivide(dividend, divisor) {
       try {
           let it = null;
           for (let t = 0; t < 24 && !it; t++) it = s.gen();
-          if (it) items.push({ skill: s.name, it: it });
+          if (it) items.push({ skill: s.name, it: U.normalizeChoiceItem(it) });
         } catch (e) {}
     }
     const pages = [items.slice(0, 10), items.slice(10, 20)];
@@ -998,7 +1070,7 @@ function paperDivide(dividend, divisor) {
       const it = pack.it;
       let body = `<div class="q">${it.q}</div>`;
       if (it.type === 'mc' || it.type === 'ms') {
-        body += '<div>' + (it.ch || []).map((c, k) => `<div>☐ ${'ABCD'[k]}. ${c}</div>`).join('') + '</div>';
+        body += '<div>' + (it.ch || []).map((c, k) => `<div>☐ ${'ABCDEFGH'[k]}. ${c}</div>`).join('') + '</div>';
       } else {
         body += '<div style="margin-top:18px;border-bottom:1.5px solid #bbb"></div><div style="margin-top:18px;border-bottom:1.5px solid #bbb"></div>';
       }
@@ -1007,8 +1079,8 @@ function paperDivide(dividend, divisor) {
     const keyItems = items.map((pack, i) => {
       let ans = '';
       const it = pack.it;
-      if (it.type === 'mc') ans = 'ABCD'[it.a] + '. ' + formatHTML((it.ch || [])[it.a] || '');
-      else if (it.type === 'ms') ans = (it.a || []).map((k) => 'ABCD'[k] + '. ' + formatHTML((it.ch || [])[k] || '')).join(' ');
+      if (it.type === 'mc') ans = 'ABCDEFGH'[it.a] + '. ' + formatHTML((it.ch || [])[it.a] || '');
+      else if (it.type === 'ms') ans = (it.a || []).map((k) => 'ABCDEFGH'[k] + '. ' + formatHTML((it.ch || [])[k] || '')).join(' ');
       else if (it.type === 'num') ans = formatHTML(String(Array.isArray(it.a) ? it.a[0] : it.a));
       else if (it.type === 'paper-mul') ans = String(it.a * it.b);
       else if (it.type === 'paper-div') ans = String(Math.floor(it.a / it.b)) + (it.a % it.b ? ' R' + (it.a % it.b) : '');

@@ -50,8 +50,10 @@ function mc(q,ans,ds,o={}){
   const seen=new Set([A.h]);const out=[];
   for(const d0 of ds){const d=typeof d0==='object'?d0:{h:String(d0)};
     if(bad(d.h)||seen.has(d.h))continue;
-    if(A.v!==undefined&&d.v!==undefined&&Math.abs(A.v-d.v)<1e-9)continue;
-    if(d.v!==undefined&&out.some(x=>x.v!==undefined&&Math.abs(x.v-d.v)<1e-9))continue;
+    const av=A.v!==undefined?A.v:(typeof U!=='undefined'&&U.parseChoiceValue?U.parseChoiceValue(A.h):undefined);
+    const dv=d.v!==undefined?d.v:(typeof U!=='undefined'&&U.parseChoiceValue?U.parseChoiceValue(d.h):undefined);
+    if(av!=null&&dv!=null&&isFinite(av)&&isFinite(dv)&&Math.abs(av-dv)<1e-9)continue;
+    if(dv!=null&&isFinite(dv)&&out.some(x=>{const xv=x.v!==undefined?x.v:(typeof U!=='undefined'&&U.parseChoiceValue?U.parseChoiceValue(x.h):undefined);return xv!=null&&isFinite(xv)&&Math.abs(xv-dv)<1e-9;}))continue;
     if(o.nonneg&&d.v!==undefined&&d.v<0)continue;
     seen.add(d.h);out.push(d);if(out.length===N-1)break;}
   if(out.length<N-1)return null;
@@ -174,7 +176,7 @@ S('ns1_model',{std:'5.NS.1',cat:'NS',unit:[4,7],name:'Fraction & decimal models'
   const s=pick([20,25,40,50,60,75,80,30,70,90]);const f=fr(s,100);
   const eq=[ch(fx(s/100),1),ch(F(s,100),1),ch(F(f.n,f.d),1),ch(F(f.n*2,f.d*2),1),ch(fx(s/100)+'0',1)];
   const wrongs=[ch(F(f.n,10),0),ch(F(s,10),0),ch(fx(s/1000),0),ch(F(f.d,f.n),0)];
-  const W=pick(wrongs.filter(w=>Math.abs(eval(w.h.replace(/<span class="frac"><i>(\d+)<\/i><i>(\d+)<\/i><\/span>/,'$1/$2'))-s/100)>1e-9));if(!W)return null;
+  const W=pick(wrongs.filter(w=>{const val=(typeof U!=='undefined'&&U.parseChoiceValue)?U.parseChoiceValue(w.h):null;return val!=null&&Math.abs(val-s/100)>1e-9;}));if(!W)return null;
   const c=shuf(eq).slice(0,3);if(new Set(c.map(x=>x.h)).size<3)return null;
   return mc(Q('The grid is 1 whole. Which number is <b>NOT</b> equivalent to the shaded part?',V.grid(s)),{h:W.h},c.map(x=>({h:x.h})),{why:`The shaded part is ${fx(s/100)} = ${f.n}/${f.d}. ${W.h.replace(/<[^>]+>/g,' ').trim()} has a different value.`});
 });
@@ -205,7 +207,7 @@ S('ns1_same',{std:'5.NS.1',cat:'NS',unit:[4,7],name:'Select all equivalent',noca
   const right=[showDec?F(f.n,f.d):fx(v),F(f.n*k,f.d*k)];
   if(fx(v).split('.')[1].length<3)right.push(fx(v)+'0');
   if(f.d!==100&&100%f.d===0&&!right.includes(F(f.n*100/f.d,100))&&F(f.n*k,f.d*k)!==F(f.n*100/f.d,100))right.push(F(f.n*100/f.d,100));
-  const wrong=[F(f.d,f.n),'0.'+f.n+f.d,fx(v*10),F(f.n,f.d*10),fx(1-v),F(f.n+1,f.d+1)].filter(h=>{const val=h.includes('frac')?(()=>{const m=h.match(/<i>(\d+)<\/i><i>(\d+)<\/i>/);return m[1]/m[2];})():+h;return Math.abs(val-v)>1e-9;});
+  const wrong=[F(f.d,f.n),'0.'+f.n+f.d,fx(v*10),F(f.n,f.d*10),fx(1-v),F(f.n+1,f.d+1)].filter(h=>{const val=(typeof U!=='undefined'&&U.parseChoiceValue)?U.parseChoiceValue(h):(h.includes('frac')?null:+h);return val==null||Math.abs(val-v)>1e-9;});
   const R=sample(right,Math.min(right.length,H?3:2)),Wr=sample(wrong,6-R.length);
   return ms(`Select <b>ALL</b> the numbers that are equal to ${target}.`,R,Wr,{why:`${F(f.n,f.d)} = ${fx(v)}. Equivalent fractions and decimals with extra zeros at the end have the same value.`});
 });

@@ -32,8 +32,8 @@
       dec.replace('0.', '0.0') || ('0.0' + dec.slice(2)),
       String((parseFloat(dec) * 10).toFixed(2)).replace(/0$/, ''),
       '0.' + String(sn) + String(sd)
-    ]).filter((x, i, a) => a.indexOf(x) === i).slice(0, 4);
-    if (!traps.includes(dec)) traps[0] = dec;
+    ]).filter((x, i, a) => a.findIndex((y) => y === x || U.valuesClose(U.parseChoiceValue(y), U.parseChoiceValue(x))) === i).slice(0, 4);
+    if (!traps.some((x) => x === dec || U.valuesClose(U.parseChoiceValue(x), U.parseChoiceValue(dec)))) traps[0] = dec;
     const ch = U.shuffle(traps);
     return {
       type: 'mc', fmt: 'MULTIPLE CHOICE', nocalc: true, sol: '5.NS.1',
@@ -43,25 +43,54 @@
     };
   }
 
+  function pushUnique(arr, html, n, d) {
+    const k = U.strip(html);
+    if (!k || arr.some((x) => U.strip(x.html) === k)) return;
+    arr.push({ html, n, d, v: n / d });
+  }
+
   function genD2F() {
     const [n, d, dec, hundred] = U.pick(F100);
     const [sn, sd] = simp(n, d);
-    const choices = U.shuffle([
-      fr(sn, sd),
-      fr(sn, sd === 10 ? 100 : 10),
-      fr(sn + 1, sd),
-      V.fr(hundred, 100)
-    ]);
-    // unique by text
-    const seen = new Set(); const ch = [];
-    choices.forEach((c) => { const k = U.strip(c); if (!seen.has(k)) { seen.add(k); ch.push(c); } });
-    const ans = fr(sn, sd);
-    if (!ch.some((c) => U.strip(c) === U.strip(ans))) ch[0] = ans;
+    const target = hundred / 100;
+    const correct = [];
+    pushUnique(correct, fr(sn, sd), sn, sd);
+    pushUnique(correct, V.fr(hundred, 100), hundred, 100);
+    if (sd !== 10 && 10 % sd === 0) pushUnique(correct, V.fr(sn * (10 / sd), 10), sn * (10 / sd), 10);
+    const distractorCands = [
+      [sn, sd === 10 ? 100 : 10],
+      [sn + 1, sd],
+      [hundred, 10],
+      [hundred + (hundred >= 10 ? 10 : 1), 100],
+      [sd, sn],
+      [sn, sd * 10],
+      [Math.max(1, hundred - 1), 100]
+    ];
+    const wrong = [];
+    distractorCands.forEach((pair) => {
+      const a = pair[0], b = pair[1];
+      if (!b || !isFinite(a / b)) return;
+      if (Math.abs(a / b - target) < 1e-9) return;
+      pushUnique(wrong, V.fr(a, b), a, b);
+    });
+    if (correct.length >= 2) {
+      const R = correct.slice(0, 3);
+      const W = U.shuffle(wrong).slice(0, Math.max(2, 5 - R.length));
+      const ch = U.shuffle(R.concat(W).map((x) => x.html));
+      const a = ch.map((_, i) => i).filter((i) => R.some((r) => U.strip(r.html) === U.strip(ch[i])));
+      return {
+        type: 'ms', fmt: 'SELECT ALL', nocalc: true, sol: '5.NS.1',
+        q: `Select <b>all</b> fractions that are equal to <b>${dec}</b>.`,
+        ch, a,
+        why: `${dec} is ${hundred} hundredths = ${fr(hundred, 100)} = ${fr(sn, sd)}.`
+      };
+    }
+    const ch = U.shuffle([correct[0].html].concat(U.shuffle(wrong).slice(0, 3).map((x) => x.html)));
     return {
       type: 'mc', fmt: 'MULTIPLE CHOICE', nocalc: true, sol: '5.NS.1',
       q: `Which fraction is equal to <b>${dec}</b>?`,
-      ch, a: ch.findIndex((c) => U.strip(c) === U.strip(ans)),
-      why: `${dec} is ${hundred} hundredths = ${fr(hundred, 100)} = ${fr(sn, sd)}.`
+      ch, a: ch.findIndex((c) => U.strip(c) === U.strip(correct[0].html)),
+      why: `${dec} is ${hundred} hundredths = ${fr(hundred, 100)}.`
     };
   }
 
@@ -113,20 +142,40 @@
   }
 
   function genCompareEq() {
-    // equivalent or not — select all equal to a given number
     const [n, d, dec, hundred] = U.pick(F100.filter((x) => x[3] != null));
     const [sn, sd] = simp(n, d);
+    const target = hundred / 100;
     const equals = [`${dec}`, `${sn}/${sd}`, `${hundred}/100`];
-    const extras = ['0.' + String(sn) + String(sd), `${sn}/${sd * 10}`, String(parseFloat(dec) + 0.1)];
-    const ch = U.shuffle([equals[0], equals[1], extras[0], equals[2], extras[1]]).slice(0, 5);
-    const a = ch.map((c, i) => i).filter((i) => {
-      const t = ch[i];
-      return t === dec || t === (sn + '/' + sd) || t === (hundred + '/100');
+    if (sd !== 10 && 10 % sd === 0) equals.push(`${sn * (10 / sd)}/10`);
+    const extras = [
+      '0.' + String(sn) + String(sd),
+      `${sn}/${sd * 10}`,
+      String(Math.round((parseFloat(dec) + 0.1) * 100) / 100),
+      `${sn + 1}/${sd}`,
+      `${hundred}/10`
+    ];
+    const seen = new Set();
+    const pool = [];
+    equals.concat(extras).forEach((t) => {
+      const k = String(t);
+      if (seen.has(k)) return;
+      seen.add(k);
+      pool.push(k);
     });
+    const rights = pool.filter((t) => U.valuesClose(U.parseChoiceValue(t), target));
+    const wrongs = pool.filter((t) => !U.valuesClose(U.parseChoiceValue(t), target));
+    const R = rights.slice(0, 3);
+    const W = U.shuffle(wrongs).slice(0, Math.max(2, 5 - R.length));
+    const ch = U.shuffle(R.concat(W));
+    const a = ch.map((_, i) => i).filter((i) => U.valuesClose(U.parseChoiceValue(ch[i]), target));
     return {
-      type: 'ms', fmt: 'SELECT ALL', nocalc: true, sol: '5.NS.1',
-      q: `Select <b>all</b> of the numbers that are equal to ${fr(sn, sd)}.`,
-      ch, a,
+      type: a.length > 1 ? 'ms' : 'mc',
+      fmt: a.length > 1 ? 'SELECT ALL' : 'MULTIPLE CHOICE',
+      nocalc: true, sol: '5.NS.1',
+      q: a.length > 1
+        ? `Select <b>all</b> of the numbers that are equal to ${fr(sn, sd)}.`
+        : `Which number is equal to ${fr(sn, sd)}?`,
+      ch, a: a.length > 1 ? a : a[0],
       why: `${fr(sn, sd)} = ${fr(hundred, 100)} = ${dec}. Any name for the same amount counts.`
     };
   }
@@ -182,7 +231,8 @@
     const [n, d, dec, hundred] = U.pick(F100.filter((x) => x[3] != null));
     const [sn, sd] = simp(n, d);
     const pct = hundred + '%';
-    const ch = U.shuffle([pct, (hundred + 10) + '%', (Math.floor(hundred / 10)) + '%', (100 - hundred) + '%']);
+    const ch = U.shuffle([pct, (hundred + 10) + '%', (Math.floor(hundred / 10)) + '%', (100 - hundred) + '%']).filter((x, i, a) => a.indexOf(x) === i);
+    if (!ch.includes(pct)) ch[0] = pct;
     return {
       type: 'mc', fmt: 'MULTIPLE CHOICE', nocalc: true,
       q: `${fr(sn, sd)} is the same amount as which percent?`,

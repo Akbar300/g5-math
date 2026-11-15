@@ -19,7 +19,13 @@ L.shuffle = function(a){ a = a.slice(); for(var i = a.length - 1; i > 0; i--){ v
 L.mc = function(q, right, wrong, why){
   var seen = {}, opts = [{h:right, ok:true}];
   seen[L.strip(right)] = 1;
-  wrong.forEach(function(w){ var h = Array.isArray(w) ? w[0] : w, t = Array.isArray(w) ? w[1] : null; var k = L.strip(h); if(!seen[k]){ seen[k] = 1; opts.push({h:h, t:t}); } });
+  wrong.forEach(function(w){ var h = Array.isArray(w) ? w[0] : w, t = Array.isArray(w) ? w[1] : null; var k = L.strip(h); if(!seen[k]){
+    if (window.U && U.parseChoiceValue) {
+      var rv = U.parseChoiceValue(right), dv = U.parseChoiceValue(h);
+      if (rv != null && dv != null && U.valuesClose(rv, dv)) return;
+    }
+    seen[k] = 1; opts.push({h:h, t:t});
+  } });
   if(opts.length < 3) return null;
   opts = L.shuffle(opts.slice(0, 4));
   var traps = {}; opts.forEach(function(o, i){ if(o.t) traps[i] = o.t; });
