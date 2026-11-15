@@ -827,7 +827,7 @@ function paperDivide(dividend, divisor) {
   }
 
   /* Rebuild el's content without the page jumping: hold its height and the scroll spot. */
-  function keepPlace(el, rebuild) {
+  function keepPlace(el, rebuild, exact) {
     const y = window.scrollY;
     const h0 = el.offsetHeight;
     el.style.minHeight = h0 + 'px';
@@ -837,6 +837,7 @@ function paperDivide(dividend, divisor) {
       el.style.minHeight = '';
       window.scrollTo(0, y);
       /* If the new question now starts above the screen, nudge up just enough to see its start. */
+      if (exact) return;
       const top = el.getBoundingClientRect().top;
       if (top < 0) window.scrollTo(0, Math.max(0, window.scrollY + top - 12));
     });
@@ -926,7 +927,7 @@ function paperDivide(dividend, divisor) {
       const nav = document.createElement('div'); nav.className = 'row-btns';
       if (i > 0) {
         const back = document.createElement('button'); back.className = 'btn ghost'; back.textContent = 'Back';
-        back.onclick = () => { i--; draw(); }; nav.appendChild(back);
+        back.onclick = () => { i--; keepPlace(card, draw, true); }; nav.appendChild(back);
       }
       const dots = document.createElement('div'); dots.className = 'dots';
       lesson.cards.forEach((_, k) => { const d = document.createElement('i'); if (k === i) d.classList.add('on'); dots.appendChild(d); });
@@ -934,20 +935,12 @@ function paperDivide(dividend, divisor) {
       const next = document.createElement('button'); next.className = 'btn';
       next.textContent = i < lesson.cards.length - 1 ? 'Next' : 'Lesson complete';
       next.onclick = () => {
-        if (i < lesson.cards.length - 1) { i++; draw(); }
+        if (i < lesson.cards.length - 1) { i++; keepPlace(card, draw, true); }
         else if (onDone) onDone();
       };
       nav.appendChild(next);
       card.appendChild(nav);
       formatFractionsIn(card);
-      /* New card: only move if its title is above the screen, and then just to the title. */
-      requestAnimationFrame(function () {
-        const top = card.getBoundingClientRect().top;
-        if (top < 0) {
-          const y = Math.max(0, window.scrollY + top - 12);
-          try { window.scrollTo({ top: y, left: 0, behavior: 'instant' }); } catch (e) { window.scrollTo(0, y); }
-        }
-      });
     };
     draw();
   }
