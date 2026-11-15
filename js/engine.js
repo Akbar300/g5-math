@@ -826,6 +826,22 @@ function paperDivide(dividend, divisor) {
     return out;
   }
 
+  /* Rebuild el's content without the page jumping: hold its height and the scroll spot. */
+  function keepPlace(el, rebuild) {
+    const y = window.scrollY;
+    const h0 = el.offsetHeight;
+    el.style.minHeight = h0 + 'px';
+    rebuild();
+    window.scrollTo(0, y);
+    requestAnimationFrame(function () {
+      el.style.minHeight = '';
+      window.scrollTo(0, y);
+      /* If the new question now starts above the screen, nudge up just enough to see its start. */
+      const top = el.getBoundingClientRect().top;
+      if (top < 0) window.scrollTo(0, Math.max(0, window.scrollY + top - 12));
+    });
+  }
+
   function playLesson(host, lesson, onDone) {
     host.innerHTML = '';
     const card = document.createElement('div'); card.className = 'lesson-card';
@@ -897,7 +913,7 @@ function paperDivide(dividend, divisor) {
             renderItem(slot, it, {
               label: 'Try ' + (k + 1),
               nextLabel: 'Try another',
-              onNext: load
+              onNext: () => keepPlace(slot, load)
             });
             formatFractionsIn(slot);
           };
@@ -924,8 +940,13 @@ function paperDivide(dividend, divisor) {
       nav.appendChild(next);
       card.appendChild(nav);
       formatFractionsIn(card);
+      /* New card: only move if its title is above the screen, and then just to the title. */
       requestAnimationFrame(function () {
-        try { window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); } catch (e) { window.scrollTo(0, 0); }
+        const top = card.getBoundingClientRect().top;
+        if (top < 0) {
+          const y = Math.max(0, window.scrollY + top - 12);
+          try { window.scrollTo({ top: y, left: 0, behavior: 'instant' }); } catch (e) { window.scrollTo(0, y); }
+        }
       });
     };
     draw();
@@ -1108,7 +1129,7 @@ function paperDivide(dividend, divisor) {
             stage.querySelector('#stSolved').textContent = solved + ' solved';
             stage.querySelector('#stStreak').textContent = 'streak ' + streak;
           },
-          onNext: () => { qi++; next(); }
+          onNext: () => { qi++; keepPlace(host, next); }
         });
       }
       next();
@@ -1135,7 +1156,7 @@ function paperDivide(dividend, divisor) {
           label: 'Q' + (i + 1) + ' of ' + items.length,
           nextLabel: i === items.length - 1 ? 'See results' : 'Next question',
           onDone: (ok) => { if (ok) right++; },
-          onNext: () => { i++; draw(); }
+          onNext: () => { i++; keepPlace(host, draw); }
         });
       };
       draw();
