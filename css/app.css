@@ -335,32 +335,276 @@ a{color:inherit}
 .modal{background:var(--card);border-radius:24px;padding:28px;max-width:420px;text-align:center;box-shadow:var(--shadow);color:var(--ink)}
 .modal .emo{font-size:56px}
 
-/* Printables stay light. Never hide a parent of #print-root (display:none on .app-shell
-   used to blank every printed page, including iOS Safari). */
+/* Print pack layout — shared by the off-screen measure host and the printed pages.
+   Colors stay on (color ink is intended). Dark, readable text on light tints. */
+#print-measure{
+  position:absolute;left:-90in;top:0;width:7.5in;
+  background:#fff;color:#1b2437;font-size:10.5pt;line-height:1.32;
+  font-family:var(--font);
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+  pointer-events:none;z-index:0;
+}
+#print-root,#print-measure{
+  --print-accent:#2f80ed;
+  --ink:#1b2437;
+  --muted:#3d4a63;
+  color:#1b2437;
+  -webkit-print-color-adjust:exact;
+  print-color-adjust:exact;
+}
+#print-root .print-page,#print-measure .print-page{
+  box-sizing:border-box;
+  width:7.5in;
+  height:10in;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  background:#fffdf8;
+  color:#1b2437;
+  padding:0;
+  border:0;
+  -webkit-print-color-adjust:exact;
+  print-color-adjust:exact;
+}
+#print-root .print-head,#print-measure .print-head{
+  flex:0 0 auto;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  background:color-mix(in srgb, var(--print-accent) 18%, #fff8ee);
+  border:1px solid color-mix(in srgb, var(--print-accent) 35%, #eadcc6);
+  border-bottom:4px solid var(--print-accent);
+  border-radius:8px 8px 0 0;
+  padding:7px 11px 6px;
+  margin:0 0 8px;
+  color:#1b2437;
+  -webkit-print-color-adjust:exact;
+  print-color-adjust:exact;
+}
+#print-root .print-key .print-head,#print-measure .print-key .print-head{
+  background:color-mix(in srgb, #0fb39c 16%, #fff8ee);
+  border-color:color-mix(in srgb, #0fb39c 40%, #eadcc6);
+  border-bottom-color:#0fb39c;
+}
+#print-root .print-head h1,#print-measure .print-head h1{
+  font-family:var(--display);
+  font-size:14.5pt;
+  margin:0;
+  color:#1b2437;
+  letter-spacing:-.01em;
+  line-height:1.2;
+}
+#print-root .print-head-meta,#print-measure .print-head-meta{
+  font-size:8.5pt;
+  font-weight:800;
+  color:color-mix(in srgb, var(--print-accent) 70%, #1b2437);
+  white-space:nowrap;
+}
+#print-root .print-key .print-head-meta,#print-measure .print-key .print-head-meta{
+  color:#0a7a6a;
+}
+#print-root .print-grid,#print-measure .print-grid{
+  flex:1 1 auto;
+  min-height:0;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:0 12px;
+  align-content:stretch;
+  align-items:start;
+}
+#print-root .print-col,#print-measure .print-col{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+#print-root .print-key .print-grid,#print-measure .print-key .print-grid{gap:0 10px}
+#print-root .print-key .print-col,#print-measure .print-key .print-col{gap:5px}
+#print-root .pq,#print-measure .pq{
+  display:block;
+  width:100%;
+  box-sizing:border-box;
+  background:#fff;
+  border:1.25px solid color-mix(in srgb, var(--print-accent) 28%, #eadcc6);
+  border-left:4px solid var(--print-accent);
+  border-radius:8px;
+  padding:5px 7px 6px;
+  margin:0;
+  break-inside:avoid;
+  -webkit-column-break-inside:avoid;
+  page-break-inside:avoid;
+  color:#1b2437;
+  -webkit-print-color-adjust:exact;
+  print-color-adjust:exact;
+}
+#print-root .print-key .pq,#print-measure .print-key .pq{
+  padding:3px 7px;
+  margin:0;
+  border-left-color:#0fb39c;
+  border-color:color-mix(in srgb, #0fb39c 28%, #eadcc6);
+  background:color-mix(in srgb, #0fb39c 5%, #fff);
+}
+#print-root .qn,#print-measure .qn{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin:0 0 3px;
+  font-weight:800;
+  color:#1b2437;
+}
+#print-root .pq-num,#print-measure .pq-num{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:1.45em;
+  height:1.45em;
+  padding:0 4px;
+  border-radius:999px;
+  background:var(--print-accent);
+  color:#fff;
+  font-size:9pt;
+  font-weight:800;
+  line-height:1;
+  flex:0 0 auto;
+  -webkit-print-color-adjust:exact;
+  print-color-adjust:exact;
+}
+#print-root .print-key .pq-num,#print-measure .print-key .pq-num{
+  background:#0fb39c;
+  color:#fff;
+}
+#print-root .pq-skill,#print-measure .pq-skill{
+  color:color-mix(in srgb, var(--print-accent) 75%, #1b2437);
+  font-size:8.5pt;
+  font-weight:800;
+}
+#print-root .pq .q,#print-measure .pq .q{
+  color:#1b2437;
+  font-weight:700;
+  font-size:10pt;
+  line-height:1.32;
+}
+#print-root .print-ms,#print-measure .print-ms{
+  display:inline-block;
+  background:#e6f8f4;
+  color:#0a7a6a;
+  font-weight:800;
+  font-size:8pt;
+  padding:1px 8px;
+  border-radius:999px;
+  margin:0 0 4px;
+  -webkit-print-color-adjust:exact;
+  print-color-adjust:exact;
+}
+#print-root .print-opts,#print-measure .print-opts{
+  display:grid;
+  gap:3px 6px;
+  margin-top:4px;
+}
+#print-root .print-opts-4,#print-measure .print-opts-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+#print-root .print-opts-2,#print-measure .print-opts-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+#print-root .print-opts-1,#print-measure .print-opts-1{grid-template-columns:1fr}
+#print-root .print-opt,#print-measure .print-opt{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  min-width:0;
+  background:color-mix(in srgb, var(--print-accent) 9%, #fff);
+  border:1px solid color-mix(in srgb, var(--print-accent) 26%, #eadcc6);
+  border-radius:6px;
+  padding:2px 5px;
+  font-weight:700;
+  font-size:9.5pt;
+  color:#1b2437;
+  -webkit-print-color-adjust:exact;
+  print-color-adjust:exact;
+}
+#print-root .print-bubble,#print-measure .print-bubble{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:1.15em;
+  height:1.15em;
+  border-radius:50%;
+  background:var(--print-accent);
+  color:#fff;
+  font-size:8pt;
+  font-weight:800;
+  flex:0 0 auto;
+  line-height:1;
+  -webkit-print-color-adjust:exact;
+  print-color-adjust:exact;
+}
+#print-root .print-opt-t,#print-measure .print-opt-t{
+  min-width:0;
+  color:#1b2437;
+}
+#print-root .print-line,#print-measure .print-line{
+  border-bottom:1.25px solid #d3c4aa;
+  height:1.1em;
+  margin-top:6px;
+}
+#print-root .print-part,#print-measure .print-part{margin-top:4px;color:#1b2437}
+#print-root .print-foot,#print-measure .print-foot{
+  flex:0 0 auto;
+  height:.32in;
+  display:flex;
+  align-items:flex-end;
+  font-size:9pt;
+  font-weight:800;
+  color:#3d4a63;
+  padding-top:4px;
+}
+#print-root .print-odd .print-foot,#print-measure .print-odd .print-foot{justify-content:flex-end;text-align:right}
+#print-root .print-even .print-foot,#print-measure .print-even .print-foot{justify-content:flex-start;text-align:left}
+#print-root .print-pnum,#print-measure .print-pnum{
+  min-width:1.6em;
+  text-align:center;
+  color:#1b2437;
+  border-top:2px solid var(--print-accent);
+  padding:0 4px;
+}
+#print-root .print-key .print-pnum,#print-measure .print-key .print-pnum{border-top-color:#0fb39c}
+#print-root .frac,#print-measure .frac{color:#1b2437;display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1;margin:0 .08em}
+#print-root .frac .n,#print-measure .frac .n{border-bottom:1.5pt solid currentColor;padding:0 .08em;color:#1b2437}
+#print-root .frac .d,#print-measure .frac .d{padding:0 .08em;color:#1b2437}
+#print-root svg,#print-root img,#print-root .viz,
+#print-measure svg,#print-measure img,#print-measure .viz{
+  max-width:100%;height:auto;max-height:1.15in;display:block;margin:4px 0;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+}
+#print-root table,#print-measure table{color:#1b2437;border-collapse:collapse}
+#print-root table th,#print-root table td,
+#print-measure table th,#print-measure table td{color:#1b2437;border:1px solid #c9b89a;padding:2px 5px}
+
+/* Printables stay light and colorful. Never hide a parent of #print-root
+   (display:none on .app-shell used to blank every printed page, including iOS Safari). */
 @media print{
   @page{size:letter;margin:.5in}
   :root,html,html[data-theme="dark"],html[data-theme="light"]{
-    --ink:#111;--muted:#333;--paper:#fff;--card:#fff;--line:#222;
-    --btn-face:#fff;--paper-cell:#fff;--paper-carry:#fff;--viz-empty:#fff;
-    --sky:#e8f4ff;--chip-bg:#fff;--why-bg:#fff;--remember-bg:#fffbe6;
-    --highlight:#fff3a0;--wash-a:#fff;--wash-b:#fff;
+    --ink:#1b2437;--muted:#3d4a73;--paper:#fffdf8;--card:#fff;--line:#eadcc6;
+    --btn-face:#fff;--paper-cell:#fffdf6;--paper-carry:#fff6f2;--viz-empty:#fff;
+    --sky:#dff3ff;--chip-bg:#fff7e8;--why-bg:#eef7ff;--remember-bg:#fff4cc;
+    --highlight:#fff3a0;--wash-a:#ffe7c2;--wash-b:#cdefff;
+    --coral:#ff5a36;--teal:#0fb39c;--gold:#ffc43d;--violet:#6c4ee0;--lime:#62c918;--rose:#ff6b9a;--blue:#2f80ed;
+    --ok-bg:#e9f9d8;--no-bg:#ffe4dc;
     color-scheme:light;
     background:#fff!important;
-    color:#111!important;
+    color:#1b2437!important;
   }
   html,body{
     overflow:visible!important;
     height:auto!important;
     min-height:0!important;
     background:#fff!important;
-    color:#111!important;
+    color:#1b2437!important;
     color-scheme:light!important;
-    font-size:11pt;
-    -webkit-print-color-adjust:exact;
-    print-color-adjust:exact;
+    font-size:10.5pt;
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
   }
   body{background:#fff!important}
-  /* Hide app chrome only. #print-root lives on body, outside .app-shell. */
   body > *:not(#print-root){display:none!important}
   #print-root,body.is-printing #print-root{
     display:block!important;
@@ -370,38 +614,27 @@ a{color:inherit}
     height:auto!important;
     overflow:visible!important;
     background:#fff!important;
-    color:#111!important;
+    color:#1b2437!important;
     visibility:visible!important;
-    -webkit-print-color-adjust:exact;
-    print-color-adjust:exact;
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
   }
-  .print-page{page-break-after:always;break-after:page;break-inside:auto;background:#fff;color:#111}
+  .print-page{page-break-after:always;break-after:page;break-inside:auto}
   .print-page:last-child{page-break-after:auto;break-after:auto}
-  .print-head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:3px solid #111;padding-bottom:6px;margin-bottom:10px;color:#111}
-  .print-head h1{font-size:16pt;margin:0;font-family:var(--display);color:#111}
-  .print-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
-  .pq{border:1.5px solid #c9b89a;border-radius:8px;padding:6px 8px;min-height:0;background:#fff;color:#111;break-inside:avoid;page-break-inside:avoid}
-  .pq .qn{font-weight:800;color:#9a4b12;margin-bottom:4px}
-  .pq .q,.pq b,.pq div{color:#111}
-  .print-key .print-grid{gap:6px 12px}
-  .print-key .pq{min-height:auto;padding:4px 8px}
-  .frac{color:#111}
-  .frac .n{border-bottom:1.5pt solid currentColor}
-  #print-root svg,#print-root img,#print-root .viz{max-width:100%;height:auto;max-height:1.15in;background:#fff}
-  #print-root table{color:#111;border-color:#111}
-  #print-root table th,#print-root table td{color:#111;border-color:#111}
 }
 
 /* On screen the pack is hidden, unless we are mid print-dialog (iOS). */
 @media screen{
   #print-root{display:none!important}
-  body.is-printing{background:#fff!important;color:#111!important}
+  body.is-printing{background:#fff!important;color:#1b2437!important}
   body.is-printing > *:not(#print-root){display:none!important}
   body.is-printing #print-root{
     display:block!important;
     position:static!important;
     background:#fff!important;
-    color:#111!important;
+    color:#1b2437!important;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
   }
 }
 
@@ -512,48 +745,3 @@ svg.g5v,.g5vis svg{max-width:100%;height:auto;background:var(--viz-empty);border
   .arena-grid{min-height:calc(100dvh - 140px)}
 }
 @media screen and (max-width:900px){.arena-grid{grid-template-columns:1fr}}
-
-/* ---------- Hands-on Learn widgets (js/interact.js) ---------- */
-.viz.ix{max-height:none;display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-start;justify-content:center;margin:8px 0;padding:12px;border:2px dashed var(--line);border-radius:16px;background:var(--card)}
-.ix-left{display:flex;flex-direction:column;align-items:center;gap:6px;max-width:min(240px,72vw)}
-.ix-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:2px;width:min(240px,72vw);aspect-ratio:1;padding:3px;background:var(--ink);border-radius:8px;user-select:none;-webkit-user-select:none;cursor:pointer}
-.ix-cell{background:var(--viz-empty);border-radius:2px;transition:background .08s}
-.ix-cell.on{background:var(--ix-fill,var(--teal))}
-.ix-side{flex:1 1 200px;min-width:190px;max-width:340px;display:flex;flex-direction:column;gap:10px}
-.ix-read{background:var(--why-bg);border-left:5px solid var(--why-edge);border-radius:12px;padding:8px 12px}
-.ix-big{font-family:var(--display);font-size:28px;line-height:1.1}
-.ix-big small{font-family:var(--font);font-size:14px;color:var(--muted);font-weight:800}
-.ix-eq{font-size:20px;font-weight:800;display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:4px}
-.ix-note{font-size:14px;color:var(--muted);font-weight:700;margin-top:4px}
-.ix-tip{font-size:13px;color:var(--muted);font-weight:700;text-align:center}
-.ix-ctr{display:flex;flex-wrap:wrap;gap:6px}
-.ix-btn{border:2px solid var(--line);background:var(--btn-face);color:var(--ink);border-radius:12px;padding:6px 11px;font-weight:800;font-family:var(--display);font-size:15px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer}
-.ix-btn.on{background:var(--teal);border-color:var(--teal);color:#072821}
-.ix-btn.go{background:var(--on-bg);border-color:var(--on-bg);color:var(--on-fg)}
-.ix-btn.ghost{background:transparent}
-.ix-game{border-top:2px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:8px}
-.ix-q{font-weight:800;font-size:17px;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
-.ix-tag{background:var(--gold);color:#1b2437;border-radius:8px;padding:1px 8px;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
-.ix-fb{font-weight:700;font-size:15px;border-radius:10px}
-.ix-fb.ok{background:var(--ok-bg);border-left:5px solid var(--ok-line);padding:6px 10px}
-.ix-fb.no{background:var(--no-bg);border-left:5px solid var(--no-line);padding:6px 10px}
-.ix-fb-bar{flex-direction:column;align-items:stretch}
-.ix-dens{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center}
-.ix-lab{font-weight:800;color:var(--muted);font-size:14px}
-.ix-bar{display:flex;gap:2px;height:54px;padding:3px;background:var(--ink);border-radius:8px;width:min(420px,86vw);align-self:center;user-select:none;-webkit-user-select:none;cursor:pointer}
-.ix-piece{flex:1;background:var(--viz-empty);border-radius:3px;transition:background .08s}
-.ix-piece.on{background:var(--ix-fill,var(--violet))}
-.ix-ticks{display:flex;justify-content:space-between;width:min(420px,86vw);align-self:center;font-weight:800;font-size:13px;color:var(--muted);margin-top:-8px}
-.ix-read-bar{align-self:center;min-width:min(420px,86vw);box-sizing:border-box}
-.ix-stack{flex-direction:column;align-items:center}
-.ix-stack>.viz.ix{border:0;padding:0;margin:0}
-.ix .frac{font-size:.95em}
-.ix-cell.ca{background:#bcd6fb}
-.ix-cell.rb{background:#ffe2a0}
-.ix-cell.ov{background:#0fb39c}
-html[data-theme="dark"] .ix-cell.ca{background:#2a4d80}
-html[data-theme="dark"] .ix-cell.rb{background:#6b5618}
-.ix-step{align-items:center}
-.ix-step .ix-lab{flex-basis:100%}
-.ix-val{font-family:var(--mono);font-size:18px;min-width:34px;text-align:center}
-@media print{.viz.ix{display:none}}

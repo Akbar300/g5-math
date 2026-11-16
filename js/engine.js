@@ -545,7 +545,7 @@ function paperDivide(dividend, divisor) {
           if (!done) {
             done = true;
             if (item.why) why.classList.add('show');
-            if (opts.onDone) opts.onDone(false, tries, false);
+            if (opts.onDone) opts.onDone(false, tries);
           }
           if (opts.onNext) opts.onNext(lastOk, tries);
         });
@@ -556,18 +556,16 @@ function paperDivide(dividend, divisor) {
       b.textContent = opts.nextLabel || (opts.onNext ? (lastOk ? 'Next' : 'Try another') : 'Continue');
       requestAnimationFrame(() => { try { b.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) {} });
     };
-    /* ok = right on the first try (what scoring uses). correct = the final answer is right. */
-    const finish = (ok, correct) => {
+    const finish = (ok) => {
       if (done) return;
       done = true;
-      correct = correct !== false;
-      lastOk = !!ok || correct;
-      fb.className = 'fb ' + (correct ? 'ok' : 'no');
-      fb.innerHTML = ok ? '✅ First try!' : (correct ? '✅ Got it! That one counts as a second try.' : 'Not quite — look at the sample below.');
+      lastOk = !!ok;
+      fb.className = 'fb ' + (ok ? 'ok' : 'no');
+      fb.innerHTML = ok ? (tries === 0 ? '✅ First try!' : '✅ Got it!') : 'Not quite — look at the sample below.';
       formatFractionsIn(fb);
       if (item.why) why.classList.add('show');
-      if (opts.onDone) opts.onDone(ok, tries, correct);
-      offerAdvance(lastOk);
+      if (opts.onDone) opts.onDone(ok, tries);
+      offerAdvance(ok);
     };
 
     if (item.type === 'mc' || item.type === 'ms') {
@@ -675,7 +673,6 @@ function paperDivide(dividend, divisor) {
       const chk = document.createElement('button'); chk.className = 'btn teal'; chk.textContent = 'Check';
       const go = () => {
         if (done) return;
-        if (!String(inp.value).trim()) { try { inp.focus(); } catch (e) {} return; }
         if (U.eqNum(inp.value, item.a != null ? (item.acc || item.a) : item.acc)) finish(tries === 0);
         else { tries++; fb.className = 'fb no'; fb.textContent = 'Not yet — try a different form or re-check the work.'; if (tries >= 2) why.classList.add('show'); offerAdvance(false); }
       };
@@ -773,13 +770,13 @@ function paperDivide(dividend, divisor) {
       row.appendChild(chk); body.appendChild(row);
     } else if (item.type === 'multi') {
       const parts = item.parts || [];
-      let left = parts.length, missed = 0, wrongEnd = 0;
+      let left = parts.length, missed = 0;
       parts.forEach((p, i) => {
         const sub = document.createElement('div');
         sub.style.margin = '6px 0';
         renderItem(sub, p, {
           label: 'Part ' + String.fromCharCode(65 + i),
-          onDone: (ok, t, correct) => { left--; if (!ok) missed++; if (correct === false) wrongEnd++; if (left === 0) finish(missed === 0 && tries === 0, wrongEnd === 0); }
+          onDone: (ok) => { left--; if (!ok) missed++; if (left === 0) finish(missed === 0 && tries === 0); }
         });
         body.appendChild(sub);
       });
@@ -824,23 +821,6 @@ function paperDivide(dividend, divisor) {
     if (!out.steps && card.steps) out.steps = card.steps;
     if (!out.remember && card.remember) out.remember = card.remember;
     return out;
-  }
-
-  /* Rebuild el's content without the page jumping: hold its height and the scroll spot. */
-  function keepPlace(el, rebuild, exact) {
-    const y = window.scrollY;
-    const h0 = el.offsetHeight;
-    el.style.minHeight = h0 + 'px';
-    rebuild();
-    window.scrollTo(0, y);
-    requestAnimationFrame(function () {
-      el.style.minHeight = '';
-      window.scrollTo(0, y);
-      /* If the new question now starts above the screen, nudge up just enough to see its start. */
-      if (exact) return;
-      const top = el.getBoundingClientRect().top;
-      if (top < 0) window.scrollTo(0, Math.max(0, window.scrollY + top - 12));
-    });
   }
 
   function playLesson(host, lesson, onDone) {
@@ -914,7 +894,7 @@ function paperDivide(dividend, divisor) {
             renderItem(slot, it, {
               label: 'Try ' + (k + 1),
               nextLabel: 'Try another',
-              onNext: () => keepPlace(slot, load)
+              onNext: load
             });
             formatFractionsIn(slot);
           };
@@ -927,7 +907,7 @@ function paperDivide(dividend, divisor) {
       const nav = document.createElement('div'); nav.className = 'row-btns';
       if (i > 0) {
         const back = document.createElement('button'); back.className = 'btn ghost'; back.textContent = 'Back';
-        back.onclick = () => { i--; keepPlace(card, draw, true); }; nav.appendChild(back);
+        back.onclick = () => { i--; draw(); }; nav.appendChild(back);
       }
       const dots = document.createElement('div'); dots.className = 'dots';
       lesson.cards.forEach((_, k) => { const d = document.createElement('i'); if (k === i) d.classList.add('on'); dots.appendChild(d); });
@@ -935,12 +915,15 @@ function paperDivide(dividend, divisor) {
       const next = document.createElement('button'); next.className = 'btn';
       next.textContent = i < lesson.cards.length - 1 ? 'Next' : 'Lesson complete';
       next.onclick = () => {
-        if (i < lesson.cards.length - 1) { i++; keepPlace(card, draw, true); }
+        if (i < lesson.cards.length - 1) { i++; draw(); }
         else if (onDone) onDone();
       };
       nav.appendChild(next);
       card.appendChild(nav);
       formatFractionsIn(card);
+      requestAnimationFrame(function () {
+        try { window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); } catch (e) { window.scrollTo(0, 0); }
+      });
     };
     draw();
   }
@@ -1122,7 +1105,7 @@ function paperDivide(dividend, divisor) {
             stage.querySelector('#stSolved').textContent = solved + ' solved';
             stage.querySelector('#stStreak').textContent = 'streak ' + streak;
           },
-          onNext: () => { qi++; keepPlace(host, next); }
+          onNext: () => { qi++; next(); }
         });
       }
       next();
@@ -1149,7 +1132,7 @@ function paperDivide(dividend, divisor) {
           label: 'Q' + (i + 1) + ' of ' + items.length,
           nextLabel: i === items.length - 1 ? 'See results' : 'Next question',
           onDone: (ok) => { if (ok) right++; },
-          onNext: () => { i++; keepPlace(host, draw); }
+          onNext: () => { i++; draw(); }
         });
       };
       draw();
@@ -1184,63 +1167,308 @@ function paperDivide(dividend, divisor) {
     });
   }
 
+  /* 4 columns when short options fit in a row, 2 when crowded, 1 only for long text. */
+  function printOptsClass(ch) {
+    const opts = ch || [];
+    if (!opts.length) return 'print-opts-1';
+    const texts = opts.map((o) => U.strip(o).replace(/\s+/g, ' '));
+    const maxLen = Math.max.apply(null, texts.map((t) => t.length).concat([0]));
+    const allVeryShort = opts.every(isShortAnswer) && maxLen <= 12;
+    const compact = opts.every((o, i) => isShortAnswer(o) || (texts[i].length <= 18 && !/[A-Za-z]{8,}/.test(texts[i])));
+    if (allVeryShort && opts.length <= 6) return 'print-opts-4';
+    if (compact && maxLen <= 24) return 'print-opts-2';
+    return 'print-opts-1';
+  }
+
+  function printSkillPool(UNIT, lvl) {
+    const core = (UNIT.core && UNIT.core.skills) || [];
+    const adv = (UNIT.advanced && UNIT.advanced.skills) || [];
+    if (lvl === 'advanced') return (adv.length ? adv : core).slice();
+    // Core pack: medium–hard. Prefer advanced / challenge skills, keep core topics in the mix.
+    const seen = {};
+    const out = [];
+    adv.concat(core).forEach((s) => {
+      if (!s || !s.gen) return;
+      const k = s.id || s.name;
+      if (seen[k]) return;
+      seen[k] = 1;
+      out.push(s);
+    });
+    return out.length ? out : core.slice();
+  }
+
+  function makePrintItem(skill) {
+    const once = () => {
+      if (w.G5 && w.Adapt && skill.id) {
+        const gid = String(skill.id).replace(/^adv-/, '').replace(/^h-/, '');
+        try {
+          const raw = G5.make(gid, 'adv');
+          if (raw) return U.normalizeChoiceItem(Adapt.toLab(raw));
+        } catch (e) {}
+      }
+      let it = null;
+      try { it = skill.gen('adv'); } catch (e) { it = null; }
+      if (!it) try { it = skill.gen(); } catch (e) { it = null; }
+      return it ? U.normalizeChoiceItem(it) : null;
+    };
+    for (let t = 0; t < 24; t++) {
+      const it = once();
+      if (it) return { skill: skill.name, it: it };
+    }
+    return null;
+  }
+
+  function keyText(it) {
+    if (!it) return '';
+    if (it.type === 'mc') return 'ABCDEFGH'[it.a] + '. ' + formatHTML((it.ch || [])[it.a] || '');
+    if (it.type === 'ms') return (it.a || []).map((k) => 'ABCDEFGH'[k] + '. ' + formatHTML((it.ch || [])[k] || '')).join(' ');
+    if (it.type === 'num') return formatHTML(String(Array.isArray(it.a) ? it.a[0] : it.a));
+    if (it.type === 'paper-mul') return String(it.a * it.b);
+    if (it.type === 'paper-div') return String(Math.floor(it.a / it.b)) + (it.a % it.b ? ' R' + (it.a % it.b) : '');
+    if (it.type === 'multi' && it.parts) {
+      return it.parts.map((p, j) => 'ABCDEFGH'[j] + '. ' + formatHTML(String(Array.isArray(p.a) ? p.a[0] : (p.a != null ? p.a : '')))).join(' ');
+    }
+    return it.why ? U.strip(it.why).slice(0, 80) : '';
+  }
+
+  function renderQuestionEl(pack, i) {
+    const it = pack.it || {};
+    const el = document.createElement('div');
+    el.className = 'pq';
+    const ms = it.type === 'ms';
+    let body = '<div class="qn"><span class="pq-num">' + (i + 1) + '</span><span class="pq-skill">' + (pack.skill || '') + '</span></div>';
+    if (ms) body += '<div class="print-ms">Select all that apply.</div>';
+    body += '<div class="q">' + (it.q || it.label || '') + '</div>';
+    if (it.type === 'mc' || it.type === 'ms') {
+      const cls = printOptsClass(it.ch);
+      body += '<div class="print-opts ' + cls + '">' + (it.ch || []).map((c, k) =>
+        '<div class="print-opt"><span class="print-bubble">' + 'ABCDEFGH'[k] + '</span><span class="print-opt-t">' + c + '</span></div>'
+      ).join('') + '</div>';
+    } else if (it.type === 'multi' && it.parts) {
+      body += it.parts.map((p, j) =>
+        '<div class="print-part"><b>Part ' + 'ABCDEFGH'[j] + '.</b> ' + (p.q || p.label || '') + '<div class="print-line"></div></div>'
+      ).join('');
+    } else {
+      body += '<div class="print-line"></div><div class="print-line"></div>';
+    }
+    el.innerHTML = body;
+    formatFractionsIn(el);
+    return el;
+  }
+
+  function renderKeyEl(pack, i) {
+    const el = document.createElement('div');
+    el.className = 'pq';
+    el.innerHTML = '<div class="qn"><span class="pq-num">' + (i + 1) + '</span></div><b>' + keyText(pack.it) + '</b>';
+    formatFractionsIn(el);
+    return el;
+  }
+
+  function pageOverflows(page) {
+    const box = page.getBoundingClientRect();
+    const foot = page.querySelector('.print-foot');
+    const limit = foot ? foot.getBoundingClientRect().top : box.bottom;
+    if (page.scrollHeight > page.clientHeight + 2) return true;
+    const nodes = page.querySelectorAll('.pq, .print-head');
+    for (let i = 0; i < nodes.length; i++) {
+      const r = nodes[i].getBoundingClientRect();
+      if (r.bottom > limit + 1) return true;
+      if (r.right > box.right + 2) return true;
+    }
+    return false;
+  }
+
+  function makeMeasureHost() {
+    let host = document.getElementById('print-measure');
+    if (host) host.remove();
+    host = document.createElement('div');
+    host.id = 'print-measure';
+    document.body.appendChild(host);
+    return host;
+  }
+
+  function startPage(kind, headHTML) {
+    const page = document.createElement('section');
+    page.className = 'print-page' + (kind === 'key' ? ' print-key' : '');
+    page.innerHTML = '<div class="print-head">' + headHTML + '</div><div class="print-grid"><div class="print-col"></div><div class="print-col"></div></div><div class="print-foot"><span class="print-pnum"></span></div>';
+    return page;
+  }
+
+  function shorterCol(page) {
+    const cols = page.querySelectorAll('.print-col');
+    if (cols.length < 2) return page.querySelector('.print-grid') || page;
+    return cols[0].offsetHeight <= cols[1].offsetHeight ? cols[0] : cols[1];
+  }
+
+  function fillPages(host, items, kind, headFn) {
+    const pages = [];
+    let i = 0;
+    let page = null;
+    let grid = null;
+    const ensurePage = () => {
+      if (page) return;
+      page = startPage(kind, headFn(pages.length));
+      host.appendChild(page);
+      grid = shorterCol(page);
+      void page.offsetHeight;
+    };
+    const commitPage = () => {
+      if (page) pages.push(page);
+      page = null;
+      grid = null;
+    };
+    while (i < items.length) {
+      ensurePage();
+      grid = shorterCol(page);
+      const el = kind === 'key' ? renderKeyEl(items[i], i) : renderQuestionEl(items[i], i);
+      grid.appendChild(el);
+      void page.offsetHeight;
+      if (pageOverflows(page)) {
+        grid.removeChild(el);
+        if (!grid.querySelector('.pq')) {
+          /* First item is taller than the page — keep it rather than drop it. */
+          grid.appendChild(el);
+          i++;
+          commitPage();
+          continue;
+        }
+        commitPage();
+        continue;
+      }
+      i++;
+    }
+    if (page) commitPage();
+    pages.forEach((pg, p) => {
+      const n = pg.querySelector('[data-page-num]');
+      const t = pg.querySelector('[data-page-total]');
+      if (n) n.textContent = String(p + 1);
+      if (t) t.textContent = String(pages.length);
+    });
+    return pages;
+  }
+
+  /* Try candidates until one fits; stop when none of the pool fits the remaining space. */
+  function growPage(page, used, nextItem, kind) {
+    const colOf = () => shorterCol(page);
+    const pool = [];
+    const refill = () => {
+      let g = 0;
+      while (pool.length < 10 && g < 40) {
+        g++;
+        const pack = nextItem();
+        if (pack) pool.push(pack);
+        else break;
+      }
+    };
+    for (let step = 0; step < 48; step++) {
+      refill();
+      if (!pool.length) break;
+      let best = -1;
+      for (let i = 0; i < pool.length; i++) {
+        const el = kind === 'key' ? renderKeyEl(pool[i], used.length) : renderQuestionEl(pool[i], used.length);
+        const grid = colOf();
+        grid.appendChild(el);
+        void page.offsetHeight;
+        const ok = !pageOverflows(page);
+        grid.removeChild(el);
+        if (ok) { best = i; break; }
+      }
+      if (best < 0) {
+        const firstCol = page.querySelector('.print-col, .print-grid');
+        if (firstCol && !page.querySelector('.pq') && pool.length) {
+          const pack = pool.shift();
+          used.push(pack);
+          firstCol.appendChild(kind === 'key' ? renderKeyEl(pack, used.length - 1) : renderQuestionEl(pack, used.length - 1));
+        }
+        break;
+      }
+      const pack = pool.splice(best, 1)[0];
+      used.push(pack);
+      colOf().appendChild(kind === 'key' ? renderKeyEl(pack, used.length - 1) : renderQuestionEl(pack, used.length - 1));
+    }
+  }
+
   function buildPrint(UNIT, lvl) {
     const root = getPrintRoot();
-    const T = (lvl === 'advanced' ? UNIT.advanced : UNIT.core);
-    const items = [];
-    const skills = T.skills || [];
-    // Fill two US Letter pages, 2-col, ~10 per page
-    let guard = 0;
-    while (items.length < 20 && guard < 80) {
-      guard++;
-      const s = skills[items.length % Math.max(skills.length, 1)] || skills[0];
-      if (!s) break;
-      try {
-          let it = null;
-          for (let t = 0; t < 24 && !it; t++) it = s.gen();
-          if (it) items.push({ skill: s.name, it: U.normalizeChoiceItem(it) });
-        } catch (e) {}
-    }
-    const pages = [items.slice(0, 10), items.slice(10, 20)];
-    const renderQ = (pack, i) => {
-      const it = pack.it;
-      let body = `<div class="q">${it.q}</div>`;
-      if (it.type === 'mc' || it.type === 'ms') {
-        body += '<div>' + (it.ch || []).map((c, k) => `<div>☐ ${'ABCDEFGH'[k]}. ${c}</div>`).join('') + '</div>';
-      } else {
-        body += '<div style="margin-top:18px;border-bottom:1.5px solid #bbb"></div><div style="margin-top:18px;border-bottom:1.5px solid #bbb"></div>';
-      }
-      return `<div class="pq"><div class="qn">${i + 1}. ${pack.skill || ''}</div>${body}</div>`;
-    };
-    const keyItems = items.map((pack, i) => {
-      let ans = '';
-      const it = pack.it;
-      if (it.type === 'mc') ans = 'ABCDEFGH'[it.a] + '. ' + formatHTML((it.ch || [])[it.a] || '');
-      else if (it.type === 'ms') ans = (it.a || []).map((k) => 'ABCDEFGH'[k] + '. ' + formatHTML((it.ch || [])[k] || '')).join(' ');
-      else if (it.type === 'num') ans = formatHTML(String(Array.isArray(it.a) ? it.a[0] : it.a));
-      else if (it.type === 'paper-mul') ans = String(it.a * it.b);
-      else if (it.type === 'paper-div') ans = String(Math.floor(it.a / it.b)) + (it.a % it.b ? ' R' + (it.a % it.b) : '');
-      else ans = it.why ? U.strip(it.why).slice(0, 80) : '';
-      return `<div class="pq"><div class="qn">${i + 1}.</div><b>${ans}</b></div>`;
-    });
+    const skills = printSkillPool(UNIT, lvl);
     const levelName = lvl === 'advanced' ? 'Advanced' : 'Core';
-    if (!items.length) {
-      root.innerHTML = `<section class="print-page"><div class="print-head"><h1>${UNIT.emoji} ${UNIT.title}</h1></div><p>No practice items were ready. Close this dialog and try Print pack again.</p></section>`;
-    } else {
-      const filled = pages.filter((pg) => pg.length);
-      root.innerHTML = filled.map((pg, p) => `
-        <section class="print-page">
-          <div class="print-head"><h1>${UNIT.emoji} ${UNIT.title} · ${levelName} Practice</h1><div>Grade 5 · Page ${p + 1} of ${filled.length}</div></div>
-          <div class="print-grid">${pg.map((pack, i) => renderQ(pack, i + p * 10)).join('')}</div>
-        </section>`).join('') + `
-        <section class="print-page print-key">
-          <div class="print-head"><h1>Answer Key · ${UNIT.title} · ${levelName}</h1><div>Keep this page separate</div></div>
-          <div class="print-grid">${keyItems.join('')}</div>
-        </section>`;
+    const seenQ = {};
+    let si = 0;
+    const nextItem = () => {
+      if (!skills.length) return null;
+      for (let n = 0; n < Math.max(skills.length * 8, 16); n++) {
+        const s = skills[si++ % skills.length];
+        const pack = makePrintItem(s);
+        if (!pack || !pack.it) continue;
+        const sig = U.strip(pack.it.q || '') + '|' + (pack.it.ch || []).join('|');
+        if (seenQ[sig]) continue;
+        seenQ[sig] = 1;
+        return pack;
+      }
+      return null;
+    };
+
+    const accent = UNIT.color || '#2f80ed';
+    const host = makeMeasureHost();
+    host.style.setProperty('--print-accent', accent);
+    root.style.setProperty('--print-accent', accent);
+
+    const qHead = '<h1>' + UNIT.emoji + ' ' + UNIT.title + ' · ' + levelName + ' Practice</h1><div class="print-head-meta">Grade 5 · US Letter</div>';
+    const items = [];
+    const practicePages = [];
+    const addPracticePage = () => {
+      const page = startPage('q', qHead);
+      host.appendChild(page);
+      void page.offsetHeight;
+      const before = items.length;
+      growPage(page, items, nextItem, 'q');
+      if (page.querySelector('.pq') && items.length > before) {
+        practicePages.push(page);
+        return true;
+      }
+      page.remove();
+      return false;
+    };
+    addPracticePage();
+    addPracticePage();
+    /* Duplex: answer key must start on an odd (front) page, so practice sides stay even. Prefer more questions, not a blank. */
+    while (practicePages.length % 2 === 1) {
+      if (!addPracticePage()) break;
     }
-    formatFractionsIn(root);
+    if (!items.length) {
+      host.remove();
+      root.innerHTML = '<section class="print-page"><div class="print-head"><h1>' + UNIT.emoji + ' ' + UNIT.title + '</h1></div><p>No practice items were ready. Close this dialog and try Print pack again.</p></section>';
+      openPrintDialog();
+      return;
+    }
+    let qi = 0;
+    practicePages.forEach((pg) => {
+      pg.querySelectorAll('.pq').forEach((card) => {
+        const num = card.querySelector('.pq-num');
+        if (num) num.textContent = String(++qi);
+      });
+    });
+
+    const keyPages = fillPages(host, items, 'key', () =>
+      '<h1>Answer Key · ' + UNIT.title + ' · ' + levelName + '</h1><div class="print-head-meta">Keep this page separate</div>'
+    );
+
+    const allPages = practicePages.concat(keyPages);
+    allPages.forEach((pg, p) => {
+      pg.classList.toggle('print-odd', p % 2 === 0);
+      pg.classList.toggle('print-even', p % 2 === 1);
+      const foot = pg.querySelector('.print-pnum');
+      if (foot) foot.textContent = String(p + 1);
+    });
+
+    root.innerHTML = '';
+    root.style.setProperty('--print-accent', accent);
+    allPages.forEach((pg) => root.appendChild(pg));
+    host.remove();
+    root.dataset.qcount = String(items.length);
     openPrintDialog();
   }
+
 
   w.Lab = { mount, renderItem, playLesson, U, optsClass, optsLayout, formatHTML, formatFractionsIn, formatFractionString, isShortAnswer, buildPrint, getPrintRoot };
 })(window);
