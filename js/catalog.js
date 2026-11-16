@@ -16,7 +16,7 @@ window.CATALOG = {
     { num: 11, id: 'u11', file: 'units/unit11.html', emoji: '📍', title: 'Coordinate Quest',          blurb: 'Plot and read points in Quadrant I. (Grade 6 standard.)', sol: '6.MG', dates: ['2027-05-17', '2027-06-16'] }
   ],
   games: [
-    { num: '×', id: 'mul', file: 'arenas/multiply.html', emoji: '🤖', title: 'Multiply Arena', blurb: 'Mental tricks, then 3-digit × 3-digit on paper. Calm, step by step.' },
-    { num: '÷', id: 'div', file: 'arenas/division.html', emoji: '🤖', title: 'Division Arena', blurb: 'Long division, one step at a time, on a full-size paper tableau.' }
+    { num: '×', id: 'mul', file: 'arenas/multiply.html', emoji: '🤖', title: 'Multiply Arena', blurb: 'The original neon ninja arena: tap through each step. A calm Lab version (paper method) is one tap away.' },
+    { num: '÷', id: 'div', file: 'arenas/division.html', emoji: '🤖', title: 'Division Arena', blurb: 'The original neon ninja arena for long division. A calm Lab version (paper tableau) is one tap away.' }
   ]
 };
