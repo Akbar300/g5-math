@@ -545,7 +545,7 @@ function paperDivide(dividend, divisor) {
           if (!done) {
             done = true;
             if (item.why) why.classList.add('show');
-            if (opts.onDone) opts.onDone(false, tries);
+            if (opts.onDone) opts.onDone(false, tries, false);
           }
           if (opts.onNext) opts.onNext(lastOk, tries);
         });
@@ -556,16 +556,18 @@ function paperDivide(dividend, divisor) {
       b.textContent = opts.nextLabel || (opts.onNext ? (lastOk ? 'Next' : 'Try another') : 'Continue');
       requestAnimationFrame(() => { try { b.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) {} });
     };
-    const finish = (ok) => {
+    /* ok = right on the first try (what scoring uses). correct = the final answer is right. */
+    const finish = (ok, correct) => {
       if (done) return;
       done = true;
-      lastOk = !!ok;
-      fb.className = 'fb ' + (ok ? 'ok' : 'no');
-      fb.innerHTML = ok ? (tries === 0 ? '✅ First try!' : '✅ Got it!') : 'Not quite — look at the sample below.';
+      correct = correct !== false;
+      lastOk = !!ok || correct;
+      fb.className = 'fb ' + (correct ? 'ok' : 'no');
+      fb.innerHTML = ok ? '✅ First try!' : (correct ? '✅ Got it! That one counts as a second try.' : 'Not quite — look at the sample below.');
       formatFractionsIn(fb);
       if (item.why) why.classList.add('show');
-      if (opts.onDone) opts.onDone(ok, tries);
-      offerAdvance(ok);
+      if (opts.onDone) opts.onDone(ok, tries, correct);
+      offerAdvance(lastOk);
     };
 
     if (item.type === 'mc' || item.type === 'ms') {
@@ -673,6 +675,7 @@ function paperDivide(dividend, divisor) {
       const chk = document.createElement('button'); chk.className = 'btn teal'; chk.textContent = 'Check';
       const go = () => {
         if (done) return;
+        if (!String(inp.value).trim()) { try { inp.focus(); } catch (e) {} return; }
         if (U.eqNum(inp.value, item.a != null ? (item.acc || item.a) : item.acc)) finish(tries === 0);
         else { tries++; fb.className = 'fb no'; fb.textContent = 'Not yet — try a different form or re-check the work.'; if (tries >= 2) why.classList.add('show'); offerAdvance(false); }
       };
@@ -770,13 +773,13 @@ function paperDivide(dividend, divisor) {
       row.appendChild(chk); body.appendChild(row);
     } else if (item.type === 'multi') {
       const parts = item.parts || [];
-      let left = parts.length, missed = 0;
+      let left = parts.length, missed = 0, wrongEnd = 0;
       parts.forEach((p, i) => {
         const sub = document.createElement('div');
         sub.style.margin = '6px 0';
         renderItem(sub, p, {
           label: 'Part ' + String.fromCharCode(65 + i),
-          onDone: (ok) => { left--; if (!ok) missed++; if (left === 0) finish(missed === 0 && tries === 0); }
+          onDone: (ok, t, correct) => { left--; if (!ok) missed++; if (correct === false) wrongEnd++; if (left === 0) finish(missed === 0 && tries === 0, wrongEnd === 0); }
         });
         body.appendChild(sub);
       });
@@ -821,6 +824,23 @@ function paperDivide(dividend, divisor) {
     if (!out.steps && card.steps) out.steps = card.steps;
     if (!out.remember && card.remember) out.remember = card.remember;
     return out;
+  }
+
+  /* Rebuild el's content without the page jumping: hold its height and the scroll spot. */
+  function keepPlace(el, rebuild, exact) {
+    const y = window.scrollY;
+    const h0 = el.offsetHeight;
+    el.style.minHeight = h0 + 'px';
+    rebuild();
+    window.scrollTo(0, y);
+    requestAnimationFrame(function () {
+      el.style.minHeight = '';
+      window.scrollTo(0, y);
+      /* If the new question now starts above the screen, nudge up just enough to see its start. */
+      if (exact) return;
+      const top = el.getBoundingClientRect().top;
+      if (top < 0) window.scrollTo(0, Math.max(0, window.scrollY + top - 12));
+    });
   }
 
   function playLesson(host, lesson, onDone) {
@@ -894,7 +914,7 @@ function paperDivide(dividend, divisor) {
             renderItem(slot, it, {
               label: 'Try ' + (k + 1),
               nextLabel: 'Try another',
-              onNext: load
+              onNext: () => keepPlace(slot, load)
             });
             formatFractionsIn(slot);
           };
@@ -907,7 +927,7 @@ function paperDivide(dividend, divisor) {
       const nav = document.createElement('div'); nav.className = 'row-btns';
       if (i > 0) {
         const back = document.createElement('button'); back.className = 'btn ghost'; back.textContent = 'Back';
-        back.onclick = () => { i--; draw(); }; nav.appendChild(back);
+        back.onclick = () => { i--; keepPlace(card, draw, true); }; nav.appendChild(back);
       }
       const dots = document.createElement('div'); dots.className = 'dots';
       lesson.cards.forEach((_, k) => { const d = document.createElement('i'); if (k === i) d.classList.add('on'); dots.appendChild(d); });
@@ -915,15 +935,12 @@ function paperDivide(dividend, divisor) {
       const next = document.createElement('button'); next.className = 'btn';
       next.textContent = i < lesson.cards.length - 1 ? 'Next' : 'Lesson complete';
       next.onclick = () => {
-        if (i < lesson.cards.length - 1) { i++; draw(); }
+        if (i < lesson.cards.length - 1) { i++; keepPlace(card, draw, true); }
         else if (onDone) onDone();
       };
       nav.appendChild(next);
       card.appendChild(nav);
       formatFractionsIn(card);
-      requestAnimationFrame(function () {
-        try { window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); } catch (e) { window.scrollTo(0, 0); }
-      });
     };
     draw();
   }
@@ -1105,7 +1122,7 @@ function paperDivide(dividend, divisor) {
             stage.querySelector('#stSolved').textContent = solved + ' solved';
             stage.querySelector('#stStreak').textContent = 'streak ' + streak;
           },
-          onNext: () => { qi++; next(); }
+          onNext: () => { qi++; keepPlace(host, next); }
         });
       }
       next();
@@ -1132,7 +1149,7 @@ function paperDivide(dividend, divisor) {
           label: 'Q' + (i + 1) + ' of ' + items.length,
           nextLabel: i === items.length - 1 ? 'See results' : 'Next question',
           onDone: (ok) => { if (ok) right++; },
-          onNext: () => { i++; draw(); }
+          onNext: () => { i++; keepPlace(host, draw); }
         });
       };
       draw();
