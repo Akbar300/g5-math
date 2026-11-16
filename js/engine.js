@@ -212,8 +212,8 @@
     } else if (n === 3 && maxPerRow < 3) cols = 1;
     else cols = Math.min(2, maxPerRow, n);
     let cls = 'opts-col';
-    if (cols === n && short) cls = 'opts-row';
-    else if (cols >= 2) cls = 'opts-grid';
+    if (cols === n && short && width >= 520) cls = 'opts-row';
+    else if (cols >= 2 || (n >= 2 && width < 520)) { cls = 'opts-grid'; cols = Math.min(2, n); }
     return { cls, cols };
   }
 
@@ -612,36 +612,34 @@ function paperDivide(dividend, divisor) {
         b.className = 'opt';
         b.type = 'button';
         b.setAttribute('aria-pressed', 'false');
-        const mark = isMS
-          ? `<span class="let chk" aria-hidden="true"></span>`
-          : ((cls === 'opts-row' || (cls === 'opts-grid' && optionsAreShort)) ? '' : `<span class="let">${letters[k]}</span>`);
+        const mark = (isMS || cls === 'opts-row' || (cls === 'opts-grid' && optionsAreShort))
+          ? ''
+          : `<span class="let">${letters[k]}</span>`;
         b.innerHTML = mark + formatHTML(html);
+        if (isMS) b.setAttribute('aria-label', (isMS ? 'Toggle: ' : '') + U.strip(html));
         bindTap(b, () => {
           if (done) return;
-          b.classList.remove('wrong');
           if (isMS) {
+            b.classList.remove('wrong');
             if (selected.has(k)) selected.delete(k);
             else selected.add(k);
-          } else if (selected.has(k)) {
-            selected.delete(k);
-          } else {
-            selected.clear();
-            selected.add(k);
+            paintSel();
+            return;
           }
+          if (b.classList.contains('wrong')) return;
+          selected.clear();
+          selected.add(k);
           paintSel();
+          gradeChoices();
         });
         wrap.appendChild(b);
       });
       body.appendChild(wrap);
-      const chk = document.createElement('button');
-      chk.className = 'btn teal';
-      chk.type = 'button';
-      chk.textContent = 'Check';
-      bindTap(chk, () => {
+      const gradeChoices = () => {
         if (done) return;
         if (selected.size === 0) {
           fb.className = 'fb no';
-          fb.textContent = isMS ? 'Select every right one — then press Check.' : 'Select an answer, then press Check.';
+          fb.textContent = isMS ? 'Select every right one — then press Check.' : 'Tap a choice to check it.';
           return;
         }
         if (isMS) {
@@ -674,8 +672,15 @@ function paperDivide(dividend, divisor) {
             offerAdvance(false);
           }
         }
-      });
-      actions.appendChild(chk);
+      };
+      if (isMS) {
+        const chk = document.createElement('button');
+        chk.className = 'btn teal';
+        chk.type = 'button';
+        chk.textContent = 'Check';
+        bindTap(chk, gradeChoices);
+        actions.appendChild(chk);
+      }
     } else if (item.type === 'num') {
       const row = document.createElement('div'); row.className = 'num-in';
       const inp = document.createElement('input'); inp.type = 'text'; inp.inputMode = item.inputMode || 'decimal';
@@ -970,7 +975,7 @@ function paperDivide(dividend, divisor) {
         if (c.example) { const ex = document.createElement('div'); ex.innerHTML = c.example; s3.bd.appendChild(ex); }
         main.appendChild(s3.sec);
       }
-      if (c.trap || c.aap) {
+      if (c.trap || c.aap || c.stretch) {
         const pair = document.createElement('div');
         pair.className = 'ls-pair';
         if (c.trap) {
@@ -978,10 +983,11 @@ function paperDivide(dividend, divisor) {
           s4.bd.innerHTML = c.trap;
           pair.appendChild(s4.sec);
         }
-        if (c.aap) {
-          const s5 = section('ls-aap', '🚀', 'AAP stretch');
-          const aapHtml = typeof c.aap === 'string' ? c.aap : (c.aap.html || c.aap.text || '');
-          s5.bd.innerHTML = aapHtml.replace(/^\s*AAP:\s*/i, '');
+        if (c.aap || c.stretch) {
+          const s5 = section('ls-aap', '🚀', 'Advanced stretch');
+          const stretch = c.stretch || c.aap;
+          const aapHtml = typeof stretch === 'string' ? stretch : (stretch.html || stretch.text || '');
+          s5.bd.innerHTML = aapHtml.replace(/^\s*(AAP|Advanced):\s*/i, '');
           pair.appendChild(s5.sec);
         }
         main.appendChild(pair);
@@ -1157,7 +1163,7 @@ function paperDivide(dividend, divisor) {
       const T = track();
       const skills = T.skills || [];
       stage.innerHTML = `<h2>Practice · ${M.lvl === 'advanced' ? 'Advanced' : 'Core'}</h2>
-        <p class="lede">Fresh questions every time. A skill earns a ⭐ after 3 right answers on 2 different days. Multi-step computation uses a paper work area.</p>
+        <p class="lede">Fresh questions every time. Tap a choice to check it right away. For typed answers, press Check or Enter. A skill earns a ⭐ after 3 right answers on 2 different days.</p>
         <div class="practice-top">
           <div class="seg" id="skillSeg"></div>
           <div class="seg" id="nSeg"></div>
@@ -1165,20 +1171,28 @@ function paperDivide(dividend, divisor) {
           <span class="stat" id="stStreak">streak 0</span>
         </div>
         <div id="pHost" class="stage-host"></div>`;
-      let skill = 'all', n = 5, solved = 0, streak = 0, qi = 0, cur = null;
+      let skill = 'all', n = 5, solved = 0, streak = 0, qi = 0, cur = null, lastSkill = null;
       const skillSeg = stage.querySelector('#skillSeg');
+      function startFresh() {
+        qi = 0; solved = 0; streak = 0; lastSkill = null; cur = null;
+        const solEl = stage.querySelector('#stSolved');
+        const stEl = stage.querySelector('#stStreak');
+        if (solEl) solEl.textContent = '0 solved';
+        if (stEl) stEl.textContent = 'streak 0';
+        next();
+      }
       const allBtn = document.createElement('button'); allBtn.className = 'on'; allBtn.textContent = 'All skills';
-      allBtn.onclick = () => { skill = 'all'; [...skillSeg.children].forEach((x) => x.classList.remove('on')); allBtn.classList.add('on'); next(); };
+      allBtn.onclick = () => { skill = 'all'; [...skillSeg.children].forEach((x) => x.classList.remove('on')); allBtn.classList.add('on'); startFresh(); };
       skillSeg.appendChild(allBtn);
       skills.forEach((s) => {
         const b = document.createElement('button'); b.textContent = s.name;
-        b.onclick = () => { skill = s.id; [...skillSeg.children].forEach((x) => x.classList.remove('on')); b.classList.add('on'); next(); };
+        b.onclick = () => { skill = s.id; [...skillSeg.children].forEach((x) => x.classList.remove('on')); b.classList.add('on'); startFresh(); };
         skillSeg.appendChild(b);
       });
       const nSeg = stage.querySelector('#nSeg');
       [5, 10, 20, 0].forEach((k) => {
         const b = document.createElement('button'); b.textContent = k ? String(k) : '∞'; if (k === 5) b.classList.add('on');
-        b.onclick = () => { n = k; [...nSeg.children].forEach((x) => x.classList.remove('on')); b.classList.add('on'); qi = 0; next(); };
+        b.onclick = () => { n = k; [...nSeg.children].forEach((x) => x.classList.remove('on')); b.classList.add('on'); startFresh(); };
         nSeg.appendChild(b);
       });
       const host = stage.querySelector('#pHost');
@@ -1195,7 +1209,6 @@ function paperDivide(dividend, divisor) {
         rec.n++; if (ok) { rec.c++; const t = U.today(); if (rec.d.indexOf(t) < 0) rec.d.push(t); M.xp += 5; }
         save(); setXP();
       }
-      let lastSkill = null;
       function makeItem() {
         let s = pickSkill();
         if (skill === 'all' && skills.length > 1 && lastSkill && s.id === lastSkill) s = pickSkill();
@@ -1223,7 +1236,7 @@ function paperDivide(dividend, divisor) {
         const count = n ? Math.min(per, n - qi) : per;
         host.innerHTML = '';
         const cap = document.createElement('div'); cap.className = 'set-cap';
-        cap.innerHTML = `<b>Questions ${qi + 1}–${qi + count}${n ? ' of ' + n : ''}</b><span>Answer each card, then press its Check. Go in any order.</span>`;
+        cap.innerHTML = `<b>Questions ${qi + 1}–${qi + count}${n ? ' of ' + n : ''}</b><span>Tap a choice to check it, or press Check on a typed answer. Go in any order.</span>`;
         host.appendChild(cap);
         const grid = document.createElement('div'); grid.className = 'qgrid';
         host.appendChild(grid);
@@ -1251,7 +1264,7 @@ function paperDivide(dividend, divisor) {
           if (cell.querySelector('.paper-wrap')) cell.classList.add('span-all');
         }
         qi += count;
-        nb.onclick = () => { if (last) roundDone(); else nextSet(); try { host.scrollIntoView({ block: 'start' }); } catch (e) {} };
+        nb.onclick = () => { if (last) roundDone(); else nextSet(); try { host.scrollIntoView({ block: 'start', inline: 'nearest' }); } catch (e) {} };
         nav.appendChild(status); nav.appendChild(nb);
         host.appendChild(nav);
         paint();
@@ -1317,7 +1330,7 @@ function paperDivide(dividend, divisor) {
             onDone: (ok) => {
               if (ok) right++;
               left--; paint();
-              if (left === 0) { nav.innerHTML = ''; const box = results(nav); try { box.scrollIntoView({ block: 'nearest' }); } catch (e) {} }
+              if (left === 0) { nav.innerHTML = ''; const box = results(nav); try { box.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) {} }
             }
           });
           if (cell.querySelector('.paper-wrap')) cell.classList.add('span-all');

@@ -16,7 +16,7 @@ All 11 class units and both paper arenas are live. This is a static site: open `
 1. Data Detectives (5.PS.1, 5.PS.2)
 2. Pattern & Number Lab (5.CE.4, 5.NS.2, 5.PFA.1–2)
 3. Whole Number Workshop (5.CE.1)
-4. Fraction & Decimal Studio (5.NS.1)
+4. Fraction & Decimal Studio (5.NS.1), including an intro to ratios and percents
 5. Decimal Workshop (5.CE.3)
 6. Metric Lab (5.MG.1)
 7. Compare & Percent Studio (5.NS.1)

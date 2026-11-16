@@ -17,6 +17,22 @@
     return d.outerHTML;
   }
 
+  const FILL = {
+    '#0fb39c': 'var(--viz-teal)',
+    '#6c4ee0': 'var(--viz-violet)',
+    '#2f80ed': 'var(--viz-blue)',
+    '#ff5a36': 'var(--viz-coral)',
+    '#ffc43d': 'var(--viz-gold)',
+    '#ff6b9a': 'var(--viz-rose)',
+    '#62c918': 'var(--viz-lime)'
+  };
+  function themeFill(c) {
+    if (c == null || c === '') return c;
+    const k = String(c).trim().toLowerCase();
+    return FILL[k] || c;
+  }
+
+
   function hundredGrid(shaded, { cols = 10, rows = 10, fill = '#0fb39c', label } = {}) {
     const cell = 16, pad = 8, W = pad * 2 + cols * cell, H = pad * 2 + rows * cell + (label ? 22 : 0);
     const s = svg(W, H);
@@ -25,7 +41,7 @@
       const r = Math.floor(i / cols), c = i % cols;
       s.appendChild(el('rect', {
         x: pad + c * cell, y: pad + r * cell, width: cell - 1, height: cell - 1,
-        fill: i < shaded ? fill : 'var(--viz-empty)', stroke: 'var(--ink)', 'stroke-width': '1'
+        fill: i < shaded ? themeFill(fill) : 'var(--viz-empty)', stroke: 'var(--ink)', 'stroke-width': '1'
       }));
     }
     if (label) svgLabel(s, W / 2, H - 6, label, { 'font-size': 13, fill: 'var(--ink)' });
@@ -38,7 +54,7 @@
     for (let i = 0; i < d; i++) {
       s.appendChild(el('rect', {
         x: pad + i * cw, y: 8, width: cw - 1.5, height: bh,
-        fill: i < n ? fill : 'var(--viz-empty)', stroke: 'var(--ink)', 'stroke-width': '2'
+        fill: i < n ? themeFill(fill) : 'var(--viz-empty)', stroke: 'var(--ink)', 'stroke-width': '2'
       }));
     }
     if (label) svgLabel(s, w / 2, h + 10, label, { 'font-size': 13, fill: 'var(--ink)' });
@@ -96,7 +112,7 @@
     });
     (marks || []).forEach((m) => {
       const x = L + ((m.pos - min) / span) * (R - L);
-      s.appendChild(el('circle', { cx: x, cy: Y, r: 7, fill: m.color || '#ff5a36', stroke: 'var(--ink)', 'stroke-width': '2' }));
+      s.appendChild(el('circle', { cx: x, cy: Y, r: 7, fill: themeFill(m.color || '#ff5a36'), stroke: 'var(--ink)', 'stroke-width': '2' }));
       svgLabel(s, x, 16, m.label || String(m.pos), { 'font-size': 13, fill: 'var(--ink)' });
     });
     return wrap(s);
@@ -154,7 +170,7 @@
       svgLabel(s, x, Y + 18, String(v), { 'font-size': 12, fill: 'var(--muted)' });
       const n = counts[v] || 0;
       for (let i = 0; i < n; i++) {
-        s.appendChild(el('circle', { cx: x, cy: Y - 14 - i * 16, r: 6, fill: '#2f80ed', stroke: 'var(--ink)', 'stroke-width': '1.5' }));
+        s.appendChild(el('circle', { cx: x, cy: Y - 14 - i * 16, r: 6, fill: themeFill('#2f80ed'), stroke: 'var(--ink)', 'stroke-width': '1.5' }));
       }
     }
     return wrap(s);
@@ -178,7 +194,7 @@
 
   function pie(parts, labels, { size = 200 } = {}) {
     const cx = size / 2, cy = size / 2, R = size / 2 - 8;
-    const cols = ['#0fb39c', '#ffc43d', '#2f80ed', '#ff5a36', '#6c4ee0', '#ff6b9a'];
+    const cols = ['#0fb39c', '#ffc43d', '#2f80ed', '#ff5a36', '#6c4ee0', '#ff6b9a'].map(themeFill);
     const s = svg(size, size);
     let a0 = -Math.PI / 2;
     parts.forEach((p, i) => {
@@ -200,6 +216,7 @@
   }
 
   function barGraph(cats, vals, { title = '', color = '#2f80ed' } = {}) {
+    color = themeFill(color);
     const w = 400, h = 180, L = 36, B = 140, max = Math.max(...vals, 1);
     const s = svg(w, h);
     if (title) s.appendChild(el('text', { x: w / 2, y: 16, 'text-anchor': 'middle', 'font-size': '13', 'font-weight': '800' }, [title]));
@@ -235,7 +252,7 @@
     (points || []).forEach((pt) => {
       const x = quad ? 120 + pt.x * s : 28 + pt.x * s;
       const y = quad ? 120 - pt.y * s : 220 - pt.y * s;
-      sEl.appendChild(el('circle', { cx: x, cy: y, r: 6, fill: '#ff5a36', stroke: 'var(--ink)', 'stroke-width': '2' }));
+      sEl.appendChild(el('circle', { cx: x, cy: y, r: 6, fill: themeFill('#ff5a36'), stroke: 'var(--ink)', 'stroke-width': '2' }));
       if (pt.label) sEl.appendChild(el('text', { x: x + 8, y: y - 8, 'font-size': '11', 'font-weight': '800', fill: 'var(--ink)' }, [pt.label]));
     });
     return wrap(sEl);
@@ -248,12 +265,13 @@
     s.appendChild(el('line', { x1: cx, y1: cy, x2: cx + R, y2: cy, stroke: 'var(--ink)', 'stroke-width': '3' }));
     s.appendChild(el('line', { x1: cx, y1: cy, x2: cx + R * Math.cos(rad), y2: cy - R * Math.sin(rad), stroke: 'var(--ink)', 'stroke-width': '3' }));
     const d = `M ${cx + 24} ${cy} A 24 24 0 ${deg > 180 ? 1 : 0} 0 ${cx + 24 * Math.cos(rad)} ${cy - 24 * Math.sin(rad)}`;
-    s.appendChild(el('path', { d, fill: 'none', stroke: '#ff5a36', 'stroke-width': '3' }));
+    s.appendChild(el('path', { d, fill: 'none', stroke: themeFill('#ff5a36'), 'stroke-width': '3' }));
     s.appendChild(el('text', { x: 90, y: 40, 'font-size': '16', 'font-weight': '800', fill: 'var(--ink)' }, [label || (deg + '°')]));
     return wrap(s);
   }
 
   function areaRect(l, w, { unit = '', fill = '#0fb39c' } = {}) {
+    fill = themeFill(fill);
     const scale = Math.min(200 / Math.max(l, 1), 130 / Math.max(w, 1), 36);
     const W = Math.max(48, l * scale), H = Math.max(36, w * scale);
     const padL = 44, padT = 28, padB = 16, padR = 16;
@@ -272,7 +290,7 @@
     units.forEach((u, i) => {
       const x = 16 + i * 58;
       const hit = u === on;
-      s.appendChild(el('rect', { x, y: 18, width: 50, height: 32, rx: '8', fill: hit ? '#0fb39c' : 'var(--viz-empty)', stroke: 'var(--ink)', 'stroke-width': '2' }));
+      s.appendChild(el('rect', { x, y: 18, width: 50, height: 32, rx: '8', fill: hit ? themeFill('#0fb39c') : 'var(--viz-empty)', stroke: 'var(--ink)', 'stroke-width': '2' }));
       s.appendChild(el('text', { x: x + 25, y: 39, 'text-anchor': 'middle', 'font-size': '13', 'font-weight': '800', fill: hit ? '#072821' : 'var(--ink)' }, [u]));
       if (i < units.length - 1) {
         s.appendChild(el('text', { x: x + 54, y: 14, 'text-anchor': 'middle', 'font-size': '9', 'font-weight': '800', fill: 'var(--muted)' }, ['×10']));
@@ -297,7 +315,7 @@
   }
 
   w.V = {
-    hundredGrid, fractionBar, numberLine, placeValue, linePlot, stemLeaf, pie, barGraph, plane, angle,
+    themeFill, hundredGrid, fractionBar, numberLine, placeValue, linePlot, stemLeaf, pie, barGraph, plane, angle,
     areaRect, metricLadder, cycleSteps,
     fr(n, d) { return `<span class="frac"><span class="n">${n}</span><span class="d">${d}</span></span>`; },
     mixed(w, n, d) { return `<span class="mix">${w}${this.fr(n, d)}</span>`; }

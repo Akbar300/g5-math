@@ -531,7 +531,64 @@
       }
     },
 
-    /* ---------- Unit 5 ---------- */
+    u4c5: {
+      'Two amounts, in order': {
+        viz: () => V.barGraph(['Red', 'Blue'], [3, 5], { title: '3 to 5 tiles', color: '#0fb39c' }),
+        steps: ['A ratio 3 : 5 compares two amounts in order.', 'It can also be written 3 to 5 or ' + fr(3, 5) + '.', 'Order matters: 3 : 5 is not the same as 5 : 3.'],
+        trap: 'Flipping the order changes the comparison. 3 : 5 is not 5 : 3, and 3 : 8 would be red to the total, not red to blue.',
+        aap: 'A ratio can compare part to part or part to whole. 3 : 5 red to blue is not 3 : 8 unless you mean red to all the tiles.',
+        tries: [
+          () => mc('Which ratio matches 3 cups red to 5 cups blue?', '3 : 5', [['5 : 3', 'The order is red first, then blue.'], ['3 : 8', 'That would be red to the total.'], ['8 : 3', 'That adds the parts in the wrong order.']], 'Write the amounts in the same order as the words: 3 : 5.'),
+          () => num('In the ratio 2 : 5, how many parts are in the second amount?', 5, 'The second number in 2 : 5 is 5.')
+        ]
+      },
+      'Equivalent ratios scale together': {
+        viz: () => V.barGraph(['3:5', '6:10', '9:15'], [3, 6, 9], { title: 'Both parts × 2, then × 3', color: '#6c4ee0' }),
+        steps: ['3 : 5, 6 : 10, and 9 : 15 are equivalent.', 'Multiply (or divide) both parts by the same number.', 'Changing only one part breaks the ratio.'],
+        trap: 'Adding the same number to both parts (3 : 5 → 4 : 6) does not keep the ratio. You must multiply or divide.',
+        aap: 'Simplify 12 : 18 by dividing both parts by 6 to get 2 : 3, then build 8 : 12 as another equivalent.',
+        tries: [
+          () => mc('Which ratio is equivalent to 2 : 5?', '6 : 15', [['3 : 5', 'Only the first part changed.'], ['2 : 10', 'Only the second part changed.'], ['7 : 10', 'That adds 5 to each part.']], 'Both parts × 3: 6 : 15.'),
+          () => num('2 : 5 is scaled by 4. What is the second number in the new ratio?', 20, '5 × 4 = 20. The new ratio is 8 : 20.')
+        ]
+      }
+    },
+    u4c6: {
+      'Percent means per 100': {
+        viz: () => ixGrid({ start: 25, pct: true, fill: '#ffc43d', challenges: [{ pct: 25 }, { pct: 50 }, { n: 1, d: 4 }, { pct: 10 }, { dec: '0.4' }] }),
+        steps: ['Percent means “per hundred.”', fr(1, 4) + ' = 0.25 = 25 hundredths = 25%.', 'A hundredths grid shows this directly: 25 shaded squares are 25%.'],
+        trap: '25% is 0.25, not 25 and not 2.5. Move the point two places when you go between a percent and a decimal.',
+        aap: '4% is 0.04, not 0.4. 150% is 1.5, more than one whole.',
+        tries: [
+          () => mc('What percent equals ' + fr(1, 4) + '?', '25%', [['14%', 'Do not just write the digits 1 and 4.'], ['4%', 'That would be 4 hundredths.'], ['75%', 'That is ' + fr(3, 4) + '.']], fr(1, 4) + ' = ' + fr(25, 100) + ' = 25%.'),
+          () => num('What percent equals 0.4?', 40, '0.40 is 40 hundredths, or 40%.')
+        ]
+      },
+      'Fraction, decimal, percent': {
+        viz: () => ixGrid({ start: 60, pct: true, fill: '#0fb39c', challenges: [{ n: 3, d: 5 }, { pct: 75 }, { dec: '0.2' }, { n: 1, d: 2 }, { pct: 5 }] }),
+        steps: ['Write the fraction as hundredths when you can: ' + fr(3, 5) + ' = ' + fr(60, 100) + ' = 0.60 = 60%.', 'The other way: 40% = ' + fr(40, 100) + ' = ' + fr(2, 5) + ' = 0.4.', 'All three names can sit on the same point.'],
+        trap: '0.4 is 40%, not 4%. 7% is 0.07, not 0.7.',
+        aap: '12.5% is 0.125, which is also ' + fr(1, 8) + '. Percents can have a decimal, just like other numbers.',
+        tries: [
+          () => mc('Which is equal to ' + fr(3, 5) + '?', '60%', [['35%', 'Do not glue the digits 3 and 5.'], ['3.5%', 'That would be a tiny amount.'], ['0.3%', '0.3 is 30%, and 3/5 is larger.']], fr(3, 5) + ' = ' + fr(60, 100) + ' = 60%.'),
+          () => num('Write 40% as a decimal.', 0.4, '40% = 40 hundredths = 0.40 = 0.4.')
+        ]
+      }
+    },
+    u4a4: {
+      'A percent of a number': {
+        viz: () => ixGrid({ start: 25, pct: true, fill: '#2f80ed', tip: '25% of a 100-square grid is 25 squares. 25% of 80 is the same share of 80.' }),
+        steps: ['25% of 80 means ' + fr(25, 100) + ' of 80, or 0.25 × 80.', '0.25 × 80 = 20. You can also take one fourth of 80.', 'Friendly percents: 50% is half, 10% is one tenth, 25% is one fourth.'],
+        trap: '25% of 80 is not 25. The percent is the share, not the answer by itself.',
+        aap: '15% of 80 is 0.15 × 80 = 12. Try 12.5% of 80 as a stretch (10).',
+        tries: [
+          () => num('What is 25% of 80?', 20, '0.25 × 80 = 20, or one fourth of 80.'),
+          () => mc('What is 10% of 40?', '4', [['10', '10% is one tenth, not 10 itself.'], ['40', 'That is the whole amount.'], ['14', 'Do not add 10 and 4.']], '10% = 0.10, and 0.10 × 40 = 4.')
+        ]
+      }
+    },
+
+        /* ---------- Unit 5 ---------- */
     u5L1: {
       'Decimal points stack': {
         viz: () => V.placeValue('12.40'),

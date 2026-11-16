@@ -1,6 +1,7 @@
 /* Hands-on Learn widgets: a tappable hundredths grid and a tappable fraction bar.
    Both return a DOM node (class "viz ix") that engine.mountViz drops into a lesson card. */
 (function (w) {
+  const paintFill = (c) => (w.V && V.themeFill) ? V.themeFill(c) : c;
   const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) { const t = a % b; a = b; b = t; } return a || 1; };
   const fr = (n, d) => `<span class="frac"><span class="n">${n}</span><span class="d">${d}</span></span>`;
   const h = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
@@ -55,7 +56,7 @@
     for (let i = 0; i < Math.min(100, o.start); i++) on[i] = true;
 
     const root = h('div', 'viz ix ix-hg');
-    root.style.setProperty('--ix-fill', o.fill);
+    root.style.setProperty('--ix-fill', paintFill(o.fill));
     const left = h('div', 'ix-left');
     const grid = h('div', 'ix-grid');
     grid.setAttribute('role', 'group');
@@ -172,7 +173,7 @@
     let on = new Array(d).fill(false).map((_, i) => i < o.n);
 
     const root = h('div', 'viz ix ix-fb-bar');
-    root.style.setProperty('--ix-fill', o.fill);
+    root.style.setProperty('--ix-fill', paintFill(o.fill));
     const seg = h('div', 'ix-dens');
     seg.appendChild(h('span', 'ix-lab', 'Cut into'));
     const segBtns = o.dens.map((k) => {
