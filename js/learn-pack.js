@@ -162,7 +162,7 @@
         ]
       },
       'Quick tests': {
-        viz: () => V.barGraph(['Ends 0,2,4,6,8', 'Digits sum ×3', 'Ends 0 or 5'], [2, 3, 5], { title: 'Divisibility tests', color: '#6c4ee0' }),
+        viz: () => V.barGraph(['Ends 0,2,4,6,8', 'Digits sum ×3', 'Ends 0 or 5'], [2, 3, 5], { title: 'Divisibility tests', color: '#0fb39c' }),
         steps: ['Even last digit → divisible by 2.', 'Digits add to a multiple of 3 → divisible by 3. (51: 5 + 1 = 6.)', 'Ends in 0 or 5 → divisible by 5.'],
         trap: 'A number can fail the “looks prime” test and still be composite. Always try 3 and 7 on two-digit odds.',
         aap: 'AAP: test 87. 8 + 7 = 15, so 3 divides it: 87 = 3 × 29. Composite.',
@@ -388,7 +388,7 @@
         ]
       },
       'One whole, cut into 100': {
-        viz: () => ixGrid({ start: 100, fill: '#6c4ee0', tip: 'Clear it, then shade it back. Every square is 0.01.' }),
+        viz: () => ixGrid({ start: 100, fill: '#0fb39c', tip: 'Clear it, then shade it back. Every square is 0.01.' }),
         steps: ['A 10-by-10 grid is one whole.', 'Each small square is ' + fr(1, 100) + ' or 0.01.', 'All 100 squares make 1.'],
         trap: 'Shaded 1 row is 10 squares: 0.10, not 0.01 and not 0.1 of a single square.',
         aap: 'AAP: 1000 thousandths also make one whole. 0.250 = 250 thousandths = 25 hundredths = ' + fr(1, 4) + '.',
@@ -442,7 +442,7 @@
     },
     u4c3: {
       'Eighths have three decimal digits': {
-        viz: () => ixBar({ d: 8, n: 3, dens: [2, 4, 8], fill: '#6c4ee0', tip: 'Shade eighths one at a time. Each one adds 0.125.' }),
+        viz: () => ixBar({ d: 8, n: 3, dens: [2, 4, 8], fill: '#0fb39c', tip: 'Shade eighths one at a time. Each one adds 0.125.' }),
         steps: [fr(1, 8) + ' = 0.125 because 8 × 125 = 1,000 (thousandths).', 'The eighths to memorize: 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875.', fr(1, 4) + ' is also 2 eighths, so 0.25.'],
         trap: fr(1, 8) + ' is not 0.8 or 0.18. It needs three decimal digits.',
         aap: 'AAP: ' + fr(3, 8) + ' = 0.375 and ' + fr(7, 8) + ' = 0.875. Halfway between 0.75 and 1 is 0.875, not 0.8.',
@@ -486,7 +486,7 @@
         ]
       },
       'Equivalent ratios scale together': {
-        viz: () => V.barGraph(['2:5', '4:10', '6:15'], [2, 4, 6], { title: 'Both parts × 2, then × 3', color: '#6c4ee0' }),
+        viz: () => V.barGraph(['2:5', '4:10', '6:15'], [2, 4, 6], { title: 'Both parts × 2, then × 3', color: '#0fb39c' }),
         steps: ['2 : 5, 4 : 10, and 6 : 15 are equivalent.', 'Multiply (or divide) both parts by the same number.', 'A table of equal ratios is just this scaling, column by column.'],
         trap: 'If you change only one part, the ratio is no longer equivalent.',
         aap: 'AAP: simplify 12 : 18 by dividing both parts by 6 to get 2 : 3, then build 8 : 12 as another equivalent.',
@@ -543,7 +543,7 @@
         ]
       },
       'Equivalent ratios scale together': {
-        viz: () => V.barGraph(['3:5', '6:10', '9:15'], [3, 6, 9], { title: 'Both parts × 2, then × 3', color: '#6c4ee0' }),
+        viz: () => V.barGraph(['3:5', '6:10', '9:15'], [3, 6, 9], { title: 'Both parts × 2, then × 3', color: '#0fb39c' }),
         steps: ['3 : 5, 6 : 10, and 9 : 15 are equivalent.', 'Multiply (or divide) both parts by the same number.', 'Changing only one part breaks the ratio.'],
         trap: 'Adding the same number to both parts (3 : 5 → 4 : 6) does not keep the ratio. You must multiply or divide.',
         aap: 'Simplify 12 : 18 by dividing both parts by 6 to get 2 : 3, then build 8 : 12 as another equivalent.',
@@ -645,7 +645,7 @@
         ]
       },
       'Smaller than you think': {
-        viz: () => (w.IX ? w.IX.overlapGrid({ a: 2, b: 3, tip: 'Try 0.1 × 0.1, then 0.5 × 0.5. Is the overlap ever bigger than a factor?' }) : V.hundredGrid(6, { fill: '#6c4ee0', label: '0.2 × 0.3 = 0.06' })),
+        viz: () => (w.IX ? w.IX.overlapGrid({ a: 2, b: 3, tip: 'Try 0.1 × 0.1, then 0.5 × 0.5. Is the overlap ever bigger than a factor?' }) : V.hundredGrid(6, { fill: '#0fb39c', label: '0.2 × 0.3 = 0.06' })),
         steps: ['A decimal less than 1 shrinks the other factor.', '0.2 × 0.3 = 0.06, which is less than both 0.2 and 0.3.', 'Estimate: a little less than 1/4 of 0.3, or a little more than 1/5 of 0.3.'],
         trap: 'Thinking “multiplication always makes a bigger number” is true for wholes greater than 1, not for tenths.',
         aap: 'AAP: 0.04 × 0.5 = 0.020 = 0.02. Half of 4 hundredths is 2 hundredths.',
@@ -870,7 +870,7 @@
         ]
       },
       'Your turn': {
-        viz: () => ixGrid({ start: 0, pct: true, fill: '#6c4ee0', challenges: [{ n: 3, d: 5 }, { dec: '0.08' }, { pct: 45 }, { n: 7, d: 10 }, { n: 1, d: 4 }] }),
+        viz: () => ixGrid({ start: 0, pct: true, fill: '#0fb39c', challenges: [{ n: 3, d: 5 }, { dec: '0.08' }, { pct: 45 }, { n: 7, d: 10 }, { n: 1, d: 4 }] }),
         steps: ['Pick one name you know.', 'Convert to the other two.', 'Check by converting back.'],
         trap: fr(3, 5) + ' is 60%, not 35% (do not just glue the digits together).',
         aap: 'AAP: 0.08 = 8% = ' + fr(2, 25) + '. 8 hundredths simplify by 4.',
@@ -918,7 +918,7 @@
     /* ---------- Unit 8 ---------- */
     u8L1: {
       'Same-size pieces first': {
-        viz: () => V.fractionBar(3, 4, { fill: '#6c4ee0', label: '3/4 = 9/12' }),
+        viz: () => V.fractionBar(3, 4, { fill: '#0fb39c', label: '3/4 = 9/12' }),
         steps: ['You can add or subtract fractions only when the pieces are the same size.', 'Find a common denominator (often the LCM).', fr(3, 4) + ' − ' + fr(1, 6) + ': LCM 12, so ' + fr(9, 12) + ' − ' + fr(2, 12) + ' = ' + fr(7, 12) + '.'],
         trap: 'Never add or subtract the denominators (3/4 − 1/6 is not 2/10). The denominator is the size of a piece, not a count to combine.',
         aap: 'AAP: ' + fr(5, 6) + ' + ' + fr(3, 8) + ' uses 24: ' + fr(20, 24) + ' + ' + fr(9, 24) + ' = ' + fr(29, 24) + ' = ' + mixed(1, 5, 24) + '.',
@@ -950,7 +950,7 @@
         ]
       },
       'Subtracting with regrouping': {
-        viz: () => V.fractionBar(7, 4, { fill: '#6c4ee0', label: '1 3/4 = 7/4' }),
+        viz: () => V.fractionBar(7, 4, { fill: '#0fb39c', label: '1 3/4 = 7/4' }),
         steps: ['If the top fraction is too small, regroup one whole as a fraction.', mixed(2, 1, 4) + ' − ' + fr(3, 4) + ': trade 1 whole for 4/4, so ' + mixed(1, 5, 4) + ' − ' + fr(3, 4) + ' = ' + mixed(1, 2, 4) + ' = ' + mixed(1, 1, 2) + '.'],
         trap: 'Subtracting the smaller fraction from the larger one regardless of order (3/4 − 1/4 the wrong way).',
         aap: 'AAP: 3 − 1 2/5 = 2 5/5 − 1 2/5 = 1 3/5. A whole number may need a regroup too.',
@@ -984,7 +984,7 @@
     },
     u8B1: {
       'Fraction of a fraction': {
-        viz: () => V.fractionBar(3, 8, { fill: '#6c4ee0', label: '1/2 of 3/4 = 3/8' }),
+        viz: () => V.fractionBar(3, 8, { fill: '#0fb39c', label: '1/2 of 3/4 = 3/8' }),
         steps: ['“Of” means multiply: ' + fr(1, 2) + ' of ' + fr(3, 4) + ' is ' + fr(1, 2) + ' × ' + fr(3, 4) + '.', 'Multiply numerators, then denominators: ' + fr(3, 8) + '.', 'A fraction times a fraction less than 1 is smaller than either factor.'],
         trap: 'Adding instead of multiplying when you see “of,” or adding denominators.',
         aap: 'AAP: 2/3 × 3/5 = 6/15 = 2/5. A common factor (3) can be canceled before you multiply.',

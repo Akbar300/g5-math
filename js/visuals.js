@@ -48,7 +48,7 @@
     return wrap(s);
   }
 
-  function fractionBar(n, d, { fill = '#6c4ee0', w = 320, h = 54, label } = {}) {
+  function fractionBar(n, d, { fill = '#0fb39c', w = 320, h = 54, label } = {}) {
     const pad = 8, bw = w - pad * 2, bh = 28, s = svg(w, h + (label ? 16 : 0));
     const cw = bw / d;
     for (let i = 0; i < d; i++) {

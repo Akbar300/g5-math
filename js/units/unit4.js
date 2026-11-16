@@ -137,7 +137,7 @@
     const [n, d, dec] = U.pick(EIGHTHS);
     return {
       type: 'mc', fmt: 'MODEL', nocalc: true, sol: '5.NS.1',
-      q: `The bar is cut into eighths. What decimal is shaded?` + V.fractionBar(n, 8, { fill: '#6c4ee0', label: n + ' of 8 parts' }),
+      q: `The bar is cut into eighths. What decimal is shaded?` + V.fractionBar(n, 8, { fill: '#0fb39c', label: n + ' of 8 parts' }),
       ch: U.shuffle([dec, '0.' + n, n === 1 ? '0.8' : '0.18', EIGHTHS[(EIGHTHS.indexOf(EIGHTHS.find(x => x[0] === n)) + 1) % 7][2]]),
       why: `${fr(n, 8)} = ${dec}. Eighths are 125 thousandths each.`
     };
@@ -168,7 +168,7 @@
       const pack = uniqChoices(dec, [U.pick(others)[2], n === 1 ? '0.8' : ('0.' + n), '0.1' + n, '0.' + (n * 125), dec + '0']);
       return {
         type: 'mc', fmt: 'MODEL', nocalc: true, sol: '5.NS.1',
-        q: `The bar is cut into eighths. What decimal is shaded?` + V.fractionBar(n, 8, { fill: '#6c4ee0', label: n + ' of 8 parts' }),
+        q: `The bar is cut into eighths. What decimal is shaded?` + V.fractionBar(n, 8, { fill: '#0fb39c', label: n + ' of 8 parts' }),
         ch: pack.ch, a: pack.a,
         why: `${fr(n, 8)} = ${dec}. Each eighth is 0.125.`
       };
@@ -177,7 +177,7 @@
       const pack = uniqChoices(fr(sn, sd), [fr(n, 10), fr(n, 80), fr(Math.max(1, n - 1), 8), fr(n, 4), V.fr(n, 8)]);
       return {
         type: 'mc', fmt: 'MODEL', nocalc: true, sol: '5.NS.1',
-        q: `The bar is cut into eighths. What fraction of the bar is shaded, in simplest form?` + V.fractionBar(n, 8, { fill: '#6c4ee0', label: n + ' of 8 parts' }),
+        q: `The bar is cut into eighths. What fraction of the bar is shaded, in simplest form?` + V.fractionBar(n, 8, { fill: '#0fb39c', label: n + ' of 8 parts' }),
         ch: pack.ch, a: pack.a,
         why: `${fr(n, 8)}${sd !== 8 ? ' simplifies to ' + fr(sn, sd) : ''} = ${dec}.`
       };
@@ -785,11 +785,30 @@
             {
               t: 'Eighths have three decimal digits',
               html: `<p>One eighth is 0.125. You can build every eighth from that:</p>
-                    <p>${fr(1, 8)}=0.125 · ${fr(2, 8)}=0.25 · ${fr(3, 8)}=0.375 · ${fr(4, 8)}=0.5<br>${fr(5, 8)}=0.625 · ${fr(6, 8)}=0.75 · ${fr(7, 8)}=0.875</p>`
+                    <div class="eq-tbl-wrap eq-tbl-split">
+                      <table class="eq-tbl">
+                        <tbody>
+                          <tr><th>Fraction</th><td>${fr(1, 8)}</td><td>${fr(2, 8)}</td><td>${fr(3, 8)}</td><td>${fr(4, 8)}</td></tr>
+                          <tr><th>Decimal</th><td>0.125</td><td>0.25</td><td>0.375</td><td>0.5</td></tr>
+                        </tbody>
+                      </table>
+                      <table class="eq-tbl">
+                        <tbody>
+                          <tr><th>Fraction</th><td>${fr(5, 8)}</td><td>${fr(6, 8)}</td><td>${fr(7, 8)}</td><td>${fr(8, 8)}</td></tr>
+                          <tr><th>Decimal</th><td>0.625</td><td>0.75</td><td>0.875</td><td>1</td></tr>
+                        </tbody>
+                      </table>
+                    </div>`
             },
             {
               t: 'Thirds repeat',
-              html: `<p>${fr(1, 3)} = 0.333… and ${fr(2, 3)} = 0.666… The 3s and 6s go on forever. On a test you can leave the answer as a fraction, or write three decimal digits.</p>`
+              html: `<p>Thirds are repeating decimals. The 3s and 6s go on forever. On a test you can leave the answer as a fraction, or write three decimal digits.</p>
+                    <div class="eq-tbl-wrap"><table class="eq-tbl">
+                      <tbody>
+                        <tr><th>Fraction</th><td>${fr(1, 3)}</td><td>${fr(2, 3)}</td><td>${fr(3, 3)}</td></tr>
+                        <tr><th>Decimal</th><td>0.333…</td><td>0.666…</td><td>1</td></tr>
+                      </tbody>
+                    </table></div>`
                 + V.numberLine(0, 1, [{ pos: 1 / 3, label: '1/3', color: '#ff5a36' }, { pos: 2 / 3, label: '2/3', color: '#2f80ed' }]),
               try: () => genEighthSafe(),
               remember: 'Eighths end (0.125, 0.375…). Thirds repeat. Both are still exact fractions.'

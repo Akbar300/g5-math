@@ -168,7 +168,7 @@
   /* ---------------- Fraction bar ----------------
      opts: d (start denominator), n (start shaded), dens (denominator buttons), fill, pct. */
   function fractionBar(opts) {
-    const o = Object.assign({ d: 4, n: 1, dens: [2, 3, 4, 5, 8, 10], fill: '#6c4ee0', pct: false, tip: '' }, opts || {});
+    const o = Object.assign({ d: 4, n: 1, dens: [2, 3, 4, 5, 8, 10], fill: '#0fb39c', pct: false, tip: '' }, opts || {});
     let d = o.d;
     let on = new Array(d).fill(false).map((_, i) => i < o.n);
 
