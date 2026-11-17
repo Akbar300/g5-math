@@ -2,12 +2,8 @@
 /* V2 data: Regular Unit 11, Coordinate Graphing (FCPS; Grade 6 standard, not on the Grade 5 SOL) */
 (function(){
 var L = V2L, mc = L.mc;
-function plane(pts, quad){ var n = quad ? 6 : 8, W = 240, o = quad ? 120 : 20, s = quad ? 18 : 25, h = '<svg viewBox="0 0 240 240" width="230" height="230" style="display:block;margin:6px auto">';
-  for(var i = -n; i <= n; i++){ if(!quad && i < 0) continue; var p = o + i*s; h += '<line x1="' + p + '" y1="' + (quad ? 12 : 20) + '" x2="' + p + '" y2="' + (quad ? 228 : 220) + '" stroke="#163050"/>'; var q = (quad ? 120 : 220) - i*s; h += '<line x1="' + (quad ? 12 : 20) + '" y1="' + q + '" x2="' + (quad ? 228 : 220) + '" y2="' + q + '" stroke="#163050"/>'; }
-  h += quad ? '<line x1="120" y1="8" x2="120" y2="232" stroke="#00f6ff" stroke-width="2"/><line x1="8" y1="120" x2="232" y2="120" stroke="#00f6ff" stroke-width="2"/>' : '<line x1="20" y1="220" x2="20" y2="10" stroke="#00f6ff" stroke-width="2"/><line x1="20" y1="220" x2="230" y2="220" stroke="#00f6ff" stroke-width="2"/>';
-  if(!quad) for(var k = 0; k <= 8; k += 2){ h += '<text x="' + (20 + k*25) + '" y="235" text-anchor="middle" fill="#7ea3ac" font-size="11">' + k + '</text><text x="12" y="' + (224 - k*25) + '" text-anchor="middle" fill="#7ea3ac" font-size="11">' + k + '</text>'; }
-  pts.forEach(function(p){ var x = (quad ? 120 : 20) + p[0]*s, y = (quad ? 120 : 220) - p[1]*s; h += '<circle cx="' + x + '" cy="' + y + '" r="5" fill="#b6ff3c"/><text x="' + (x + 7) + '" y="' + (y - 6) + '" fill="#b6ff3c" font-size="13" font-weight="800">' + p[2] + '</text>'; });
-  return h + '</svg>'; }
+/* Shared themed grid (js/visuals.js): arrowed axes, numbered lines, one 0 at the origin, light + dark. */
+function plane(pts, quad){ return V.plane(pts.map(function(p){ return {x:p[0], y:p[1], label:p[2]}; }), {quad:!!quad, n:quad ? 6 : 8}); }
 var gens = {
   read: {name:'Read a point', f:function(lv){
     var x = L.ri(1, 8), y = L.ri(1, 8); if(x === y) y = (y % 8) + 1;
@@ -24,7 +20,7 @@ var gens = {
 };
 var lessons = [
  {id:'u11L1', name:'Plotting points', icon:'📍', cards:[
-  {t:'Across, then up', h:plane([[3, 5, 'P']]) + '<div class="big">P = (3, 5)</div><p>The first number (x) tells how far <b>across</b>. The second (y) tells how far <b>up</b>. Start at the origin (0, 0).</p>', trap:'(3, 5) and (5, 3) are different points.'},
+  {t:'Across, then up', h:V.plane([{x:3, y:5, label:'P', guide:true}], {n:8}) + '<div class="big">P = (3, 5)</div><p>The first number (x) tells how far <b>across</b>. The second (y) tells how far <b>up</b>. Start at the origin (0, 0).</p>', trap:'(3, 5) and (5, 3) are different points.'},
   {t:'Your turn', h:'', tr:gens.read.f()}
  ]},
  {id:'u11L2', name:'Graphs that tell stories', icon:'📈', cards:[
@@ -60,3 +56,5 @@ Adapt.fromV2({
   blurb: 'Plot and read points in Quadrant I. (Grade 6 standard.)', sol: ['6.MG'], dates: ['2027-05-17', '2027-06-16'], color: '#0f766e'
 }, window.V2, { gUnit: null, coreStds: ['6.MG'] });
 
+/* Star Pilot game tab (js/starpilot.js). Core = Quadrant I, Advanced = all four quadrants. */
+UNIT.game = { tab: '🚀 Pilot', mount: function (host, api) { StarPilot.mount(host, api); } };

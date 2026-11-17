@@ -1188,7 +1188,7 @@
     /* ---------- Unit 11 ---------- */
     u11L1: {
       'Across, then up': {
-        viz: () => V.plane([{ x: 3, y: 2, label: '(3, 2)' }], { quad: false, n: 6 }),
+        viz: () => (w.IX && IX.coordPlane) ? IX.coordPlane({ n: 8, start: { x: 3, y: 2 }, tip: 'Tap any crossing point. The path shows across first, then up.' }) : V.plane([{ x: 3, y: 2, label: '(3, 2)', guide: true }], { n: 8 }),
         steps: ['A point is an ordered pair (x, y).', 'x is across (horizontal). y is up (vertical).', 'From the origin (0, 0), go 3 right, then 2 up to plot (3, 2).'],
         trap: 'Plotting (3, 2) as 3 up and 2 across — swapping the coordinates.',
         aap: 'AAP: the points (2, 5) and (5, 2) are different. Order in the pair matters just as it does in a ratio.',
@@ -1198,7 +1198,7 @@
         ]
       },
       'Your turn': {
-        viz: () => V.plane([{ x: 2, y: 5, label: '(2, 5)' }, { x: 5, y: 2, label: '(5, 2)' }], { n: 6 }),
+        viz: () => (w.IX && IX.coordPlane) ? IX.coordPlane({ n: 8, challenges: [[2, 5], [5, 2], [4, 0], [0, 6], [7, 3]], tip: 'Plot each point. Across first, then up.' }) : V.plane([{ x: 2, y: 5, label: '(2, 5)' }, { x: 5, y: 2, label: '(5, 2)' }], { n: 8 }),
         steps: ['Read x, then y.', 'Mark a small dot and label the pair.', 'Check by reading back from the axes, not from memory.'],
         trap: 'Starting from 1 instead of from the origin, or counting the grid lines instead of the spaces.',
         aap: 'AAP: (0, 4) sits on the y-axis. (5, 0) sits on the x-axis. A 0 in one coordinate lands on an axis.',
@@ -1232,7 +1232,7 @@
         ]
       },
       'Your turn': {
-        viz: () => V.plane([{ x: -2, y: -3, label: '(−2, −3)' }], { quad: true, n: 6 }),
+        viz: () => (w.IX && IX.coordPlane) ? IX.coordPlane({ quad: true, n: 6, challenges: [[-2, -3], [-4, 2], [3, -5], [5, 4]], tip: 'Negative x goes left. Negative y goes down.' }) : V.plane([{ x: -2, y: -3, label: '(−2, −3)' }], { quad: true, n: 6 }),
         steps: ['Start at the origin.', 'Move x first (right or left), then y (up or down).', 'Name the quadrant from the signs.'],
         trap: 'Plotting both negatives as down-and-right, which would be a Quadrant IV habit from only practicing ( +, − ).',
         aap: 'AAP: reflections: (3, 2) reflected over the y-axis is (−3, 2). Over the x-axis it is (3, −2).',

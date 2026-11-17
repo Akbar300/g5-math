@@ -296,5 +296,131 @@
     return box;
   }
 
-  w.IX = { hundredGrid, fractionBar, overlapGrid, stack, decText };
+  /* ---------------- Coordinate plane: tap to plot ----------------
+     opts: quad, n, start {x,y}, challenges ([[x,y],...] or a number for random ones), tip. */
+  const sgn = (v) => (v < 0 ? '−' + (-v) : String(v));
+  const pair = (x, y) => `(<span class="xv">${sgn(x)}</span>, <span class="yv">${sgn(y)}</span>)`;
+  function svgPoint(svgEl, cx, cy) {
+    const p = svgEl.createSVGPoint(); p.x = cx; p.y = cy;
+    const m = svgEl.getScreenCTM(); if (!m) return null;
+    return p.matrixTransform(m.inverse());
+  }
+  function moveWords(x, y) {
+    const ax = x === 0 ? 'stay at 0 across' : `go <span class="xv">${Math.abs(x)} ${x > 0 ? 'right →' : 'left ←'}</span>`;
+    const ay = y === 0 ? 'stay on the x-axis' : `<span class="yv">${Math.abs(y)} ${y > 0 ? 'up ↑' : 'down ↓'}</span>`;
+    return `From (0, 0): ${ax}, then ${y === 0 ? ay : ay}.`;
+  }
+  function coordPlane(opts) {
+    const o = Object.assign({ quad: false, n: 8, start: null, challenges: null, tip: '' }, opts || {});
+    const lo = o.quad ? -o.n : 0;
+    const root = h('div', 'viz ix ix-cp');
+    const left = h('div', 'ix-left');
+    const s = V.planeSVG([], { quad: o.quad, n: o.n });
+    const G = s.__geo;
+    const NS = 'http://www.w3.org/2000/svg';
+    const mk = (n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+    const hov = mk('circle', { r: 9, class: 'cp-hover', visibility: 'hidden' });
+    const pts = s.querySelector('.cp-pts');
+    s.insertBefore(hov, pts);
+    const zone = mk('rect', { x: G.px(lo) - G.c / 2, y: G.py(o.n) - G.c / 2, width: (o.n - lo + 1) * G.c, height: (o.n - lo + 1) * G.c, class: 'cp-tapzone' });
+    s.appendChild(zone);
+    left.appendChild(s);
+    left.appendChild(h('div', 'ix-tip', o.tip || 'Tap any spot where grid lines cross.'));
+    root.appendChild(left);
+
+    const side = h('div', 'ix-side');
+    const read = h('div', 'ix-read');
+    side.appendChild(read);
+    const ctr = h('div', 'ix-ctr');
+    let P = o.start ? { x: o.start.x, y: o.start.y } : null;
+    const clamp = (v) => Math.max(lo, Math.min(o.n, v));
+    const nudge = (dx, dy) => { P = P || { x: 0, y: 0 }; P = { x: clamp(P.x + dx), y: clamp(P.y + dy) }; draw(); };
+    ctr.appendChild(btn('← 1', () => nudge(-1, 0)));
+    ctr.appendChild(btn('1 →', () => nudge(1, 0)));
+    ctr.appendChild(btn('↓ 1', () => nudge(0, -1)));
+    ctr.appendChild(btn('1 ↑', () => nudge(0, 1)));
+    ctr.appendChild(btn('Clear', () => { P = null; draw(); }, 'ghost'));
+    side.appendChild(ctr);
+    const key = h('div', 'cp-key', '<span><i style="background:var(--cp-x)"></i>across = x (first)</span><span><i style="background:var(--cp-y)"></i>up/down = y (second)</span>');
+    side.appendChild(key);
+    let game = null;
+    if (o.challenges) game = buildGame(side);
+    root.appendChild(side);
+
+    const snap = (e) => {
+      const p = svgPoint(s, e.clientX, e.clientY); if (!p) return null;
+      return { x: clamp(Math.round((p.x - G.ox) / G.c)), y: clamp(Math.round((G.oy - p.y) / G.c)) };
+    };
+    let down = false;
+    zone.addEventListener('pointerdown', (e) => { e.preventDefault(); down = true; const q = snap(e); if (q) { P = q; draw(); } });
+    zone.addEventListener('pointermove', (e) => {
+      const q = snap(e); if (!q) return;
+      if (down) { if (!P || P.x !== q.x || P.y !== q.y) { P = q; draw(); } return; }
+      hov.setAttribute('cx', G.px(q.x)); hov.setAttribute('cy', G.py(q.y)); hov.setAttribute('visibility', 'visible');
+    });
+    zone.addEventListener('pointerleave', () => hov.setAttribute('visibility', 'hidden'));
+    w.addEventListener('pointerup', () => { down = false; });
+
+    function draw(extra) {
+      while (pts.firstChild) pts.removeChild(pts.firstChild);
+      (extra || []).forEach((n) => pts.appendChild(n));
+      if (P) {
+        pts.appendChild(V.guidePath(G, P.x, P.y));
+        const d = mk('circle', { cx: G.px(P.x), cy: G.py(P.y), r: 7, class: 'cp-dot' });
+        pts.appendChild(d);
+        read.innerHTML = `<div class="cp-read">${pair(P.x, P.y)}</div><div class="cp-say">${moveWords(P.x, P.y)}</div>` +
+          (P.x === 0 && P.y === 0 ? '<div class="ix-note">This is the <b>origin</b>, where the axes meet.</div>'
+            : P.y === 0 ? '<div class="ix-note">y = 0, so the point sits right on the <b>x-axis</b>.</div>'
+            : P.x === 0 ? '<div class="ix-note">x = 0, so the point sits right on the <b>y-axis</b>.</div>' : '');
+      } else {
+        read.innerHTML = '<div class="cp-read">( ?, ? )</div><div class="ix-note">Tap the grid, or use the arrow buttons. Watch the path: across first, then ' + (o.quad ? 'up or down' : 'up') + '.</div>';
+      }
+      if (game) game.changed();
+    }
+
+    function buildGame(host) {
+      const list = Array.isArray(o.challenges) ? o.challenges.slice() : [];
+      const rnd = () => {
+        let x, y;
+        do { x = lo + Math.floor(Math.random() * (o.n - lo + 1)); y = lo + Math.floor(Math.random() * (o.n - lo + 1)); } while (x === y || (o.quad && (x === 0 || y === 0)));
+        return [x, y];
+      };
+      const box = h('div', 'ix-game');
+      const q = h('div', 'ix-q'); const fb = h('div', 'ix-fb'); const row = h('div', 'ix-ctr');
+      let k = 0, cur = null, won = 0;
+      const load = () => {
+        cur = list.length ? list[k % list.length] : rnd();
+        q.innerHTML = `<span class="ix-tag">Plot it</span> Put a point at <b class="cp-say">${pair(cur[0], cur[1])}</b>`;
+        fb.className = 'ix-fb'; fb.innerHTML = '';
+      };
+      const check = () => {
+        if (!P) { fb.className = 'ix-fb no'; fb.innerHTML = 'Tap the grid to place your point first.'; return; }
+        const [tx, ty] = cur;
+        if (P.x === tx && P.y === ty) {
+          won++;
+          fb.className = 'ix-fb ok';
+          fb.innerHTML = `Nailed it! ${moveWords(tx, ty)} ${won > 1 ? '⭐ × ' + won : '⭐'}`;
+          return;
+        }
+        fb.className = 'ix-fb no';
+        const ghost = mk('circle', { cx: G.px(tx), cy: G.py(ty), r: 8, class: 'cp-dot ghost' });
+        if (P.x === ty && P.y === tx) fb.innerHTML = `You plotted ${pair(P.x, P.y)}: the numbers got swapped. The <span class="xv">first number goes across</span>, the <span class="yv">second goes up</span>.`;
+        else if (P.x !== tx && P.y === ty) fb.innerHTML = `Up/down is right. Check <b>across</b>: you need x = <span class="xv">${sgn(tx)}</span>, you have ${sgn(P.x)}.`;
+        else if (P.x === tx) fb.innerHTML = `Across is right. Check <b>up/down</b>: you need y = <span class="yv">${sgn(ty)}</span>, you have ${sgn(P.y)}.`;
+        else fb.innerHTML = `Not yet. Start at (0, 0). ${moveWords(tx, ty)} The dashed circle shows the spot.`;
+        draw([ghost]);
+      };
+      row.appendChild(btn('Check', check, 'go'));
+      row.appendChild(btn('Next point', () => { k++; P = null; load(); draw(); }, 'ghost'));
+      box.appendChild(q); box.appendChild(row); box.appendChild(fb);
+      host.appendChild(box);
+      load();
+      return { changed: () => { if (fb.classList.contains('ok') && (!P || P.x !== cur[0] || P.y !== cur[1])) { fb.className = 'ix-fb'; fb.innerHTML = ''; } } };
+    }
+
+    draw();
+    return root;
+  }
+
+  w.IX = { hundredGrid, fractionBar, overlapGrid, stack, decText, coordPlane, pair, sgn, svgPoint, moveWords };
 })(window);

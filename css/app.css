@@ -954,3 +954,78 @@ html[data-theme="dark"] .ix-btn.ghost{background:transparent}
 #print-root .wp-table th,#print-measure .wp-table th{background:color-mix(in srgb, var(--print-accent, #2f80ed) 16%, #fff)}
 #print-root .print-work,#print-measure .print-work{font-size:8pt;font-weight:600;color:#3d4a63;margin-top:2px;line-height:1.3}
 #print-root .print-work .wp-strat,#print-measure .print-work .wp-strat{font-size:7.5pt}
+
+/* ===== Coordinate planes (Unit 11): themed grid, arrowed axes, tap-to-plot, Star Pilot ===== */
+:root{
+  --cp-bg:#f7fbff;--cp-minor:#d3deec;--cp-major:#a9bbd3;--cp-axis:#1b2437;--cp-num:#3d4a63;
+  --cp-x:#2563eb;--cp-y:#0e9f6e;--cp-dot:#ff5a36;--cp-dot-ring:#1b2437;--cp-ghost:#9aa8bf;--cp-star:#f5a300;
+}
+html[data-theme="dark"]{
+  --cp-bg:#0f1726;--cp-minor:#2a3b57;--cp-major:#41587d;--cp-axis:#e8f0ff;--cp-num:#c5cde0;
+  --cp-x:#7eb6ff;--cp-y:#4ee6a8;--cp-dot:#ff8a70;--cp-dot-ring:#0b0f17;--cp-ghost:#6b7a96;--cp-star:#ffd56a;
+}
+svg.cp{width:min(300px,100%);height:auto;aspect-ratio:1;max-height:none;font-family:var(--mono,'IBM Plex Mono',monospace);overflow:visible;user-select:none;-webkit-user-select:none}
+.viz:has(> svg.cp){max-height:none}
+.viz svg.cp{max-height:none}
+.cp-bg{fill:var(--cp-bg)}
+.cp-minor{stroke:var(--cp-minor);stroke-width:1}
+.cp-major{stroke:var(--cp-major);stroke-width:1.4}
+.cp-axis{stroke:var(--cp-axis);stroke-width:2.6;stroke-linecap:round}
+.cp-arrow{fill:var(--cp-axis)}
+.cp-num{fill:var(--cp-num);font-size:12px;font-weight:700;paint-order:normal}
+.cp-zero{font-weight:800}
+.cp-letter{font-family:var(--display);font-size:17px;font-style:italic;font-weight:700}
+.cp-lx{fill:var(--cp-x)}
+.cp-ly{fill:var(--cp-y)}
+.cp-dot{fill:var(--cp-dot);stroke:var(--cp-dot-ring);stroke-width:2}
+.cp-dot.ghost{fill:none;stroke:var(--cp-ghost);stroke-width:2.5;stroke-dasharray:3 3}
+.cp-dot.ok{fill:var(--cp-y)}
+.cp-lab{fill:var(--ink);font-size:13px;font-weight:800;font-family:var(--font);stroke:var(--cp-bg);stroke-width:3;paint-order:stroke}
+.cp-go-x{stroke:var(--cp-x);stroke-width:4;stroke-linecap:round}
+.cp-go-y{stroke:var(--cp-y);stroke-width:4;stroke-linecap:round}
+.cp-go-xh{fill:var(--cp-x)}
+.cp-go-yh{fill:var(--cp-y)}
+.cp-hover{fill:var(--cp-x);opacity:.35}
+.cp-tapzone{fill:transparent;cursor:crosshair;touch-action:none}
+.cp-ship{transition:none}
+.cp-ship .hull{fill:var(--card);stroke:var(--cp-axis);stroke-width:1.8}
+.cp-ship .win{fill:var(--cp-x)}
+.cp-ship .fin{fill:var(--cp-dot)}
+.cp-ship .flame{fill:var(--cp-star)}
+.cp-trail{fill:none;stroke-width:3;stroke-dasharray:2 5;stroke-linecap:round}
+.cp-trail.x{stroke:var(--cp-x)}.cp-trail.y{stroke:var(--cp-y)}
+.cp-planet circle{stroke:var(--cp-axis);stroke-width:1.6}
+.cp-planet .ring{fill:none;stroke:var(--cp-axis);stroke-width:1.6}
+.cp-star{fill:var(--cp-star);stroke:var(--cp-axis);stroke-width:1}
+@keyframes cpPop{0%{transform:scale(.2);opacity:0}60%{transform:scale(1.3);opacity:1}100%{transform:scale(1);opacity:1}}
+.cp-pop{transform-box:fill-box;transform-origin:center;animation:cpPop .45s ease-out}
+.ix-cp .ix-left{max-width:min(320px,86vw);width:min(320px,86vw)}
+.ix-cp svg.cp{width:100%}
+.cp-read{font-family:var(--display);font-size:30px;line-height:1.1}
+.cp-read .xv{color:var(--cp-x)}.cp-read .yv{color:var(--cp-y)}
+.cp-say{font-weight:800;font-size:16px}
+.cp-say .xv{color:var(--cp-x)}.cp-say .yv{color:var(--cp-y)}
+.cp-key{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;font-weight:800;color:var(--muted)}
+.cp-key i{display:inline-block;width:18px;height:4px;border-radius:2px;vertical-align:middle;margin-right:4px}
+
+/* Star Pilot tab */
+.sp-wrap{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;justify-content:center}
+.sp-board{width:min(360px,92vw);background:var(--card);border:2px solid var(--line);border-radius:18px;padding:8px}
+.sp-board svg.cp{width:100%}
+.sp-side{flex:1 1 240px;max-width:380px;display:flex;flex-direction:column;gap:10px}
+.sp-mission{background:var(--why-bg);border-left:5px solid var(--why-edge);border-radius:14px;padding:10px 12px}
+.sp-mission .k{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.sp-mission .t{font-family:var(--display);font-size:24px;line-height:1.2}
+.sp-mission .t .xv{color:var(--cp-x)}.sp-mission .t .yv{color:var(--cp-y)}
+.sp-hud{display:flex;gap:8px;flex-wrap:wrap}
+.sp-hud span{border:2px solid var(--line);background:var(--btn-face);border-radius:999px;padding:3px 10px;font-weight:800;font-size:14px}
+.sp-stars{letter-spacing:2px;font-size:18px}
+.sp-pick{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center}
+.sp-pick .ix-lab{font-size:16px}
+.sp-step{display:flex;align-items:center;gap:6px}
+.sp-step .ix-val{font-size:22px;min-width:44px}
+.sp-modes{display:flex;gap:6px;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){.cp-pop{animation:none}}
+@media print{.sp-wrap{display:none}}
+html[data-theme="dark"] .ix-cp .ix-btn.go,html[data-theme="dark"] .sp-side .ix-btn.go{background:var(--teal);border-color:var(--teal);color:#072821}
+.ix-cp .ix-btn.go,.sp-side .ix-btn.go{background:var(--teal);border-color:var(--teal);color:#072821}

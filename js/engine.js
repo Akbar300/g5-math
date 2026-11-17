@@ -1114,6 +1114,7 @@ function paperDivide(dividend, divisor) {
         <button data-tab="learn" class="on">Learn</button>
         <button data-tab="practice">Practice</button>
         <button data-tab="test">Test Lab</button>
+        ${UNIT.game ? '<button data-tab="game">' + UNIT.game.tab + '</button>' : ''}
       </nav>
       <main class="stage" id="stage"></main>
       <button class="brain" id="brain">Brain break</button>
@@ -1152,6 +1153,7 @@ function paperDivide(dividend, divisor) {
       stage.innerHTML = '';
       if (tab === 'learn') showLearn();
       else if (tab === 'practice') showPractice();
+      else if (tab === 'game' && UNIT.game) UNIT.game.mount(stage, { lvl: M.lvl, addXP: (n) => { M.xp += n; save(); setXP(); } });
       else showTest();
     }
 

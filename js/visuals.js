@@ -232,30 +232,98 @@
     return wrap(s);
   }
 
-  function plane(points, { quad = false, n = 8 } = {}) {
-    const W = 240, o = quad ? 120 : 28, s = quad ? 18 : 24;
-    const svgW = 240, sEl = svg(svgW, svgW);
-    const max = quad ? n : n;
-    for (let i = (quad ? -n : 0); i <= n; i++) {
-      const p = o + i * s;
-      sEl.appendChild(el('line', { x1: p, y1: 12, x2: p, y2: 228, stroke: 'var(--line)', 'stroke-width': '1' }));
-      const q = (quad ? 120 : 220) - i * s;
-      sEl.appendChild(el('line', { x1: 12, y1: q, x2: 228, y2: q, stroke: 'var(--line)', 'stroke-width': '1' }));
-    }
+  /* Coordinate plane. Theme-aware (css .cp-*), arrowed axes, x/y letters, numbered lines, one "0" at the origin.
+     points: [{x, y, label, guide}]  guide: draws the across (blue) then up (green) path from the origin.
+     opts: quad (four quadrants), n (max value on each axis), size, guide (all points). */
+  function planeGeo(quad, n, size) {
+    const S = size || 260;
     if (quad) {
-      sEl.appendChild(el('line', { x1: 120, y1: 8, x2: 120, y2: 232, stroke: 'var(--ink)', 'stroke-width': '2' }));
-      sEl.appendChild(el('line', { x1: 8, y1: 120, x2: 232, y2: 120, stroke: 'var(--ink)', 'stroke-width': '2' }));
-    } else {
-      sEl.appendChild(el('line', { x1: 28, y1: 220, x2: 28, y2: 12, stroke: 'var(--ink)', 'stroke-width': '2' }));
-      sEl.appendChild(el('line', { x1: 28, y1: 220, x2: 228, y2: 220, stroke: 'var(--ink)', 'stroke-width': '2' }));
+      const m = 26, c = (S - 2 * m) / (2 * n);
+      return { S, quad, n, c, ox: S / 2, oy: S / 2, px: (x) => S / 2 + x * c, py: (y) => S / 2 - y * c, lo: -n };
     }
-    (points || []).forEach((pt) => {
-      const x = quad ? 120 + pt.x * s : 28 + pt.x * s;
-      const y = quad ? 120 - pt.y * s : 220 - pt.y * s;
-      sEl.appendChild(el('circle', { cx: x, cy: y, r: 6, fill: themeFill('#ff5a36'), stroke: 'var(--ink)', 'stroke-width': '2' }));
-      if (pt.label) sEl.appendChild(el('text', { x: x + 8, y: y - 8, 'font-size': '11', 'font-weight': '800', fill: 'var(--ink)' }, [pt.label]));
-    });
-    return wrap(sEl);
+    const ox = 34, oy = S - 32, c = (S - ox - 30) / n;
+    return { S, quad, n, c, ox, oy, px: (x) => ox + x * c, py: (y) => oy - y * c, lo: 0 };
+  }
+  function arrowHead(x, y, dir) {
+    const a = 7, b = 5;
+    const pts = dir === 'r' ? [[x, y], [x - a * 1.4, y - b], [x - a * 1.4, y + b]]
+      : dir === 'l' ? [[x, y], [x + a * 1.4, y - b], [x + a * 1.4, y + b]]
+      : dir === 'u' ? [[x, y], [x - b, y + a * 1.4], [x + b, y + a * 1.4]]
+      : [[x, y], [x - b, y - a * 1.4], [x + b, y - a * 1.4]];
+    return el('polygon', { points: pts.map((p) => p.join(',')).join(' '), class: 'cp-arrow' });
+  }
+  function planeSVG(points, opts) {
+    const o = Object.assign({ quad: false, n: 8, size: 260, guide: false, numbers: true }, opts || {});
+    const G = planeGeo(o.quad, o.n, o.size);
+    const S = G.S, s = svg(S, S, { class: 'cp', 'aria-label': 'Coordinate grid' });
+    s.removeAttribute('width'); s.removeAttribute('height');
+    const lo = G.lo, n = G.n, x0 = G.px(lo), x1 = G.px(n), y0 = G.py(lo), y1 = G.py(n);
+    s.appendChild(el('rect', { x: x0, y: y1, width: x1 - x0, height: y0 - y1, class: 'cp-bg', rx: 3 }));
+    const step = G.c < 22 ? 2 : 1;
+    for (let i = lo; i <= n; i++) {
+      if (i === 0) continue;
+      const cls = (i % (o.quad ? 5 : 5) === 0) ? 'cp-major' : 'cp-minor';
+      s.appendChild(el('line', { x1: G.px(i), y1: y1, x2: G.px(i), y2: y0, class: cls }));
+      s.appendChild(el('line', { x1: x0, y1: G.py(i), x2: x1, y2: G.py(i), class: cls }));
+    }
+    const ext = 16;
+    const g = el('g', { class: 'cp-axes' });
+    if (o.quad) {
+      g.appendChild(el('line', { x1: x0 - ext + 4, y1: G.oy, x2: x1 + ext - 4, y2: G.oy, class: 'cp-axis cp-axis-x' }));
+      g.appendChild(el('line', { x1: G.ox, y1: y0 + ext - 4, x2: G.ox, y2: y1 - ext + 4, class: 'cp-axis cp-axis-y' }));
+      g.appendChild(arrowHead(x1 + ext, G.oy, 'r')); g.appendChild(arrowHead(x0 - ext, G.oy, 'l'));
+      g.appendChild(arrowHead(G.ox, y1 - ext, 'u')); g.appendChild(arrowHead(G.ox, y0 + ext, 'd'));
+    } else {
+      g.appendChild(el('line', { x1: G.ox, y1: G.oy, x2: x1 + ext - 4, y2: G.oy, class: 'cp-axis cp-axis-x' }));
+      g.appendChild(el('line', { x1: G.ox, y1: G.oy, x2: G.ox, y2: y1 - ext + 4, class: 'cp-axis cp-axis-y' }));
+      g.appendChild(arrowHead(x1 + ext, G.oy, 'r')); g.appendChild(arrowHead(G.ox, y1 - ext, 'u'));
+    }
+    s.appendChild(g);
+    /* Axis letters: x at the right tip, y at the top tip. */
+    s.appendChild(el('text', { x: x1 + ext - 2, y: G.oy - 9, class: 'cp-letter cp-lx', 'text-anchor': 'middle' }, ['x']));
+    s.appendChild(el('text', { x: G.ox + 11, y: y1 - ext + 6, class: 'cp-letter cp-ly', 'text-anchor': 'start' }, ['y']));
+    if (o.numbers) {
+      for (let i = lo; i <= n; i++) {
+        if (i === 0 || i % step) continue;
+        const t = i < 0 ? '−' + (-i) : String(i);
+        s.appendChild(el('text', { x: G.px(i), y: G.oy + 15, class: 'cp-num', 'text-anchor': 'middle' }, [t]));
+        s.appendChild(el('text', { x: G.ox - 6, y: G.py(i) + 4, class: 'cp-num', 'text-anchor': 'end' }, [t]));
+      }
+      /* The origin gets one 0, tucked below-left of the corner. */
+      s.appendChild(el('text', { x: G.ox - 6, y: G.oy + 15, class: 'cp-num cp-zero', 'text-anchor': 'end' }, ['0']));
+    }
+    const layer = el('g', { class: 'cp-pts' });
+    (points || []).forEach((pt) => addPoint(layer, G, pt, o.guide || pt.guide));
+    s.appendChild(layer);
+    s.__geo = G;
+    return s;
+  }
+  function guidePath(G, x, y, cls) {
+    const g = el('g', { class: 'cp-guide ' + (cls || '') });
+    if (x) {
+      g.appendChild(el('line', { x1: G.ox, y1: G.oy, x2: G.px(x), y2: G.oy, class: 'cp-go-x' }));
+      g.appendChild(arrowHead(G.px(x) + (x > 0 ? 1 : -1), G.oy, x > 0 ? 'r' : 'l')).setAttribute('class', 'cp-go-xh');
+    }
+    if (y) {
+      g.appendChild(el('line', { x1: G.px(x), y1: G.oy, x2: G.px(x), y2: G.py(y), class: 'cp-go-y' }));
+      g.appendChild(arrowHead(G.px(x), G.py(y) + (y > 0 ? 9 : -9), y > 0 ? 'u' : 'd')).setAttribute('class', 'cp-go-yh');
+    }
+    return g;
+  }
+  function addPoint(layer, G, pt, guide) {
+    if (guide) layer.appendChild(guidePath(G, pt.x, pt.y));
+    const cx = G.px(pt.x), cy = G.py(pt.y);
+    layer.appendChild(el('circle', { cx, cy, r: 6.5, class: 'cp-dot' + (pt.cls ? ' ' + pt.cls : '') }));
+    if (pt.label) {
+      const right = cx < G.S - 64;
+      const up = cy > 26;
+      layer.appendChild(el('text', { x: cx + (right ? 9 : -9), y: cy + (up ? -9 : 18), class: 'cp-lab', 'text-anchor': right ? 'start' : 'end' }, [pt.label]));
+    }
+  }
+
+  function plane(points, { quad = false, n, guide = false } = {}) {
+    if (n == null) n = quad ? 6 : 8;
+    return wrap(planeSVG(points, { quad, n, guide }));
   }
 
   function angle(deg, { label } = {}) {
@@ -315,7 +383,7 @@
   }
 
   w.V = {
-    themeFill, hundredGrid, fractionBar, numberLine, placeValue, linePlot, stemLeaf, pie, barGraph, plane, angle,
+    themeFill, hundredGrid, fractionBar, numberLine, placeValue, linePlot, stemLeaf, pie, barGraph, plane, planeSVG, planeGeo, guidePath, angle,
     areaRect, metricLadder, cycleSteps,
     fr(n, d) { return `<span class="frac"><span class="n">${n}</span><span class="d">${d}</span></span>`; },
     mixed(w, n, d) { return `<span class="mix">${w}${this.fr(n, d)}</span>`; }
