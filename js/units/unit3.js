@@ -24,6 +24,11 @@ var lessons = [
   {t:'The digit sum and remainders', h:'<p>For 9 (and 3), the digit sum also gives the remainder. Keep adding digits until one digit is left.</p><div class="big">2026 → 2+0+2+6 = 10 → 1+0 = 1</div><p>So 2026 ÷ 9 leaves remainder <b>1</b>. Check: 9 × 225 = 2025, plus 1.</p>', trap:'Stopping at 10. Keep adding until one digit is left.'},
   {t:'Your turn', h:'', tr:mc('Is 4617 divisible by 9?', 'Yes', [['No', 'Recheck the digit sum: 4 + 6 + 1 + 7 = 18, and 18 is divisible by 9.'], ['Only by 3', '18 is divisible by 9 too, so both tests pass.'], ['Only by 2', '4617 ends in 7, so it is odd. It is not divisible by 2.']], '4 + 6 + 1 + 7 = 18, and 9 × 513 = 4617. Yes.')},
   {t:'Try one', h:'', tr:{type:'num', q:'Find the remainder when 2026 is divided by 9.', a:1, why:'Digit sum 2+0+2+6 = 10, then 1+0 = 1. Check: 9 × 225 = 2025.'}}
+ ]},
+ {id:'u3L6', name:'Exponents', icon:'⚡', cards:[
+  {t:'A shortcut for repeated multiplication', h:'<div class="big">10 × 10 × 10 = 10<sup>3</sup> = 1000</div><p>The exponent counts how many times the base is multiplied. 10<sup>3</sup> has 3 zeros.</p>', trap:'2<sup>3</sup> is not 2 × 3 = 6. It is three factors of 2.'},
+  {t:'Perfect squares', h:'<p>7<sup>2</sup> = 7 × 7 = 49. Picture 7 rows of 7: a perfect square shape.</p><p>Know 1<sup>2</sup> through 12<sup>2</sup>: they show up all through math.</p>', tr:{type:'num', q:'What is 6<sup>2</sup>?', a:36, why:'6 × 6 = 36.'}},
+  {t:'Powers of 10: count the zeros', h:'<p>Multiplying by 10, 100 and 1000 is the same as multiplying by 10<sup>1</sup>, 10<sup>2</sup> and 10<sup>3</sup>.</p>' + L.tbl(['Power','Means','Value'], [['10<sup>2</sup>','10 × 10','100'],['10<sup>3</sup>','10 × 10 × 10','1000'],['10<sup>4</sup>','10 × 10 × 10 × 10','10000']]), key:'The exponent on 10 tells you how many zeros the answer has.'}
  ]}
 ];
 var test = [
@@ -44,22 +49,52 @@ var bg = {
     var b = L.ri(2, 6), e = L.ri(2, 3), v = Math.pow(b, e);
     return mc(b + '<sup>' + e + '</sup> = ?', String(v), [[String(b*e), 'Not ' + b + ' × ' + e + '. Multiply ' + b + ' by itself ' + e + ' times.'], [String(Math.pow(e, b)), 'That swaps the base and exponent.'], [String(b+e), 'Repeated multiplication, not addition.']], Array(e).fill(b).join(' × ') + ' = ' + v + '.');
   }},
+  read: {name:'Exponents: read it and write it', f:function(lv){
+    var b = L.ri(2, 9), e = L.ri(3, 6), rep = Array(e).fill(b).join(' × ');
+    if (L.ri(0, 1)) {
+      return {type:'num', q:'Write <b>' + rep + '</b> as a power. What is the exponent?', a:e, why:'Count the ' + b + 's: there are ' + e + ', so it is ' + b + '<sup>' + e + '</sup>. The exponent is ' + e + '.'};
+    }
+    return {type:'num', q:'In <b>' + b + '<sup>' + e + '</sup></b>, how many times is ' + b + ' used as a factor?', a:e, why:'The exponent tells how many copies of the base are multiplied: ' + rep + '.'};
+  }},
   sq: {name:'Perfect squares', f:function(lv){
-    var n = L.ri(2, 20);
+    var n = L.ri(2, 12);
     return {type:'num', q:'What is ' + n + '<sup>2</sup>?', a:n*n, why:n + ' × ' + n + ' = ' + n*n + '.'};
+  }},
+  sqstory: {name:'Squares in real life', f:function(lv){
+    var n = L.ri(4, 12);
+    return {type:'num', q:'A square patio is ' + n + ' tiles long and ' + n + ' tiles wide. How many tiles cover it?', a:n*n, why:'A square has equal sides, so ' + n + ' × ' + n + ' = ' + n + '<sup>2</sup> = ' + n*n + ' tiles.'};
+  }}
+};
+var bgAdv = {
+  big: {name:'Big powers', f:function(lv){
+    var pick = L.ri(0, 2), b, e;
+    if (pick === 0) { b = 2; e = L.ri(5, 9); }
+    else if (pick === 1) { b = L.ri(3, 5); e = L.ri(3, 5); }
+    else { b = 10; e = L.ri(5, 7); }
+    var v = Math.pow(b, e);
+    return {type:'num', q:'What is ' + b + '<sup>' + e + '</sup>?', a:v, why:Array(e).fill(b).join(' × ') + ' = ' + v + '.'};
+  }},
+  cmp: {name:'Compare powers', f:function(lv){
+    var b, e; do { b = L.ri(2, 5); e = L.ri(2, 4); } while (b === e || Math.pow(b, e) === Math.pow(e, b));
+    var x = Math.pow(b, e), y = Math.pow(e, b), right = x > y ? 0 : 1;
+    return mc('Which is greater: <b>' + b + '<sup>' + e + '</sup></b> or <b>' + e + '<sup>' + b + '</sup></b>?', x > y ? b + '<sup>' + e + '</sup>' : e + '<sup>' + b + '</sup>', [[x > y ? e + '<sup>' + b + '</sup>' : b + '<sup>' + e + '</sup>', 'Work both out: ' + b + '<sup>' + e + '</sup> = ' + x + ' and ' + e + '<sup>' + b + '</sup> = ' + y + '.'], ['They are equal', 'Work both out: ' + x + ' and ' + y + '.']], b + '<sup>' + e + '</sup> = ' + x + ' and ' + e + '<sup>' + b + '</sup> = ' + y + '. Swapping the base and exponent changes the value.');
+  }},
+  sum: {name:'Powers in expressions', f:function(lv){
+    var a = L.ri(2, 4), b = L.ri(2, 3), c = L.ri(2, 5), d = 2;
+    var v = Math.pow(a, b) + Math.pow(c, d);
+    return {type:'num', q:'What is ' + a + '<sup>' + b + '</sup> + ' + c + '<sup>' + d + '</sup>?', a:v, why:a + '<sup>' + b + '</sup> = ' + Math.pow(a, b) + ' and ' + c + '<sup>' + d + '</sup> = ' + Math.pow(c, d) + '. ' + Math.pow(a, b) + ' + ' + Math.pow(c, d) + ' = ' + v + '.'};
   }}
 };
 var bridge = {
-  title:'Go Further: powers of 10 & exponents', tab:'🚀 Go Further',
-  intro:'Multiplying by 10, 100 and 1000 is the doorway to <b>exponents</b> and <b>perfect squares</b>, which is what the Advanced class is starting right now (Advanced Unit 5).',
-  lessons:[{id:'u3B1', name:'Exponents', icon:'⚡', cards:[
-    {t:'A shortcut for repeated multiplication', h:'<div class="big">10 × 10 × 10 = 10<sup>3</sup> = 1000</div><p>The exponent counts how many times the base is multiplied. 10<sup>3</sup> has 3 zeros.</p>', trap:'10<sup>3</sup> is not 30.'},
-    {t:'Perfect squares', h:'<p>7<sup>2</sup> = 7 × 7 = 49. Picture 7 rows of 7: a perfect square shape.</p><p>Know 1<sup>2</sup> through 20<sup>2</sup>: they show up all through Advanced math.</p>', tr:bg.sq.f()}
+  title:'Go Further: powers grow fast', tab:'🚀 Go Further',
+  intro:'Exponents are now in the Core path. Here is the stretch: how fast powers grow, comparing them, and using them inside expressions.',
+  lessons:[{id:'u3B1', name:'Powers grow fast', icon:'🚀', cards:[
+    {t:'Powers grow fast', h:'<div class="big">2<sup>8</sup> = 256 &nbsp;&nbsp; 10<sup>6</sup> = 1000000</div><p>Doubling eight times makes 256. Powers grow much faster than multiplying by the exponent.</p>', trap:'3<sup>5</sup> and 5<sup>3</sup> are different. Swapping the base and the exponent changes the answer.', tr:bgAdv.cmp.f()}
   ]}],
-  gens:bg, repIds:['p10','expo','sq'],
-  next:'Stay in the Advanced (Go Further) path of this unit for more practice.'
+  gens:bgAdv, repIds:['big','cmp','sum'],
+  next:'Core has the exponent lesson. Come back here for the stretch problems.'
 };
-window.V2 = {key:'u3', lessons:lessons, test:test, bridge:bridge};
+window.V2 = {key:'u3', lessons:lessons, test:test, bridge:bridge, gens:bg, repIds:['expo','read','sq','sqstory','p10']};
 })();
 
 Adapt.fromV2({

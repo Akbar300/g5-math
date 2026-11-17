@@ -116,7 +116,7 @@
             const b = U.ri(12, 36), q = U.ri(15, 89), r = U.ri(0, b - 1), a = b * q + r;
             return { type: 'paper-div', fmt: 'PAPER', sol: '5.CE.1', q: 'Divide <b>' + a + ' ÷ ' + b + '</b> on the paper grid.' + (r ? ' A remainder is OK.' : ''), a: a, b: b, why: a + ' ÷ ' + b + ' = <b>' + q + (r ? ' R ' + r : '') + '</b>.' };
           }}
-        ].concat(coreSkills);
+        ].concat(coreSkills).concat(v2Skills(V2.gens, V2.repIds));
       }
 
       let advSkills = v2Skills(bridge.gens, bridge.repIds).map(function (s) {

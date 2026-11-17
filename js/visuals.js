@@ -368,15 +368,37 @@
   }
 
   function cycleSteps(labels) {
-    const n = labels.length, W = 440, H = 78, bw = Math.min(96, (W - 20 - (n - 1) * 24) / n);
+    /* Big, readable boxes: the picture is drawn at 340 wide so a phone shows it near 1:1. */
+    const n = labels.length, gap = 22, W = 340;
+    const bw = (W - 8 - (n - 1) * gap) / n;
+    /* Split long labels onto two lines at the best space so the text can stay large. */
+    const lines = labels.map((lab) => {
+      const t = String(lab);
+      if (t.indexOf(' ') < 0 || t.length * 9.8 <= bw - 8) return [t];
+      let best = -1, bd = 1e9;
+      for (let i = 0; i < t.length; i++) if (t[i] === ' ' && Math.abs(i - t.length / 2) < bd) { bd = Math.abs(i - t.length / 2); best = i; }
+      return [t.slice(0, best), t.slice(best + 1)];
+    });
+    const maxLen = Math.max.apply(null, lines.map((l) => Math.max.apply(null, l.map((x) => x.length))));
+    const fs = Math.max(12, Math.min(24, Math.floor((bw - 8) / (maxLen * 0.58))));
+    const multi = lines.some((l) => l.length > 1);
+    const bh = multi ? Math.max(64, fs * 2 + 26) : Math.max(56, fs + 34), H = bh + 24;
     const s = svg(W, H);
+    s.setAttribute('width', '100%');
+    s.removeAttribute('height');
+    s.setAttribute('style', 'width:100%;max-width:480px');
     labels.forEach((lab, i) => {
-      const x = 10 + i * (bw + 24);
-      s.appendChild(el('rect', { x, y: 16, width: bw, height: 46, rx: '10', fill: 'var(--why-bg)', stroke: 'var(--ink)', 'stroke-width': '2' }));
-      s.appendChild(el('text', { x: x + bw / 2, y: 44, 'text-anchor': 'middle', 'font-size': '11', 'font-weight': '800', fill: 'var(--ink)' }, [lab]));
+      const x = 4 + i * (bw + gap), mid = 12 + bh / 2;
+      s.appendChild(el('rect', { x, y: 12, width: bw, height: bh, rx: '12', fill: 'var(--why-bg)', stroke: 'var(--ink)', 'stroke-width': '2.5' }));
+      const ls = lines[i];
+      ls.forEach((ln, k) => {
+        const y = mid + fs * 0.35 + (k - (ls.length - 1) / 2) * (fs * 1.15);
+        s.appendChild(el('text', { x: x + bw / 2, y, 'text-anchor': 'middle', 'font-size': String(fs), 'font-weight': '800', fill: 'var(--ink)' }, [ln]));
+      });
       if (i < n - 1) {
-        s.appendChild(el('path', { d: `M ${x + bw + 3} 39 L ${x + bw + 18} 39`, stroke: 'var(--ink)', 'stroke-width': '2', 'stroke-linecap': 'round' }));
-        s.appendChild(el('path', { d: `M ${x + bw + 12} 33 L ${x + bw + 18} 39 L ${x + bw + 12} 45`, fill: 'none', stroke: 'var(--ink)', 'stroke-width': '2', 'stroke-linecap': 'round' }));
+        const ax = x + bw + 4, ay = mid;
+        s.appendChild(el('path', { d: `M ${ax} ${ay} L ${ax + gap - 8} ${ay}`, stroke: 'var(--ink)', 'stroke-width': '2.5', 'stroke-linecap': 'round' }));
+        s.appendChild(el('path', { d: `M ${ax + gap - 15} ${ay - 7} L ${ax + gap - 8} ${ay} L ${ax + gap - 15} ${ay + 7}`, fill: 'none', stroke: 'var(--ink)', 'stroke-width': '2.5', 'stroke-linecap': 'round' }));
       }
     });
     return wrap(s);

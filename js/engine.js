@@ -1055,7 +1055,10 @@ function paperDivide(dividend, divisor) {
             slot.innerHTML = '';
             /* First: this card's own question. After that: fresh questions from the same skill, then the lesson, then the unit. */
             const groups = [[fn], [...new Set(cardGens.concat(lessonGens))], allGens];
-            const it = freshFrom(groups, first ? 4 : 10);
+            /* The first view of a card always shows the card's own try-it (never swapped for a random unit question). */
+            let it = null;
+            if (first) { try { it = fn(); } catch (e) { it = null; } if (it) SEEN.add(itemKey(it)); }
+            if (!it) it = freshFrom(groups, first ? 4 : 10);
             first = false;
             if (!it) return;
             renderItem(slot, it, {

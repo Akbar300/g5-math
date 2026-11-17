@@ -350,12 +350,12 @@
         ]
       }
     },
-    u3B1: {
+    u3L6: {
       'A shortcut for repeated multiplication': {
         viz: () => V.cycleSteps(['2 × 2 × 2', '2³', '8']),
         steps: ['An exponent counts how many times the base is a factor: 2³ = 2 × 2 × 2 = 8.', 'The base is the number being multiplied.', 'The exponent is the small number up high, not a times-table partner.'],
         trap: '2³ is not 2 × 3 = 6. It is three factors of 2.',
-        aap: 'AAP: 10⁴ = 10,000 (four zeros). 2⁵ = 32. Powers of 10 and of 2 are worth knowing cold.',
+        aap: 'Stretch: 10⁴ = 10000 (four zeros). 2⁵ = 32. Powers of 10 and of 2 are worth knowing cold.',
         tries: [
           () => num('What is 2 to the 4th power (2⁴)?', 16, '2 × 2 × 2 × 2 = 16.'),
           () => mc('What is 5³?', '125', [['15', 'That is 5 × 3.'], ['8', 'That would be 2³.'], ['53', 'The 3 is an exponent, not a tens digit.']], '5 × 5 × 5 = 125.')
@@ -365,10 +365,31 @@
         viz: () => V.areaRect(6, 6),
         steps: ['A perfect square is a whole number times itself: 6 × 6 = 36.', 'You can picture it as a square array.', 'Learn the squares through 12 × 12 (144) and 15 × 15 (225).'],
         trap: '8² is 64, not 16. Square means the number times itself, not twice the number.',
-        aap: 'AAP: 25² = 625 (use the 5-square trick: 2 × 3 = 6, then write 25). 11² = 121.',
+        aap: 'Stretch: 11² = 121 and 12² = 144. Learn 15² = 225 and 25² = 625 too.',
         tries: [
           () => num('What is 9 squared (9 × 9)?', 81, '9 × 9 = 81.'),
-          () => mc('Which is a perfect square?', '49', [['48', '48 is 6 × 8, not a number times itself.'], ['18', 'That is 9 × 2? No, and 4² = 16, 5² = 25.'], ['99', '9 × 11, not a square.']], '7 × 7 = 49.')
+          () => mc('Which is a perfect square?', '49', [['48', '48 is 6 × 8, not a number times itself.'], ['18', '18 is 9 × 2, not a number times itself. The squares go 16, 25, 36.'], ['99', '9 × 11, not a square.']], '7 × 7 = 49.')
+        ]
+      },
+      'Powers of 10: count the zeros': {
+        viz: () => V.cycleSteps(['10 × 10 × 10', '10³', '1000']),
+        steps: ['Write the power of 10 as repeated multiplication.', 'The exponent is the number of zeros: 10⁴ has 4 zeros.', 'To multiply by 10³, move the digits 3 places (add 3 zeros).'],
+        trap: '10³ is not 30. It is 1 followed by three zeros: 1000.',
+        aap: 'Stretch: 10⁶ = 1000000 (one million). 10⁹ is one billion.',
+        tries: [
+          () => num('What is 10⁴?', 10000, '10 × 10 × 10 × 10 = 10000, a 1 with four zeros.'),
+          () => mc('What is 6 × 10³?', '6000', [['60', 'That is 6 × 10.'], ['18', 'That is 6 × 3.'], ['600', 'That is 6 × 10². Count three zeros.']], '10³ = 1000, so 6 × 1000 = 6000.')
+        ]
+      }
+    },
+    u3B1: {
+      'Powers grow fast': {
+        viz: () => V.cycleSteps(['2⁴ = 16', '2⁵ = 32', '2⁶ = 64']),
+        steps: ['Each time the exponent goes up by 1, the value is multiplied by the base again.', '2⁴ = 16, 2⁵ = 32, 2⁶ = 64, 2⁷ = 128, 2⁸ = 256.', 'Swapping base and exponent changes the value: 3⁵ = 243 but 5³ = 125.'],
+        trap: 'Thinking a power is just a product: 3⁵ is not 15.',
+        tries: [
+          () => num('What is 2⁸?', 256, '2 × 2 = 4, 8, 16, 32, 64, 128, 256.'),
+          () => num('What is 2³ + 3²?', 17, '2³ = 8 and 3² = 9. 8 + 9 = 17.')
         ]
       }
     }
