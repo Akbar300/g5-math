@@ -146,15 +146,34 @@
   function uniqChoices(correct, wrongs, n) {
     const want = n || 4;
     const out = [];
-    const seen = new Set();
+    const seenText = new Set();
+    const seenVal = [];
     const add = (x) => {
       const k = U.strip(String(x));
-      if (!k || seen.has(k)) return;
-      seen.add(k);
+      if (!k) return false;
+      if (seenText.has(k)) return false;
+      const v = U.parseChoiceValue(x);
+      if (v != null && seenVal.some((s) => U.valuesClose(s, v))) return false;
+      seenText.add(k);
+      if (v != null) seenVal.push(v);
       out.push(x);
+      return true;
     };
     add(correct);
     U.shuffle(wrongs || []).forEach((w) => { if (out.length < want) add(w); });
+    if (out.length < want) {
+      const v = U.parseChoiceValue(correct);
+      if (v != null && isFinite(v)) {
+        const extras = [v * 10, v / 10, v + 0.1, v - 0.1, v + 1, v * 2, Number(v.toFixed(2).replace(/0\d$/, '1') || 0)];
+        extras.forEach((ev) => {
+          if (out.length >= want || ev == null || !isFinite(ev) || ev === 0) return;
+          if (U.valuesClose(ev, v)) return;
+          if (ev < 0) return;
+          const label = (Math.abs(ev - Math.round(ev)) < 1e-9) ? String(Math.round(ev)) : String(Number(ev.toFixed(3)));
+          add(label);
+        });
+      }
+    }
     const ch = U.shuffle(out);
     return { ch, a: ch.findIndex((x) => U.strip(String(x)) === U.strip(String(correct))) };
   }
@@ -165,7 +184,7 @@
     const others = EIGHTHS.filter((x) => x[2] !== dec);
     const kind = U.pick(['bar-dec', 'bar-frac', 'type-dec', 'type-frac', 'mc-f2d', 'mc-d2f', 'word', 'eq-sixteenths', 'compare-half']);
     if (kind === 'bar-dec') {
-      const pack = uniqChoices(dec, [U.pick(others)[2], n === 1 ? '0.8' : ('0.' + n), '0.1' + n, '0.' + (n * 125), dec + '0']);
+      const pack = uniqChoices(dec, [U.pick(others)[2], n === 1 ? '0.8' : ('0.' + n), '0.1' + n, String(parseFloat(dec) * 10), String(n / 10)]);
       return {
         type: 'mc', fmt: 'MODEL', nocalc: true, sol: '5.NS.1',
         q: `The bar is cut into eighths. What decimal is shaded?` + V.fractionBar(n, 8, { fill: '#0fb39c', label: n + ' of 8 parts' }),
@@ -660,21 +679,37 @@
         why: `${dec} = ${hundred} hundredths = <b>${pct}</b>.`
       };
     }
-    const names = [fr(sn, sd), dec, pct];
-    const right = U.pick(names);
+    const goods = [];
+    const addGood = (x) => {
+      const k = U.strip(String(x));
+      if (!k || goods.some((g) => U.strip(String(g)) === k)) return;
+      goods.push(x);
+    };
+    addGood(fr(sn, sd));
+    addGood(dec);
+    addGood(pct);
+    const target = hundred / 100;
     const wrongs = [
       fr(hundred, 10),
       String(hundred / 10),
       (hundred + 10) + '%',
-      '0.' + String(hundred),
-      fr(sn, 10)
-    ];
-    const pack = uniqChoices(right, wrongs);
+      (100 - hundred) + '%',
+      fr(sn, 10),
+      fr(sd, 100)
+    ].filter((w) => {
+      const k = U.strip(String(w));
+      if (!k || goods.some((g) => U.strip(String(g)) === k)) return false;
+      const v = U.parseChoiceValue(w);
+      if (v != null && U.valuesClose(v, target)) return false;
+      return true;
+    });
+    const ch = U.shuffle(goods.concat(U.shuffle(wrongs).slice(0, Math.max(2, 5 - goods.length))));
+    const a = ch.map((_, i) => i).filter((i) => goods.some((g) => U.strip(String(g)) === U.strip(String(ch[i]))));
     return {
-      type: 'mc', fmt: 'MULTIPLE CHOICE', nocalc: true, sol: '5.NS.1',
-      q: `Which name equals ${fr(hundred, 100)}?`,
-      ch: pack.ch, a: pack.a,
-      why: `${fr(hundred, 100)} = ${fr(sn, sd)} = ${dec} = ${pct}. All three names can match.`
+      type: 'ms', fmt: 'SELECT ALL', nocalc: true, sol: '5.NS.1',
+      q: `Select <b>all</b> names that equal ${fr(hundred, 100)}.`,
+      ch, a,
+      why: `${fr(hundred, 100)} = ${fr(sn, sd)} = ${dec} = ${pct}.`
     };
   }
 
