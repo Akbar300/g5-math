@@ -133,7 +133,7 @@ V.angle=(deg,o={})=>{const R=70,cx=20,cy=80;const a=deg*Math.PI/180;const x2=cx+
 /* line plot: labels = tick labels (strings), counts = Xs above each */
 V.lineplot=(labels,counts,o={})=>{const n=labels.length,sp=Math.min(44,300/n),W=sp*(n-1)+60,maxc=Math.max(...counts,1),H=40+maxc*15+18;const y0=H-34;
   let g=`<line x1="20" y1="${y0}" x2="${W-20}" y2="${y0}" stroke="${LINE}" stroke-width="1.6"/>`;
-  labels.forEach((t,i)=>{const x=30+i*sp;g+=`<line x1="${x}" y1="${y0-5}" x2="${x}" y2="${y0+5}" stroke="${LINE}" stroke-width="1.4"/><text x="${x}" y="${y0+19}" font-size="12" text-anchor="middle" fill="${INK}">${t}</text>`;
+  labels.forEach((t,i)=>{const x=30+i*sp;g+=`<line x1="${x}" y1="${y0-5}" x2="${x}" y2="${y0+5}" stroke="${LINE}" stroke-width="1.4"/>${/^\d+\/\d+$/.test(t)?(()=>{const [a,b]=t.split('/');return `<text x="${x}" y="${y0+15}" font-size="11" font-weight="700" text-anchor="middle" fill="${INK}">${a}</text><line x1="${x-6}" y1="${y0+18}" x2="${x+6}" y2="${y0+18}" stroke="${INK}" stroke-width="1.3"/><text x="${x}" y="${y0+29}" font-size="11" font-weight="700" text-anchor="middle" fill="${INK}">${b}</text>`;})():`<text x="${x}" y="${y0+19}" font-size="12" text-anchor="middle" fill="${INK}">${t}</text>`}`;
     for(let k=0;k<counts[i];k++)g+=`<text x="${x}" y="${y0-9-k*15}" font-size="14" font-weight="bold" text-anchor="middle" fill="${LINE}">X</text>`;});
   if(o.title)g=`<text x="${W/2}" y="13" font-size="12.5" font-weight="bold" text-anchor="middle" fill="${INK}">${o.title}</text>`+g;
   if(o.axis)g+=`<text x="${W/2}" y="${H-2}" font-size="11" text-anchor="middle" fill="${INK}">${o.axis}</text>`;
@@ -584,12 +584,12 @@ S('ps1_lineplot',{std:'5.PS.1',cat:'PS',unit:[10,1],name:'Line plots'},H=>{
   let labels,vals;if(H&&r()<.5){labels=['0','1/4','1/2','3/4','1'];vals=[0,.25,.5,.75,1];}else{const s=ri(0,3);labels=[];vals=[];for(let i=0;i<6;i++){labels.push(String(s+i));vals.push(s+i);}}
   const cnt=labels.map(()=>ri(0,5));if(cnt.filter(c=>c>0).length<3)return null;const N=cnt.reduce((a,b)=>a+b,0);
   const ctx=vals[1]===.25?['Rainfall (inches)','days of rain','inches of rain']:pick([['Books Read','students','books'],['Goals Scored','games','goals'],['Pets Owned','students','pets']]);
-  const vis=V.lineplot(labels,cnt,{title:ctx[0]});const k=ri(0,H?3:2);
+  const vis=V.lineplot(labels,cnt,{title:ctx[0]});const LB=labels.map(t=>/^\d+\/\d+$/.test(t)?F(...t.split('/')):t);const k=ri(0,H?3:2);
   if(k===0)return num(Q(`Each X stands for 1 of the ${ctx[1]}. How many ${ctx[1]} are shown?`,vis),N,{why:`Count all the Xs: ${N}.`});
   if(k===1){const i=cnt.indexOf(Math.max(...cnt));if(cnt.filter(c=>c===cnt[i]).length>1)return null;
-    return mc(Q(`Which value appears <b>most often</b>?`,vis),{h:labels[i]},labels.filter((_,j)=>j!==i).map(h=>({h})),{sort:'keep',why:`The tallest stack of Xs is at ${labels[i]} (${cnt[i]} Xs). That value is the mode.`});}
+    return mc(Q(`Which value appears <b>most often</b>?`,vis),{h:LB[i]},LB.filter((_,j)=>j!==i).map(h=>({h})),{sort:'keep',why:`The tallest stack of Xs is at ${LB[i]} (${cnt[i]} Xs). That value is the mode.`});}
   if(k===2){const i=ri(0,5)%labels.length,j=(i+ri(1,labels.length-1))%labels.length;if(cnt[i]===cnt[j])return null;const [a,b]=cnt[i]>cnt[j]?[i,j]:[j,i];
-    return num(Q(`How many more ${ctx[1]} had ${labels[a]} than ${labels[b]}?`,vis),cnt[a]-cnt[b],{why:`${cnt[a]} − ${cnt[b]} = ${cnt[a]-cnt[b]}.`});}
+    return num(Q(`How many more ${ctx[1]} had ${LB[a]} than ${LB[b]}?`,vis),cnt[a]-cnt[b],{why:`${cnt[a]} − ${cnt[b]} = ${cnt[a]-cnt[b]}.`});}
   const tot=cnt.reduce((s,c,i)=>s+c*vals[i],0);const T=vals[1]===.25?fh(fr(Math.round(tot*4),4)):String(tot);
   return mc(Q(`What is the <b>total</b> number of ${ctx[2]} shown on the line plot?`,vis),ch(T,tot),[ch(String(N),N),ch(fh(fr(Math.round(tot*4)+1,4)),tot+.25),ch(String(Math.max(...cnt)),Math.max(...cnt)),ch(fh(fr(Math.round(tot*4)+4,4)),tot+1)],{sort:'v',why:`Add value × number of Xs for each value: total = ${T}.`});
 });

@@ -3,6 +3,33 @@
   const fr = (n, d) => (w.V && V.fr) ? V.fr(n, d) : `<span class="frac"><span class="n">${n}</span><span class="d">${d}</span></span>`;
   w.fr = fr;
 
+  /* House rule: no thousands commas anywhere (write 4372, not 4,372). Strip them from visible text only. */
+  const TH_RE = /(^|[^\d.,])(\d{1,3})((?:,\d{3})+)(?!\d|,\d)/g;
+  function stripThousands(root) {
+    if (!root) return;
+    const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    let n;
+    while ((n = tw.nextNode())) {
+      const p = n.parentNode && n.parentNode.nodeName;
+      if (p === 'SCRIPT' || p === 'STYLE') continue;
+      const t = n.nodeValue;
+      if (t && /\d,\d{3}/.test(t)) {
+        const v = t.replace(TH_RE, (m, a, b, c) => a + b + c.replace(/,/g, ''));
+        if (v !== t) n.nodeValue = v;
+      }
+    }
+  }
+  if (typeof MutationObserver !== 'undefined') {
+    const startTH = () => {
+      stripThousands(document.body);
+      new MutationObserver((ms) => ms.forEach((m) => {
+        if (m.type === 'characterData') stripThousands(m.target.parentNode);
+        else m.addedNodes.forEach((x) => { if (x.nodeType === 3) stripThousands(x.parentNode); else if (x.nodeType === 1) stripThousands(x); });
+      })).observe(document.body, { childList: true, subtree: true, characterData: true });
+    };
+    if (document.body) startTH(); else document.addEventListener('DOMContentLoaded', startTH);
+  }
+
   const U = {
     gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { const t = a % b; a = b; b = t; } return a || 1; },
     simp(n, d) { const g = this.gcd(n, d); return [n / g, d / g]; },

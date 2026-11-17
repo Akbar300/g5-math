@@ -69,6 +69,6 @@ window.V2 = {key:'u5', lessons:lessons, test:test, bridge:bridge};
 
 Adapt.fromV2({
   id: 'u5', num: 5, emoji: '💠', title: 'Decimal Workshop',
-  blurb: 'Add, subtract, multiply, and divide decimals. Place the point with care.', sol: ['5.CE.3'], dates: ['2026-12-07', '2027-01-15'], color: '#6c4ee0'
+  blurb: 'Add, subtract, multiply, and divide decimals. Place the point with care.', sol: ['5.CE.3'], dates: ['2026-12-07', '2027-01-15'], color: '#0369a1'
 }, window.V2, { gUnit: 5, coreStds: ['5.CE.3'] });
 

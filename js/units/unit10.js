@@ -72,6 +72,6 @@ window.V2 = {key:'u10', lessons:lessons, test:test, bridge:bridge, gens:gens, re
 
 Adapt.fromV2({
   id: 'u10', num: 10, emoji: '🎲', title: 'Data & Chance Lab',
-  blurb: 'Probability, the counting principle, and a fresh look at center and range.', sol: ['5.PS.1', '5.PS.2', '5.PS.3'], dates: ['2027-05-03', '2027-05-14'], color: '#7c3aed'
+  blurb: 'Probability, the counting principle, and a fresh look at center and range.', sol: ['5.PS.1', '5.PS.2', '5.PS.3'], dates: ['2027-05-03', '2027-05-14'], color: '#0e7490'
 }, window.V2, { gUnit: 10, coreStds: ['5.PS.1', '5.PS.2', '5.PS.3'] });
 
