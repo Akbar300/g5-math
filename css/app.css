@@ -1029,3 +1029,64 @@ svg.cp{width:min(300px,100%);height:auto;aspect-ratio:1;max-height:none;font-fam
 @media print{.sp-wrap{display:none}}
 html[data-theme="dark"] .ix-cp .ix-btn.go,html[data-theme="dark"] .sp-side .ix-btn.go{background:var(--teal);border-color:var(--teal);color:#072821}
 .ix-cp .ix-btn.go,.sp-side .ix-btn.go{background:var(--teal);border-color:var(--teal);color:#072821}
+
+/* ---------- Motion explainers (js/explain.js) ---------- */
+.ex{border:2px solid var(--line);border-radius:16px;background:var(--card);padding:10px 12px 12px;margin:8px 0 4px;max-width:560px;width:100%;box-sizing:border-box}
+.ex-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
+.ex-title{font-family:var(--display);font-weight:700;font-size:15px;color:var(--muted)}
+.ex-dots{display:flex;gap:6px}
+.ex-dot-btn{width:12px;height:12px;border-radius:50%;border:2px solid var(--muted);background:transparent;padding:0;cursor:pointer}
+.ex-dot-btn.seen{background:color-mix(in srgb,var(--teal) 45%,transparent);border-color:var(--teal)}
+.ex-dot-btn.on{background:var(--teal);border-color:var(--teal);transform:scale(1.2)}
+.ex-stage{width:100%;aspect-ratio:400/240;background:color-mix(in srgb,var(--sky) 40%,var(--card));border-radius:12px;overflow:hidden}
+.ex-stage svg{display:block;width:100%;height:100%}
+.ex-cap{font-family:var(--font);font-weight:800;font-size:18px;line-height:1.35;color:var(--ink);margin:10px 2px 8px;min-height:2.7em}
+.ex-ctl{display:flex;flex-wrap:nowrap;gap:6px}
+.ex-ctl .ex-b{flex:1 1 0;min-width:0;padding:8px 6px;font-size:15px;white-space:nowrap}
+.ex-ctl .ex-speed{flex:0 0 auto;min-width:52px}
+.ex-ctl .ex-play{background:var(--teal);color:#fff;border-color:var(--teal)}
+.ex-ctl .ex-b:disabled{opacity:.4}
+.ex-quiz{margin:2px 0 10px}
+.ex-opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.ex-opt{font-family:var(--mono);font-size:19px;padding:10px 8px;background:var(--card);color:var(--ink);border:2px solid var(--line)}
+.ex-opt.right{background:var(--ok-bg);border-color:var(--ok-line)}
+.ex-opt.wrong{background:var(--no-bg);border-color:var(--no-line);opacity:.75}
+.ex-fb{margin:8px 2px 0;font-weight:700;line-height:1.4}
+.ex-fb:empty{display:none}
+.ex-watch{margin:6px 0 2px;width:100%;display:flex;flex-direction:column;align-items:center}
+.ex-watch-btn{font-family:var(--display);font-weight:700;font-size:16px;border-color:var(--teal);color:var(--ink);background:color-mix(in srgb,var(--teal) 12%,var(--card))}
+.ex-secs{font-family:var(--font);font-weight:600;color:var(--muted);font-size:14px}
+.ex-watch.ex-after-miss{align-items:flex-start;margin:6px 0}
+/* SVG paint */
+.ex text{font-family:var(--display);font-weight:700}
+.ex .ex-num{font-family:var(--display);fill:currentColor}
+.ex .ex-bar{fill:currentColor}
+.ex .ex-ink{fill:var(--ink);color:var(--ink)}
+.ex .ex-muted{fill:var(--muted);font-family:var(--font);font-weight:800}
+.ex .ex-big{fill:var(--ink);font-family:var(--mono)}
+.ex .ex-mono{fill:var(--ink);font-family:var(--mono);font-weight:600}
+.ex .ex-teal{fill:var(--teal);color:var(--teal)}
+.ex .ex-blue{fill:var(--blue);color:var(--blue);font-family:var(--mono)}
+.ex .ex-coral{fill:var(--coral)}
+.ex .ex-onlabel{fill:#fff;font-family:var(--mono);font-weight:700;stroke:#0b5e52;stroke-width:3px;paint-order:stroke}
+
+.ex .ex-frame{fill:none;stroke:var(--line);stroke-width:2}
+.ex .ex-on{fill:var(--viz-teal)}
+.ex .ex-off{fill:var(--viz-empty);stroke:var(--line);stroke-width:1}
+.ex .ex-part{fill:none;stroke:var(--ink);stroke-width:1.6}
+.ex .ex-barbox{stroke:var(--ink);stroke-width:2}
+.ex .ex-cut{stroke:var(--ink);stroke-width:2.5}
+.ex .ex-axis{stroke:var(--ink);stroke-width:2}
+.ex .ex-hop{fill:none;stroke:var(--teal);stroke-width:2.5;stroke-linecap:round}
+.ex .ex-hop-big{fill:none;stroke:var(--coral);stroke-width:3.5;stroke-linecap:round}
+.ex .ex-dot{fill:var(--teal)}
+.ex .ex-dot-big{fill:var(--teal);stroke:var(--card);stroke-width:3}
+.ex .ex-dot-anchor{fill:var(--blue);stroke:var(--card);stroke-width:3}
+@media (max-width:420px){
+  .ex{padding:8px 8px 10px}
+  .ex-cap{font-size:17px}
+  .ex-ctl .ex-b{padding:9px 4px;font-size:16px}
+  .ex-ctl .ex-w{display:none}
+  .ex-ctl .ex-b[data-k="back"],.ex-ctl .ex-b[data-k="next"]{font-size:20px;line-height:1}
+}
+.ex-title .frac{font-size:.85em}

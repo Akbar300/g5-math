@@ -420,6 +420,7 @@
     },
     u4c2: {
       'Friendly denominators': {
+        watch: { id: 'scale100', n: 3, d: 4 },
         viz: () => ixBar({ d: 4, n: 3, dens: [2, 4, 5, 10, 20], fill: '#e85d04', tip: 'Try 4 parts, then 5, then 20. Watch the hundredths name.' }),
         steps: ['Factors of 100 (2, 4, 5, 10, 20, 25, 50) rename easily as hundredths.', fr(1, 4) + ' = ' + fr(25, 100) + ' = 0.25.', fr(3, 5) + ' = ' + fr(60, 100) + ' = 0.60.'],
         trap: 'To rename, multiply the numerator and the denominator by the same number. Changing only one part breaks the value.',
@@ -430,6 +431,7 @@
         ]
       },
       'Try the rename': {
+        watch: { id: 'scale100', n: 4, d: 25 },
         viz: () => ixGrid({ start: 0, fill: '#ffc43d', challenges: [{ n: 2, d: 5 }, { n: 3, d: 4 }, { n: 7, d: 20 }, { n: 1, d: 4 }, { n: 9, d: 10 }, { n: 1, d: 2 }, { n: 11, d: 25 }] }),
         steps: ['Write the fraction with a denominator of 100 when you can.', '75 hundredths is 0.75 and also ' + fr(3, 4) + '.', 'Check by simplifying or by multiplying back.'],
         trap: '0.75 is not 75 and not ' + fr(75, 10) + '. The 75 sits in the hundredths.',
@@ -442,6 +444,7 @@
     },
     u4c3: {
       'Eighths have three decimal digits': {
+        watch: { id: 'eighths', n: 5 },
         viz: () => ixBar({ d: 8, n: 3, dens: [2, 4, 8], fill: '#0fb39c', tip: 'Shade eighths one at a time. Each one adds 0.125.' }),
         steps: [fr(1, 8) + ' = 0.125 because 8 × 125 = 1,000 (thousandths).', 'The eighths to memorize: 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875.', fr(1, 4) + ' is also 2 eighths, so 0.25.'],
         trap: fr(1, 8) + ' is not 0.8 or 0.18. It needs three decimal digits.',
@@ -510,6 +513,7 @@
     },
     u4a3: {
       'Out of 100': {
+        watch: { id: 'scale100', n: 3, d: 4 },
         viz: () => ixGrid({ start: 75, pct: true, fill: '#ffc43d', challenges: [{ pct: 25 }, { pct: 60 }, { n: 1, d: 2 }, { pct: 5 }, { dec: '0.35' }, { n: 4, d: 5 }] }),
         steps: ['Percent means “per hundred.”', fr(3, 4) + ' = 0.75 = 75 hundredths = 75%.', 'The same amount has a fraction name, a decimal name, and a percent name.'],
         trap: '75% is 0.75, not 75 and not 7.5. Move the point two places when you go between a percent and a decimal.',
@@ -555,6 +559,7 @@
     },
     u4c6: {
       'Percent means per 100': {
+        watch: { id: 'scale100', n: 1, d: 4 },
         viz: () => ixGrid({ start: 25, pct: true, fill: '#ffc43d', challenges: [{ pct: 25 }, { pct: 50 }, { n: 1, d: 4 }, { pct: 10 }, { dec: '0.4' }] }),
         steps: ['Percent means “per hundred.”', fr(1, 4) + ' = 0.25 = 25 hundredths = 25%.', 'A hundredths grid shows this directly: 25 shaded squares are 25%.'],
         trap: '25% is 0.25, not 25 and not 2.5. Move the point two places when you go between a percent and a decimal.',
@@ -565,6 +570,7 @@
         ]
       },
       'Fraction, decimal, percent': {
+        watch: { id: 'scale100', n: 3, d: 5 },
         viz: () => ixGrid({ start: 60, pct: true, fill: '#0fb39c', challenges: [{ n: 3, d: 5 }, { pct: 75 }, { dec: '0.2' }, { n: 1, d: 2 }, { pct: 5 }] }),
         steps: ['Write the fraction as hundredths when you can: ' + fr(3, 5) + ' = ' + fr(60, 100) + ' = 0.60 = 60%.', 'The other way: 40% = ' + fr(40, 100) + ' = ' + fr(2, 5) + ' = 0.4.', 'All three names can sit on the same point.'],
         trap: '0.4 is 40%, not 4%. 7% is 0.07, not 0.7.',
