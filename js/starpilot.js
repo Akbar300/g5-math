@@ -17,7 +17,7 @@
 
   function rocket() {
     const g = mk('g', { class: 'cp-ship' });
-    const body = mk('g', { class: 'body' });
+    const body = mk('g', { class: 'body', transform: 'translate(0 13)' });
     body.appendChild(mk('polygon', { class: 'flame', points: '-3,9 3,9 0,17', visibility: 'hidden' }));
     body.appendChild(mk('polygon', { class: 'fin', points: '-5,2 -10,10 -4,8' }));
     body.appendChild(mk('polygon', { class: 'fin', points: '5,2 10,10 4,8' }));
@@ -89,7 +89,7 @@
     function clearBoard() {
       while (fx.firstChild) fx.removeChild(fx.firstChild);
       while (trails.firstChild) trails.removeChild(trails.firstChild);
-      place(0, 0, 0); flame(false);
+      place(0, 0, 90); flame(false);
     }
     function start() {
       cur = newTarget(); tries = 0; aim = null; sx = 0; sy = 0; busy = false;
@@ -183,16 +183,19 @@
       busy = true; tries++;
       hov.setAttribute('visibility', 'hidden');
       while (trails.firstChild) trails.removeChild(trails.firstChild);
-      fx.querySelectorAll('.ghost,.cp-star').forEach((n) => n.remove());
-      place(0, 0, 0);
+      fx.querySelectorAll('.ghost,.cp-star,.cp-land').forEach((n) => n.remove());
+      place(0, 0, 90);
       fly(tx, ty, (gx, gy) => land(gx, gy));
     }
 
     function land(gx, gy) {
+      const spot = mk('circle', { cx: G.px(gx), cy: G.py(gy), r: 4.5, class: 'cp-dot cp-land cp-pop' });
+      fx.appendChild(spot);
       const ok = gx === cur.x && gy === cur.y;
       if (ok) {
         if (cur.type === 'fly') fx.appendChild(planet(G.px(cur.x), G.py(cur.y), cur.color));
-        fx.appendChild(star(G.px(cur.x), G.py(cur.y) - 20));
+        fx.appendChild(star(G.px(cur.x), G.py(cur.y) + (cur.y < 0 ? 20 : -20)));
+        fx.appendChild(spot);
         const first = tries === 1;
         if (first) { stars++; streak++; if (api.addXP) api.addXP(2); } else streak = 0;
         fb.className = 'ix-fb ok';
