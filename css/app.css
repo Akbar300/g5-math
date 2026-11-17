@@ -942,3 +942,15 @@ html[data-theme="dark"] .ix-btn.ghost{background:transparent}
   .eq-tbl .frac{font-size:14px}
   .eq-tbl tr > :first-child{width:6em}
 }
+
+/* Word-problem tables and strategy chips */
+.wp-table{border-collapse:collapse;margin:6px 0 4px;font-size:.92em;background:#fff;color:#1b2437}
+.wp-table caption{font-weight:800;text-align:left;padding:0 0 3px;color:color-mix(in srgb, var(--print-accent, var(--blue)) 80%, #1b2437)}
+.wp-table th,.wp-table td{border:1.25px solid color-mix(in srgb, var(--print-accent, var(--blue)) 28%, #c9b89a);padding:3px 8px;text-align:center}
+.wp-table th{background:color-mix(in srgb, var(--print-accent, var(--blue)) 14%, #fff);font-weight:800}
+.wp-strat{display:inline-block;background:color-mix(in srgb, var(--print-accent, var(--blue)) 14%, #fff);color:color-mix(in srgb, var(--print-accent, var(--blue)) 85%, #1b2437);font-weight:800;font-size:.85em;padding:1px 8px;border-radius:999px;margin:0 4px 2px 0;vertical-align:middle}
+.why .wp-strat{margin-bottom:4px}
+#print-root .wp-table,#print-measure .wp-table{font-size:8.5pt;margin:3px 0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#print-root .wp-table th,#print-measure .wp-table th{background:color-mix(in srgb, var(--print-accent, #2f80ed) 16%, #fff)}
+#print-root .print-work,#print-measure .print-work{font-size:8pt;font-weight:600;color:#3d4a63;margin-top:2px;line-height:1.3}
+#print-root .print-work .wp-strat,#print-measure .print-work .wp-strat{font-size:7.5pt}

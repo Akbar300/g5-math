@@ -1062,6 +1062,7 @@ function paperDivide(dividend, divisor) {
   ];
 
   function mount(UNIT) {
+    if (w.WP && typeof WP.attach === 'function') WP.attach(UNIT);
     const root = document.getElementById('app');
     const key = 'g5lab_' + UNIT.id;
     let M = store(key) || { xp: 0, lvl: 'core', les: {}, sk: {}, tab: 'learn' };
@@ -1485,7 +1486,10 @@ function paperDivide(dividend, divisor) {
   function renderKeyEl(pack, i) {
     const el = document.createElement('div');
     el.className = 'pq';
-    el.innerHTML = '<div class="qn"><span class="pq-num">' + (i + 1) + '</span></div><b>' + keyText(pack.it) + '</b>';
+    const it = pack.it || {};
+    let html = '<div class="qn"><span class="pq-num">' + (i + 1) + '</span></div><b>' + keyText(it) + '</b>';
+    if (it.wp && it.why) html += '<div class="print-work">' + it.why + '</div>';
+    el.innerHTML = html;
     formatFractionsIn(el);
     return el;
   }
