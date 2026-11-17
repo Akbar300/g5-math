@@ -1,4 +1,4 @@
-# Grade 5 Math Lab
+# Grade 5 Math
 
 A calm, game-first practice lab for FCPS Grade 5 math and the 2023 Virginia Math SOL.
 

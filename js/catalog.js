@@ -1,6 +1,6 @@
 /* Hub catalog. Dates are estimates from the FCPS Grade 5 year-at-a-glance. */
 window.CATALOG = {
-  title: 'Grade 5 Math Lab',
+  title: 'Grade 5 Math',
   sub: 'FCPS Grade 5 math, in class order. Each unit has short Learn lessons, calm Practice, an SOL-style Test Lab, and an Advanced track (Go Further). Progress stays on this device.',
   units: [
     { num: 1,  id: 'u1',  file: 'units/unit1.html',  emoji: '📊', title: 'Data Detectives',           blurb: 'The data cycle, line plots, stem-and-leaf, mean as fair share.', sol: '5.PS.1 · 5.PS.2', dates: ['2026-08-17', '2026-09-11'] },
