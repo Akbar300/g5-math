@@ -563,6 +563,17 @@ function paperDivide(dividend, divisor) {
     host.appendChild(box);
 
     let done = false, tries = 0, lastOk = false;
+    /* After a miss, offer a short motion explainer when one fits this question (js/explain.js). */
+    const offerWatch = () => {
+      if (!w.EX || opts.noWatch || box.querySelector('.ex-watch')) return;
+      const o = w.EX.forItem(item);
+      if (!o) return;
+      fb.after(w.EX.watchButton(o, { text: '🎬 Watch how: ' + w.EX.label(o), cls: 'ex-after-miss' }));
+    };
+    /* Any wrong attempt turns the feedback line to "fb no" — offer the explainer right then. */
+    if (w.EX && !opts.noWatch && w.MutationObserver) {
+      new MutationObserver(() => { if (fb.classList.contains('no')) offerWatch(); }).observe(fb, { attributes: true, attributeFilter: ['class'] });
+    }
     const offerAdvance = (ok) => {
       lastOk = !!ok;
       if (!opts.onNext && (ok || done)) return; // no Next in grid cards / sub-parts once finished
@@ -579,6 +590,7 @@ function paperDivide(dividend, divisor) {
             done = true;
             box.classList.add('is-done');
             if (item.why) why.classList.add('show');
+            offerWatch();
             if (opts.onDone) opts.onDone(false, tries, false);
           }
           if (opts.onNext) opts.onNext(lastOk, tries);
@@ -602,6 +614,7 @@ function paperDivide(dividend, divisor) {
       fb.innerHTML = ok ? '✅ First try!' : (correct ? '✅ Got it! That one counts as a second try.' : 'Not quite — look at the sample below.');
       formatFractionsIn(fb);
       if (item.why) why.classList.add('show');
+      if (!ok) offerWatch();
       if (opts.onDone) opts.onDone(ok, tries, correct);
       offerAdvance(lastOk);
     };
@@ -990,6 +1003,11 @@ function paperDivide(dividend, divisor) {
         }
         main.appendChild(s1.sec);
       }
+      if (c.watch && w.EX) {
+        const sw = section('ls-see ls-watch', '🎬', 'Watch it');
+        sw.bd.appendChild(w.EX.watchButton(c.watch));
+        main.appendChild(sw.sec);
+      }
       if (c.viz) {
         const s2 = section('ls-see', '👀', 'See it');
         mountViz(s2.bd, c.viz);
@@ -1357,6 +1375,7 @@ function paperDivide(dividend, divisor) {
           renderItem(cell, it, {
             label: 'Q' + (k + 1) + ' of ' + items.length,
             noScroll: true,
+            noWatch: true,
             onDone: (ok) => {
               if (ok) right++;
               left--; paint();
@@ -1375,6 +1394,7 @@ function paperDivide(dividend, divisor) {
         renderItem(host, items[i], {
           sticky: true,
           label: 'Q' + (i + 1) + ' of ' + items.length,
+          noWatch: true,
           nextLabel: i === items.length - 1 ? 'See results' : 'Next question',
           onDone: (ok) => { if (ok) right++; },
           onNext: () => { i++; keepPlace(host, draw); }

@@ -976,7 +976,7 @@
         { id: 'rtable', name: 'Ratio tables', gen: genRatioTable },
         { id: 'pct', name: 'Fraction → percent', gen: genPercent },
         { id: 'mixpct', name: 'Mixed number → percent', gen: genMixPct },
-        { id: 'pctof', name: 'Percent of a number', gen: genPctOf },
+        { id: 'pctof', name: 'Percent of a number', gen: () => Object.assign(genPctOf(), { watch: false }) },
         { id: 'f2p-adv', name: 'Fraction ↔ percent', gen: genF2P }
       ],
       test: testAdv
