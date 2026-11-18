@@ -1082,6 +1082,22 @@ html[data-theme="dark"] .ix-cp .ix-btn.go,html[data-theme="dark"] .sp-side .ix-b
 .ex .ex-dot{fill:var(--teal)}
 .ex .ex-dot-big{fill:var(--teal);stroke:var(--card);stroke-width:3}
 .ex .ex-dot-anchor{fill:var(--blue);stroke:var(--card);stroke-width:3}
+/* rounding explainer (js/explainers/round.js) */
+.ex .ex-dbox{fill:var(--card);stroke:var(--line);stroke-width:1.5}
+.ex .ex-tgt{fill:color-mix(in srgb,var(--teal) 22%,var(--card));stroke:var(--teal);stroke-width:3}
+.ex .ex-decider{fill:none;stroke:var(--coral);stroke-width:3;stroke-dasharray:6 4}
+.ex .ex-decider-fill{fill:color-mix(in srgb,var(--coral) 14%,var(--card));stroke:var(--coral);stroke-width:3}
+.ex .ex-teal-t{fill:var(--teal);font-family:var(--font);font-weight:800}
+.ex .ex-coral-t{fill:var(--coral);font-family:var(--font);font-weight:800}
+.ex .ex-digit{font-family:var(--mono)}
+.ex .ex-card{fill:var(--card);stroke:var(--line);stroke-width:2}
+.ex .ex-card-on{fill:color-mix(in srgb,var(--teal) 14%,var(--card));stroke:var(--teal);stroke-width:3}
+.ex .ex-half{stroke:var(--coral);stroke-width:3}
+.ex .ex-dot-ink{fill:var(--ink);stroke:var(--card);stroke-width:2}
+.ex .ex-dot-coral{fill:var(--coral);stroke:var(--card);stroke-width:3}
+.ex .ex-arrow line{stroke:var(--teal);stroke-width:3;stroke-linecap:round}
+.ex .ex-arrowhead{fill:var(--teal)}
+.ex .ex-strike{stroke:var(--coral);stroke-width:4;stroke-linecap:round}
 @media (max-width:420px){
   .ex{padding:8px 8px 10px}
   .ex-cap{font-size:17px}

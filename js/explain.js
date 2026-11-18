@@ -6,7 +6,8 @@
    - Explainers are built from parameters, so one explainer covers many fractions:
        EX.build({ id: 'scale100', n: 4, d: 25 })   4/25 → 16/100 → 0.16 → 16%
        EX.build({ id: 'eighths', n: 5 })           1/8 by halving, count by 0.125, 5/8 = 1/2 + 1/8
-   - EX.forItem(item) guesses an explainer from a practice question (used after a miss). */
+   - EX.forItem(item, { answer }) picks an explainer for a practice question (used after a miss).
+   - EX.register(id, def) adds an explainer; see the registry section and js/explainers/. */
 (function (w) {
   'use strict';
   const doc = w.document;
@@ -335,38 +336,69 @@
     };
   }
 
-  /* ---------- registry ---------- */
-  const BUILDERS = {
-    scale100: (o) => scale100(o.n, o.d),
-    eighths: (o) => eighths(o.n)
-  };
+  /* ---------- registry (the explainer engine) ----------
+     Every explainer registers itself:
+       EX.register(id, {
+         build(o)        → spec { title, scenes, quiz }   (required)
+         label(o)        → short HTML label for Watch buttons
+         match(item, ctx)→ o or null: pick this explainer for a practice item (used after a miss)
+         order           → lower runs first when several matchers could fit (default 50)
+       })
+     New explainers live in js/explainers/<name>.js, load after this file, and use EX.prim
+     (shared drawing + timing helpers). Items can also pick an explainer directly:
+       item.watch = { id: 'round', x: '3.062', p: 1 }            fixed
+       item.watch = (ctx) => ({ id: 'round', x, p, wrong: ctx.answer })   uses the student's wrong answer
+       item.watch = false                                         never offer one */
+  const REG = {};
+  function register(id, def) {
+    if (!id || !def || typeof def.build !== 'function') return;
+    REG[id] = Object.assign({ order: 50 }, def, { id: id });
+  }
   function build(o) {
-    if (!o || !BUILDERS[o.id]) return null;
-    try { return BUILDERS[o.id](o); } catch (e) { return null; }
+    if (!o || !REG[o.id]) return null;
+    try { return REG[o.id].build(o); } catch (e) { if (w.console) console.warn('EX build failed', o, e); return null; }
   }
   function label(o) {
-    if (!o) return '';
-    if (o.id === 'scale100') return `${fr(o.n, o.d)} → ${o.n * 100 / o.d}%`;
-    if (o.id === 'eighths') return `${fr(o.n, 8)} → ${E_DEC[o.n]}`;
-    return '';
+    if (!o || !REG[o.id] || !REG[o.id].label) return '';
+    try { return REG[o.id].label(o); } catch (e) { return ''; }
+  }
+  /* Pick an explainer for a practice item. ctx.answer = the student's wrong answer (text), when known. */
+  function forItem(item, ctx) {
+    ctx = ctx || {};
+    if (!item || item.watch === false) return null;
+    if (typeof item.watch === 'function') { try { return item.watch(ctx) || null; } catch (e) { return null; } }
+    if (item.watch) return item.watch;
+    const list = Object.keys(REG).map((k) => REG[k]).filter((r) => r.match).sort((a, b) => a.order - b.order);
+    for (let i = 0; i < list.length; i++) {
+      try { const o = list[i].match(item, ctx); if (o) return o; } catch (e) {}
+    }
+    return null;
   }
 
-  /* Guess an explainer from a practice item: first stacked fraction with a friendly denominator. */
-  function forItem(item) {
-    if (!item || item.watch === false) return null;
-    if (item.watch) return item.watch;
-    /* The first stacked fraction in the question decides; if the question has none, the first one in the explanation.
-       Answer choices are ignored, so a wrong option never picks the explainer. */
-    const re = /<span class="n">\s*(\d+)\s*<\/span>\s*<span class="d">\s*(\d+)\s*<\/span>/;
-    const mt = re.exec(String(item.q || '')) || re.exec(String(item.why || ''));
-    if (!mt) return null;
-    let n = +mt[1], d = +mt[2];
-    if (!(n > 0 && n < d)) return null;
-    if (d === 8) return { id: 'eighths', n };
-    const g = gcd(n, d); n /= g; d /= g;
-    if (d === 8) return { id: 'eighths', n };
-    if (BLOCK[d] && d !== 100 && d !== 10) return { id: 'scale100', n, d };
-    return null;
+  /* Built-in explainers: fraction → decimal → percent. */
+  register('scale100', {
+    build: (o) => scale100(o.n, o.d),
+    label: (o) => `${fr(o.n, o.d)} → ${o.n * 100 / o.d}%`,
+    order: 80,
+    match: matchFraction
+  });
+  register('eighths', {
+    build: (o) => eighths(o.n),
+    label: (o) => `${fr(o.n, 8)} → ${E_DEC[o.n]}`
+  });
+  /* Fraction matcher: the first stacked fraction in the question decides; if the question has none,
+     the first one in the explanation. Answer choices are ignored, so a wrong option never picks the explainer. */
+  function matchFraction(item) {
+      const re = /<span class="n">\s*(\d+)\s*<\/span>\s*<span class="d">\s*(\d+)\s*<\/span>/;
+      const mt = re.exec(String(item.q || '')) || re.exec(String(item.why || ''));
+      if (!mt) return null;
+      let n = +mt[1], d = +mt[2];
+      if (!(n > 0 && n < d)) return null;
+      if (d === 8) return { id: 'eighths', n };
+      const g = gcd(n, d); n /= g; d /= g;
+      if (d === 8) return { id: 'eighths', n };
+      if (BLOCK[d] && d !== 100 && d !== 10) return { id: 'scale100', n, d };
+      return null;
   }
 
   /* ---------- player ---------- */
@@ -519,5 +551,7 @@
     return wrap;
   }
 
-  w.EX = { build, player, watchButton, forItem, label, _scale100: scale100, _eighths: eighths };
+  /* Shared helpers for explainer files (js/explainers/*.js). */
+  const prim = { clamp, span, ease, easeOut, back, lerp, gcd, shuffle, pick, fr, r1, at, sfrac, feq, txt, pop, reduced };
+  w.EX = { build, player, watchButton, forItem, label, register, prim, list: () => Object.keys(REG), _scale100: scale100, _eighths: eighths };
 })(window);
