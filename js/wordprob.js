@@ -504,8 +504,8 @@
     { id: 'u4_error_place', f: function () {
       const t = pick([[4, 10, '0.4', '4/100'], [3, 10, '0.3', '3/100'], [7, 10, '0.7', '7/100']]);
       return mc(nm() + ' said ' + t[2] + ' is equal to ' + t[3] + '. What is the mistake, and what is the correct fraction in simplest form?',
-        t[2] + ' is ' + t[0] + ' tenths, which equals ' + fr(t[0], 10) + ' = ' + fr(t[0] / gcd(t[0], 10), 10 / gcd(t[0], 10)) + ', not ' + t[3] + '.',
-        [t[2] + ' really is ' + t[3] + '.', t[2] + ' equals ' + fr(t[0], 1000) + '.', 'The decimal point in ' + t[2] + ' should move two places to the right to make a fraction.'],
+        t[2] + ' is ' + t[0] + ' tenths, which equals ' + t[0] + '/10' + (gcd(t[0], 10) > 1 ? ' = ' + fr(t[0], 10) : '') + ', not ' + t[3] + '.',
+        [t[2] + ' really is ' + t[3] + '.', t[2] + ' equals ' + t[0] + '/1000.', 'The decimal point in ' + t[2] + ' should move two places to the right to make a fraction.'],
         t[2] + ' means ' + t[0] + ' tenths. ' + t[3] + ' is only ' + (parseInt(t[3], 10) / 100) + '.',
         { strategy: S.names, sol: '5.NS.1', nocalc: true });
     }},

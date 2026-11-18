@@ -1090,3 +1090,16 @@ html[data-theme="dark"] .ix-cp .ix-btn.go,html[data-theme="dark"] .sp-side .ix-b
   .ex-ctl .ex-b[data-k="back"],.ex-ctl .ex-b[data-k="next"]{font-size:20px;line-height:1}
 }
 .ex-title .frac{font-size:.85em}
+
+/* Choice text flows like a sentence: words and stacked fractions sit inline, words never split letter by letter. */
+.opt .opt-t{display:block;flex:1 1 auto;min-width:0;line-height:1.4;overflow-wrap:break-word;word-break:normal;hyphens:none}
+.opt .opt-t .frac,.opt .opt-t .mix{vertical-align:middle;margin:0 .1em}
+.opt .let{flex:0 0 auto}
+.opts-row .opt .opt-t,.opts-grid .opt .opt-t{text-align:center}
+.opts-col .opt .opt-t{text-align:left}
+.opt{word-break:normal;overflow-wrap:break-word}
+
+/* fraction bar always spans the wider of top and bottom */
+.frac{align-items:stretch}
+.frac .n,.frac .d,.frac i{text-align:center}
+.opt .frac .d{padding-top:2px}

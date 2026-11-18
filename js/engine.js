@@ -236,11 +236,17 @@
           if (last === 0 || last >= 2) { cols = c; break; }
         }
       }
-    } else if (n === 3 && maxPerRow < 3) cols = 1;
-    else cols = Math.min(2, maxPerRow, n);
+    } else {
+      /* Word choices: two side by side only if the longest one fits in half the width on about one line.
+         Otherwise one full-width row per choice (phones), so words never get squeezed into a thin column. */
+      const textLen = (o) => U.strip(String(o).replace(/<span class="(?:frac|mix)"[\s\S]*?<\/span>\s*<\/span>/g, 'xxx')).length;
+      const longest = Math.max(...options.map(textLen), 0);
+      const half = (width - 8) / 2;
+      cols = (n !== 3 && longest * 10.5 + 72 <= half) ? Math.min(2, n) : 1;
+    }
     let cls = 'opts-col';
     if (cols === n && short && width >= 520) cls = 'opts-row';
-    else if (cols >= 2 || (n >= 2 && width < 520)) { cls = 'opts-grid'; cols = Math.min(2, n); }
+    else if (cols >= 2) { cls = 'opts-grid'; cols = Math.min(cols, n); }
     return { cls, cols };
   }
 
@@ -655,7 +661,7 @@ function paperDivide(dividend, divisor) {
         const mark = (isMS || cls === 'opts-row' || (cls === 'opts-grid' && optionsAreShort))
           ? ''
           : `<span class="let">${letters[k]}</span>`;
-        b.innerHTML = mark + formatHTML(html);
+        b.innerHTML = mark + '<span class="opt-t">' + formatHTML(html) + '</span>';
         if (isMS) b.setAttribute('aria-label', (isMS ? 'Toggle: ' : '') + U.strip(html));
         bindTap(b, () => {
           if (done) return;
