@@ -912,10 +912,11 @@
         { strategy: S.model, sol: '5.CE.2', nocalc: true });
     }},
     { id: 'u8_error_lcd', f: function () {
-      return mc(nm() + ' computed ' + fr(3, 4) + ' − ' + fr(1, 6) + ' and wrote ' + fr(2, 2) + ' after subtracting the numerators and the denominators. What is the mistake, and what is the correct difference?',
+      const fx = (n, d) => (w.V && V.fr) ? V.fr(n, d) : (n + '/' + d); /* exact, not simplified: the mistake must show as written */
+      return mc(nm() + ' computed ' + fr(3, 4) + ' − ' + fr(1, 6) + ' and wrote ' + fx(2, 2) + ' after subtracting the numerators and the denominators. What is the mistake, and what is the correct difference?',
         'You cannot subtract denominators. The correct difference is ' + fr(7, 12) + '.',
-        ['The correct difference is ' + fr(2, 2) + '.', 'The correct difference is ' + fr(2, 10) + '.', 'The correct difference is ' + fr(4, 6) + '.'],
-        'Use LCD 12: ' + fr(9, 12) + ' − ' + fr(2, 12) + ' = <b>' + fr(7, 12) + '</b>.',
+        ['The correct difference is ' + fx(2, 2) + '.', 'The correct difference is ' + fx(2, 10) + '.', 'The correct difference is ' + fx(4, 6) + '.'],
+        'Use LCD 12: ' + fx(9, 12) + ' − ' + fx(2, 12) + ' = <b>' + fr(7, 12) + '</b>.',
         { strategy: S.model, sol: '5.CE.2', nocalc: true });
     }},
     { id: 'u8_strategy_model', f: function () {
