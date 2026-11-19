@@ -6,7 +6,7 @@ Short animated lessons that play inside the page (SVG, no video files). Each one
 
 | File | What it does |
 | --- | --- |
-| `js/explain.js` | The engine: scene player (Back, Play/Pause, Next, Replay, 0.75×/1×/1.5×, reduced motion), the registry, `EX.prim` drawing helpers, and the built-in fraction explainers (`scale100`, `eighths`). |
+| `js/explain.js` | The engine: scene player (Back, Play/Pause, Next, Replay, 0.75×/1×/1.5×, reduced motion; **Step** mode plays one scene then waits for Next, **Auto** mode pauses on each scene long enough to read its caption; the choice is remembered), the registry, `EX.prim` drawing helpers, and the built-in fraction explainers (`scale100`, `eighths`). |
 | `js/explainers/*.js` | One file per explainer family. Each calls `EX.register`. Load after `explain.js`. |
 | `js/engine.js` | Shows **Watch how** after a wrong answer, and passes the student's answer to the explainer. |
 | `js/adapt.js` | Lets V2 lesson cards carry `watch: {...}`, which shows a **Watch it** section. |

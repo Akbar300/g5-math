@@ -1046,6 +1046,12 @@ html[data-theme="dark"] .ix-cp .ix-btn.go,html[data-theme="dark"] .sp-side .ix-b
 .ex-ctl .ex-speed{flex:0 0 auto;min-width:52px}
 .ex-ctl .ex-play{background:var(--teal);color:#fff;border-color:var(--teal)}
 .ex-ctl .ex-b:disabled{opacity:.4}
+.ex-mode{display:flex;gap:4px;justify-content:flex-end;margin:-2px 0 6px}
+.ex-mode-b{font:inherit;font-size:13px;font-weight:800;padding:3px 10px;border-radius:999px;border:2px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer}
+.ex-mode-b.on{border-color:var(--teal);color:var(--ink);background:color-mix(in srgb,var(--teal) 14%,var(--card))}
+.ex-ctl .ex-b.ex-wait{border-color:var(--teal);box-shadow:0 0 0 3px color-mix(in srgb,var(--teal) 35%,transparent);animation:exWait 1.3s ease-in-out infinite}
+@keyframes exWait{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--teal) 15%,transparent)}}
+@media (prefers-reduced-motion:reduce){.ex-ctl .ex-b.ex-wait{animation:none}}
 .ex-quiz{margin:2px 0 10px}
 .ex-opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .ex-opt{font-family:var(--mono);font-size:19px;padding:10px 8px;background:var(--card);color:var(--ink);border:2px solid var(--line)}

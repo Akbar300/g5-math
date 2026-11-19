@@ -13,7 +13,10 @@
   const doc = w.document;
   const reduced = !!(w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const SPEEDS = [0.75, 1, 1.5];
-  const HOLD = 900; // pause at the end of a scene before moving on
+  /* Pacing. PACE stretches every scene (1× plays at 1/PACE of the authored speed).
+     In Auto mode the player waits on each finished scene long enough to read its caption. */
+  const PACE = 1.35;
+  const HOLD_MIN = 2200, HOLD_MAX = 6500, MS_PER_WORD = 300;
 
   /* ---------- tiny math + easing ---------- */
   const clamp = (t, a, b) => Math.max(a == null ? 0 : a, Math.min(b == null ? 1 : b, t));
@@ -402,6 +405,8 @@
   }
 
   /* ---------- player ---------- */
+  function readMode() { try { return localStorage.getItem('ex-mode') === 'auto' ? 'auto' : 'step'; } catch (e) { return 'step'; } }
+  function saveMode(v) { try { localStorage.setItem('ex-mode', v); } catch (e) {} }
   function readSpeed() { try { const v = +localStorage.getItem('ex-speed'); return SPEEDS.indexOf(v) >= 0 ? v : 1; } catch (e) { return 1; } }
   function saveSpeed(v) { try { localStorage.setItem('ex-speed', String(v)); } catch (e) {} }
 
@@ -412,6 +417,10 @@
     root.className = 'ex';
     root.innerHTML =
       `<div class="ex-top"><span class="ex-title"></span><span class="ex-dots" role="tablist" aria-label="Scenes"></span></div>` +
+      `<div class="ex-mode" role="group" aria-label="How scenes advance">` +
+        `<button type="button" class="ex-mode-b" data-m="step" title="Each scene plays once, then waits for Next">👣 Step</button>` +
+        `<button type="button" class="ex-mode-b" data-m="auto" title="Plays every scene, with a pause to read each one">⏩ Auto</button>` +
+      `</div>` +
       `<div class="ex-stage"><svg viewBox="0 0 400 240" role="img" aria-label="Animated explainer" preserveAspectRatio="xMidYMid meet"></svg></div>` +
       `<p class="ex-cap" aria-live="polite"></p>` +
       `<div class="ex-quiz" hidden></div>` +
@@ -434,13 +443,21 @@
       b.addEventListener('click', () => go(i));
       dots.appendChild(b);
     }
-    const st = { i: 0, t: 0, playing: true, speed: readSpeed(), last: 0, raf: 0, drawn: -1 };
+    const st = { i: 0, t: 0, playing: true, speed: readSpeed(), mode: readMode(), last: 0, raf: 0, drawn: -1, ended: false };
 
     function isQuiz(i) { return spec.quiz && i === spec.scenes.length; }
-    function dur(i) { return reduced ? 1 : spec.scenes[i].dur; }
+    function dur(i) { return reduced ? 1 : spec.scenes[i].dur * PACE; }
+    /* Auto mode: time to read the caption after the animation ends (real ms, not scaled by speed). */
+    function hold(i) {
+      const words = String(spec.scenes[i].cap || '').replace(/<[^>]+>/g, ' ').trim().split(/\s+/).length;
+      return clamp(words * MS_PER_WORD, HOLD_MIN, HOLD_MAX);
+    }
     function paintControls() {
-      btnPlay.innerHTML = st.playing ? '❚❚<span class="ex-w"> Pause</span>' : '▶<span class="ex-w"> Play</span>';
-      btnPlay.setAttribute('aria-label', st.playing ? 'Pause' : 'Play');
+      const fwd = st.ended && !isQuiz(st.i);   // scene finished: Play moves on instead of replaying
+      btnPlay.innerHTML = st.playing ? '❚❚<span class="ex-w"> Pause</span>' : fwd ? '▶<span class="ex-w"> Next</span>' : '▶<span class="ex-w"> Play</span>';
+      btnPlay.setAttribute('aria-label', st.playing ? 'Pause' : fwd ? 'Next scene' : 'Play');
+      $('[data-k="next"]').classList.toggle('ex-wait', st.ended && !st.playing && st.i < N - 1);
+      root.querySelectorAll('.ex-mode-b').forEach((b) => { const on = b.dataset.m === st.mode; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
       btnSpeed.textContent = st.speed + '×';
       btnSpeed.setAttribute('aria-label', 'Speed, ' + st.speed + ' times');
       Array.from(dots.children).forEach((b, k) => { b.classList.toggle('on', k === st.i); b.classList.toggle('seen', k < st.i); });
@@ -451,7 +468,7 @@
     function frame() {
       if (isQuiz(st.i)) return;
       const sc = spec.scenes[st.i];
-      const t = reduced ? sc.dur : Math.min(st.t, sc.dur);
+      const t = reduced ? sc.dur : Math.min(st.t / PACE, sc.dur);
       svg.innerHTML = sc.draw(t);
       if (st.drawn !== st.i) {
         cap.innerHTML = sc.cap;
@@ -490,7 +507,7 @@
       quizEl.appendChild(row); quizEl.appendChild(fb);
     }
     function go(i) {
-      st.i = clamp(i, 0, N - 1); st.t = 0; st.drawn = -1;
+      st.i = clamp(i, 0, N - 1); st.t = 0; st.drawn = -1; st.ended = false; st.wait = 0;
       quizEl.hidden = true;
       if (isQuiz(st.i)) { st.playing = false; showQuiz(); }
       else { st.playing = true; frame(); }
@@ -503,9 +520,17 @@
       const dt = st.last ? Math.min(64, now - st.last) : 16;
       st.last = now;
       if (st.playing && !isQuiz(st.i)) {
-        st.t += dt * st.speed;
-        frame();
-        if (st.t >= dur(st.i) + (reduced ? 1200 : HOLD)) { go(st.i + 1); return; }
+        if (!st.ended) {
+          st.t += dt * st.speed;
+          frame();
+          if (st.t >= dur(st.i)) {
+            st.ended = true;
+            if (st.mode === 'step') { st.playing = false; paintControls(); return; }   // wait for Next
+          }
+        } else {
+          st.wait += dt;                                   // Auto: pause to read, then move on
+          if (st.wait >= hold(st.i)) { go(st.i + 1); return; }
+        }
       }
       if (st.playing) st.raf = w.requestAnimationFrame(tick);
     }
@@ -514,16 +539,26 @@
     root.querySelector('.ex-ctl').addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b || b.disabled) return;
       const k = b.dataset.k;
-      if (k === 'play') { st.playing = !st.playing; if (st.playing && st.t >= dur(st.i)) st.t = 0; paintControls(); kick(); }
+      if (k === 'play') {
+        if (!st.playing && st.ended) { go(st.i + 1); return; }   // finished scene: go forward, never replay
+        st.playing = !st.playing; paintControls(); kick();
+      }
       else if (k === 'back') go(st.i - 1);
       else if (k === 'next') go(st.i + 1);
       else if (k === 'replay') go(st.i);
       else if (k === 'speed') { st.speed = SPEEDS[(SPEEDS.indexOf(st.speed) + 1) % SPEEDS.length]; saveSpeed(st.speed); paintControls(); }
     });
+    root.querySelector('.ex-mode').addEventListener('click', (e) => {
+      const b = e.target.closest('.ex-mode-b'); if (!b) return;
+      st.mode = b.dataset.m; saveMode(st.mode);
+      if (st.mode === 'auto' && st.ended && !st.playing && !isQuiz(st.i)) { st.playing = true; st.wait = 0; kick(); }
+      paintControls();
+    });
     doc.addEventListener('visibilitychange', () => { if (doc.hidden && st.playing) { st.playing = false; paintControls(); } });
 
     /* Test hook: jump to scene i at time t (ms) and hold there. */
-    root.exSeek = (i, t) => { go(i); if (!isQuiz(st.i)) { st.playing = false; st.t = t; frame(); paintControls(); } };
+    root.exSeek = (i, t) => { go(i); if (!isQuiz(st.i)) { st.playing = false; st.t = t * PACE; frame(); paintControls(); } };
+    root.exState = () => ({ i: st.i, t: st.t, playing: st.playing, ended: st.ended, mode: st.mode });
     go(0);
     if (opts.scroll) requestAnimationFrame(() => { try { root.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {} });
     return root;
