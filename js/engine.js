@@ -572,7 +572,15 @@ function paperDivide(dividend, divisor) {
     /* After a miss, offer a short motion explainer when one fits this question (js/explain.js). */
     const offerWatch = () => {
       if (!w.EX || opts.noWatch || box.querySelector('.ex-watch')) return;
-      const o = w.EX.forItem(item);
+      /* Pass the student's wrong answer so an explainer can show where it lands (e.g. 25.0 vs 25.4). */
+      let answer = '';
+      const inp = body.querySelector('.num-in input');
+      if (inp) answer = String(inp.value || '').trim();
+      else {
+        const bad = body.querySelectorAll('.opt.wrong');
+        if (bad.length) answer = U.strip(bad[bad.length - 1].querySelector('.opt-t') ? bad[bad.length - 1].querySelector('.opt-t').innerHTML : bad[bad.length - 1].innerHTML);
+      }
+      const o = w.EX.forItem(item, { answer: answer });
       if (!o) return;
       fb.after(w.EX.watchButton(o, { text: '🎬 Watch how: ' + w.EX.label(o), cls: 'ex-after-miss' }));
     };

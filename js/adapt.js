@@ -45,6 +45,7 @@
       t: c.t,
       html: c.h || c.html || '',
       viz: c.viz,
+      watch: c.watch,
       steps: c.steps,
       example: c.example,
       trap: c.trap,

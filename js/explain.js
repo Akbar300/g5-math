@@ -6,13 +6,17 @@
    - Explainers are built from parameters, so one explainer covers many fractions:
        EX.build({ id: 'scale100', n: 4, d: 25 })   4/25 → 16/100 → 0.16 → 16%
        EX.build({ id: 'eighths', n: 5 })           1/8 by halving, count by 0.125, 5/8 = 1/2 + 1/8
-   - EX.forItem(item) guesses an explainer from a practice question (used after a miss). */
+   - EX.forItem(item, { answer }) picks an explainer for a practice question (used after a miss).
+   - EX.register(id, def) adds an explainer; see the registry section and js/explainers/. */
 (function (w) {
   'use strict';
   const doc = w.document;
   const reduced = !!(w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const SPEEDS = [0.75, 1, 1.5];
-  const HOLD = 900; // pause at the end of a scene before moving on
+  /* Pacing. PACE stretches every scene (1× plays at 1/PACE of the authored speed).
+     In Auto mode the player waits on each finished scene long enough to read its caption. */
+  const PACE = 1.35;
+  const HOLD_MIN = 2200, HOLD_MAX = 6500, MS_PER_WORD = 300;
 
   /* ---------- tiny math + easing ---------- */
   const clamp = (t, a, b) => Math.max(a == null ? 0 : a, Math.min(b == null ? 1 : b, t));
@@ -335,41 +339,74 @@
     };
   }
 
-  /* ---------- registry ---------- */
-  const BUILDERS = {
-    scale100: (o) => scale100(o.n, o.d),
-    eighths: (o) => eighths(o.n)
-  };
+  /* ---------- registry (the explainer engine) ----------
+     Every explainer registers itself:
+       EX.register(id, {
+         build(o)        → spec { title, scenes, quiz }   (required)
+         label(o)        → short HTML label for Watch buttons
+         match(item, ctx)→ o or null: pick this explainer for a practice item (used after a miss)
+         order           → lower runs first when several matchers could fit (default 50)
+       })
+     New explainers live in js/explainers/<name>.js, load after this file, and use EX.prim
+     (shared drawing + timing helpers). Items can also pick an explainer directly:
+       item.watch = { id: 'round', x: '3.062', p: 1 }            fixed
+       item.watch = (ctx) => ({ id: 'round', x, p, wrong: ctx.answer })   uses the student's wrong answer
+       item.watch = false                                         never offer one */
+  const REG = {};
+  function register(id, def) {
+    if (!id || !def || typeof def.build !== 'function') return;
+    REG[id] = Object.assign({ order: 50 }, def, { id: id });
+  }
   function build(o) {
-    if (!o || !BUILDERS[o.id]) return null;
-    try { return BUILDERS[o.id](o); } catch (e) { return null; }
+    if (!o || !REG[o.id]) return null;
+    try { return REG[o.id].build(o); } catch (e) { if (w.console) console.warn('EX build failed', o, e); return null; }
   }
   function label(o) {
-    if (!o) return '';
-    if (o.id === 'scale100') return `${fr(o.n, o.d)} → ${o.n * 100 / o.d}%`;
-    if (o.id === 'eighths') return `${fr(o.n, 8)} → ${E_DEC[o.n]}`;
-    return '';
+    if (!o || !REG[o.id] || !REG[o.id].label) return '';
+    try { return REG[o.id].label(o); } catch (e) { return ''; }
   }
-
-  /* Guess an explainer from a practice item: first stacked fraction with a friendly denominator. */
-  function forItem(item) {
+  /* Pick an explainer for a practice item. ctx.answer = the student's wrong answer (text), when known. */
+  function forItem(item, ctx) {
+    ctx = ctx || {};
     if (!item || item.watch === false) return null;
+    if (typeof item.watch === 'function') { try { return item.watch(ctx) || null; } catch (e) { return null; } }
     if (item.watch) return item.watch;
-    /* The first stacked fraction in the question decides; if the question has none, the first one in the explanation.
-       Answer choices are ignored, so a wrong option never picks the explainer. */
-    const re = /<span class="n">\s*(\d+)\s*<\/span>\s*<span class="d">\s*(\d+)\s*<\/span>/;
-    const mt = re.exec(String(item.q || '')) || re.exec(String(item.why || ''));
-    if (!mt) return null;
-    let n = +mt[1], d = +mt[2];
-    if (!(n > 0 && n < d)) return null;
-    if (d === 8) return { id: 'eighths', n };
-    const g = gcd(n, d); n /= g; d /= g;
-    if (d === 8) return { id: 'eighths', n };
-    if (BLOCK[d] && d !== 100 && d !== 10) return { id: 'scale100', n, d };
+    const list = Object.keys(REG).map((k) => REG[k]).filter((r) => r.match).sort((a, b) => a.order - b.order);
+    for (let i = 0; i < list.length; i++) {
+      try { const o = list[i].match(item, ctx); if (o) return o; } catch (e) {}
+    }
     return null;
   }
 
+  /* Built-in explainers: fraction → decimal → percent. */
+  register('scale100', {
+    build: (o) => scale100(o.n, o.d),
+    label: (o) => `${fr(o.n, o.d)} → ${o.n * 100 / o.d}%`,
+    order: 80,
+    match: matchFraction
+  });
+  register('eighths', {
+    build: (o) => eighths(o.n),
+    label: (o) => `${fr(o.n, 8)} → ${E_DEC[o.n]}`
+  });
+  /* Fraction matcher: the first stacked fraction in the question decides; if the question has none,
+     the first one in the explanation. Answer choices are ignored, so a wrong option never picks the explainer. */
+  function matchFraction(item) {
+      const re = /<span class="n">\s*(\d+)\s*<\/span>\s*<span class="d">\s*(\d+)\s*<\/span>/;
+      const mt = re.exec(String(item.q || '')) || re.exec(String(item.why || ''));
+      if (!mt) return null;
+      let n = +mt[1], d = +mt[2];
+      if (!(n > 0 && n < d)) return null;
+      if (d === 8) return { id: 'eighths', n };
+      const g = gcd(n, d); n /= g; d /= g;
+      if (d === 8) return { id: 'eighths', n };
+      if (BLOCK[d] && d !== 100 && d !== 10) return { id: 'scale100', n, d };
+      return null;
+  }
+
   /* ---------- player ---------- */
+  function readMode() { try { return localStorage.getItem('ex-mode') === 'auto' ? 'auto' : 'step'; } catch (e) { return 'step'; } }
+  function saveMode(v) { try { localStorage.setItem('ex-mode', v); } catch (e) {} }
   function readSpeed() { try { const v = +localStorage.getItem('ex-speed'); return SPEEDS.indexOf(v) >= 0 ? v : 1; } catch (e) { return 1; } }
   function saveSpeed(v) { try { localStorage.setItem('ex-speed', String(v)); } catch (e) {} }
 
@@ -380,6 +417,10 @@
     root.className = 'ex';
     root.innerHTML =
       `<div class="ex-top"><span class="ex-title"></span><span class="ex-dots" role="tablist" aria-label="Scenes"></span></div>` +
+      `<div class="ex-mode" role="group" aria-label="How scenes advance">` +
+        `<button type="button" class="ex-mode-b" data-m="step" title="Each scene plays once, then waits for Next">👣 Step</button>` +
+        `<button type="button" class="ex-mode-b" data-m="auto" title="Plays every scene, with a pause to read each one">⏩ Auto</button>` +
+      `</div>` +
       `<div class="ex-stage"><svg viewBox="0 0 400 240" role="img" aria-label="Animated explainer" preserveAspectRatio="xMidYMid meet"></svg></div>` +
       `<p class="ex-cap" aria-live="polite"></p>` +
       `<div class="ex-quiz" hidden></div>` +
@@ -402,13 +443,21 @@
       b.addEventListener('click', () => go(i));
       dots.appendChild(b);
     }
-    const st = { i: 0, t: 0, playing: true, speed: readSpeed(), last: 0, raf: 0, drawn: -1 };
+    const st = { i: 0, t: 0, playing: true, speed: readSpeed(), mode: readMode(), last: 0, raf: 0, drawn: -1, ended: false };
 
     function isQuiz(i) { return spec.quiz && i === spec.scenes.length; }
-    function dur(i) { return reduced ? 1 : spec.scenes[i].dur; }
+    function dur(i) { return reduced ? 1 : spec.scenes[i].dur * PACE; }
+    /* Auto mode: time to read the caption after the animation ends (real ms, not scaled by speed). */
+    function hold(i) {
+      const words = String(spec.scenes[i].cap || '').replace(/<[^>]+>/g, ' ').trim().split(/\s+/).length;
+      return clamp(words * MS_PER_WORD, HOLD_MIN, HOLD_MAX);
+    }
     function paintControls() {
-      btnPlay.innerHTML = st.playing ? '❚❚<span class="ex-w"> Pause</span>' : '▶<span class="ex-w"> Play</span>';
-      btnPlay.setAttribute('aria-label', st.playing ? 'Pause' : 'Play');
+      const fwd = st.ended && !isQuiz(st.i);   // scene finished: Play moves on instead of replaying
+      btnPlay.innerHTML = st.playing ? '❚❚<span class="ex-w"> Pause</span>' : fwd ? '▶<span class="ex-w"> Next</span>' : '▶<span class="ex-w"> Play</span>';
+      btnPlay.setAttribute('aria-label', st.playing ? 'Pause' : fwd ? 'Next scene' : 'Play');
+      $('[data-k="next"]').classList.toggle('ex-wait', st.ended && !st.playing && st.i < N - 1);
+      root.querySelectorAll('.ex-mode-b').forEach((b) => { const on = b.dataset.m === st.mode; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
       btnSpeed.textContent = st.speed + '×';
       btnSpeed.setAttribute('aria-label', 'Speed, ' + st.speed + ' times');
       Array.from(dots.children).forEach((b, k) => { b.classList.toggle('on', k === st.i); b.classList.toggle('seen', k < st.i); });
@@ -419,7 +468,7 @@
     function frame() {
       if (isQuiz(st.i)) return;
       const sc = spec.scenes[st.i];
-      const t = reduced ? sc.dur : Math.min(st.t, sc.dur);
+      const t = reduced ? sc.dur : Math.min(st.t / PACE, sc.dur);
       svg.innerHTML = sc.draw(t);
       if (st.drawn !== st.i) {
         cap.innerHTML = sc.cap;
@@ -458,7 +507,7 @@
       quizEl.appendChild(row); quizEl.appendChild(fb);
     }
     function go(i) {
-      st.i = clamp(i, 0, N - 1); st.t = 0; st.drawn = -1;
+      st.i = clamp(i, 0, N - 1); st.t = 0; st.drawn = -1; st.ended = false; st.wait = 0;
       quizEl.hidden = true;
       if (isQuiz(st.i)) { st.playing = false; showQuiz(); }
       else { st.playing = true; frame(); }
@@ -471,9 +520,17 @@
       const dt = st.last ? Math.min(64, now - st.last) : 16;
       st.last = now;
       if (st.playing && !isQuiz(st.i)) {
-        st.t += dt * st.speed;
-        frame();
-        if (st.t >= dur(st.i) + (reduced ? 1200 : HOLD)) { go(st.i + 1); return; }
+        if (!st.ended) {
+          st.t += dt * st.speed;
+          frame();
+          if (st.t >= dur(st.i)) {
+            st.ended = true;
+            if (st.mode === 'step') { st.playing = false; paintControls(); return; }   // wait for Next
+          }
+        } else {
+          st.wait += dt;                                   // Auto: pause to read, then move on
+          if (st.wait >= hold(st.i)) { go(st.i + 1); return; }
+        }
       }
       if (st.playing) st.raf = w.requestAnimationFrame(tick);
     }
@@ -482,16 +539,26 @@
     root.querySelector('.ex-ctl').addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b || b.disabled) return;
       const k = b.dataset.k;
-      if (k === 'play') { st.playing = !st.playing; if (st.playing && st.t >= dur(st.i)) st.t = 0; paintControls(); kick(); }
+      if (k === 'play') {
+        if (!st.playing && st.ended) { go(st.i + 1); return; }   // finished scene: go forward, never replay
+        st.playing = !st.playing; paintControls(); kick();
+      }
       else if (k === 'back') go(st.i - 1);
       else if (k === 'next') go(st.i + 1);
       else if (k === 'replay') go(st.i);
       else if (k === 'speed') { st.speed = SPEEDS[(SPEEDS.indexOf(st.speed) + 1) % SPEEDS.length]; saveSpeed(st.speed); paintControls(); }
     });
+    root.querySelector('.ex-mode').addEventListener('click', (e) => {
+      const b = e.target.closest('.ex-mode-b'); if (!b) return;
+      st.mode = b.dataset.m; saveMode(st.mode);
+      if (st.mode === 'auto' && st.ended && !st.playing && !isQuiz(st.i)) { st.playing = true; st.wait = 0; kick(); }
+      paintControls();
+    });
     doc.addEventListener('visibilitychange', () => { if (doc.hidden && st.playing) { st.playing = false; paintControls(); } });
 
     /* Test hook: jump to scene i at time t (ms) and hold there. */
-    root.exSeek = (i, t) => { go(i); if (!isQuiz(st.i)) { st.playing = false; st.t = t; frame(); paintControls(); } };
+    root.exSeek = (i, t) => { go(i); if (!isQuiz(st.i)) { st.playing = false; st.t = t * PACE; frame(); paintControls(); } };
+    root.exState = () => ({ i: st.i, t: st.t, playing: st.playing, ended: st.ended, mode: st.mode });
     go(0);
     if (opts.scroll) requestAnimationFrame(() => { try { root.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {} });
     return root;
@@ -519,5 +586,7 @@
     return wrap;
   }
 
-  w.EX = { build, player, watchButton, forItem, label, _scale100: scale100, _eighths: eighths };
+  /* Shared helpers for explainer files (js/explainers/*.js). */
+  const prim = { clamp, span, ease, easeOut, back, lerp, gcd, shuffle, pick, fr, r1, at, sfrac, feq, txt, pop, reduced };
+  w.EX = { build, player, watchButton, forItem, label, register, prim, list: () => Object.keys(REG), _scale100: scale100, _eighths: eighths };
 })(window);
