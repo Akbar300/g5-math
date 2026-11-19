@@ -116,6 +116,7 @@
         ]
       },
       'From percent to a count': {
+        watch: { id: 'pctof', p: 35, n: 20 },
         viz: () => V.hundredGrid(35, { fill: '#ffc43d', label: '35% of the grid' }),
         steps: ['35% means 35 per 100, or 0.35.', 'Multiply the percent (as a decimal) by the total: 0.35 × 20 = 7.', 'Check: 7 out of 20 is 35% because 7 ÷ 20 = 0.35.'],
         trap: 'Do not just drop the percent sign (35% of 20 is not 35).',
@@ -931,6 +932,7 @@
         ]
       },
       'From percent to people': {
+        watch: { id: 'pctof', p: 35, n: 20, wrong: '35' },
         viz: () => V.hundredGrid(35, { fill: '#ffc43d', label: '35% of 20 students = 7' }),
         steps: ['Change the percent to a decimal: 35% = 0.35.', 'Multiply by the total: 0.35 × 20 = 7.', 'Check: 7 out of 20 is 35%.'],
         trap: 'Using the percent as a count (35% of 20 is not 35 students).',

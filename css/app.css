@@ -265,7 +265,11 @@ a{color:inherit}
 .opts-col .opt{justify-content:flex-start;text-align:left;width:100%}
 .opt{background:var(--btn-face);border:2.5px solid var(--line);border-radius:14px;padding:10px 14px;font-weight:800;text-align:left;font-size:18px}
 .opt:hover,.opt:focus-visible{border-color:var(--ink);outline:none}
-.opt.sel{border-color:var(--blue);box-shadow:0 0 0 3px var(--sel-glow)}
+.opt{position:relative}
+.opt.sel{border-color:var(--teal);border-width:3.5px;background:color-mix(in srgb,var(--teal) 30%,var(--btn-face));box-shadow:0 0 0 4px color-mix(in srgb,var(--teal) 40%,transparent);transform:translateY(-1px)}
+.opt.sel::after{content:'✓';position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;background:var(--teal);color:#fff;font-size:15px;font-weight:900;line-height:24px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.opt.sel.right::after{background:var(--lime);color:#06210f}
+.opt.sel.wrong::after{content:'✗';background:var(--coral)}
 .opt.right{border-color:var(--lime);background:var(--opt-right-bg)}
 .opt.wrong{border-color:var(--coral);background:var(--opt-wrong-bg)}
 .opt .let{display:inline-flex;width:26px;height:26px;border-radius:50%;border:2px solid currentColor;align-items:center;justify-content:center;margin-right:8px;font-size:14px}
@@ -799,6 +803,9 @@ html[data-theme="dark"] .v2-grid100 i.f{background:var(--viz-teal)}
 html[data-theme="dark"] .ms-hint{color:var(--viz-blue)}
 html[data-theme="dark"] .btn.ghost,html[data-theme="dark"] .ix-btn,html[data-theme="dark"] .opt,html[data-theme="dark"] .tabs button,html[data-theme="dark"] .app-bar .back,html[data-theme="dark"] .seg{background:var(--btn-face);border-color:var(--line);color:var(--ink)}
 html[data-theme="dark"] .seg button{color:var(--ink)}
+html[data-theme="dark"] .opt.sel{border-color:var(--teal);background:color-mix(in srgb,var(--teal) 34%,var(--btn-face))}
+html[data-theme="dark"] .opt.right{border-color:var(--lime);background:var(--opt-right-bg)}
+html[data-theme="dark"] .opt.wrong{border-color:var(--coral);background:var(--opt-wrong-bg)}
 html[data-theme="dark"] .ix-btn.ghost{background:transparent}
 
 .ix-step{align-items:center}
@@ -1104,6 +1111,13 @@ html[data-theme="dark"] .ix-cp .ix-btn.go,html[data-theme="dark"] .sp-side .ix-b
 .ex .ex-arrow line{stroke:var(--teal);stroke-width:3;stroke-linecap:round}
 .ex .ex-arrowhead{fill:var(--teal)}
 .ex .ex-strike{stroke:var(--coral);stroke-width:4;stroke-linecap:round}
+/* percent bar (js/explainers/percent.js) */
+.ex .ex-pbar{fill:var(--card)}
+.ex .ex-pbar-edge{fill:none;stroke:var(--ink);stroke-width:2.5}
+.ex .ex-pfill{fill:color-mix(in srgb,var(--teal) 55%,var(--card))}
+.ex .ex-pcut{stroke:var(--ink);stroke-width:1.6;opacity:.75}
+.ex .ex-pcut-half{stroke:var(--coral);stroke-width:2.5;stroke-dasharray:4 3;opacity:1}
+.ex .ex-ptick{stroke:var(--muted);stroke-width:1.5}
 @media (max-width:420px){
   .ex{padding:8px 8px 10px}
   .ex-cap{font-size:17px}

@@ -722,6 +722,12 @@
       [15, 80, 12], [30, 40, 12], [40, 25, 10], [60, 50, 30], [10, 70, 7]
     ];
     const [p, n, ans] = U.pick(nice);
+    const watch = (ctx) => (window.EX && EX.pctof && EX.pctof.friendly(p, n) ? { id: 'pctof', p, n, wrong: ctx && ctx.answer } : null);
+    const it = genPctOfItem(p, n, ans);
+    it.watch = watch;
+    return it;
+  }
+  function genPctOfItem(p, n, ans) {
     const kind = U.pick(['type', 'mc', 'word', 'frac-way']);
     if (kind === 'type' || kind === 'word') {
       const q = kind === 'word'
@@ -896,6 +902,26 @@
                      <p>To go the other way, 40% = ${fr(40, 100)} = ${fr(2, 5)} = 0.4.</p>`,
               try: () => genF2P(),
               remember: 'Move the decimal point two places when you go between a percent and a decimal: 0.4 = 40%, and 7% = 0.07.'
+            },
+            {
+              t: 'Percent of a number: 10% steps',
+              html: `<p>30% of 80: the whole bar is 100% = 80. Cut it into 10 parts, so 10% = 80 ÷ 10 = 8. Then 30% is 3 parts: 8 + 8 + 8 = <b>24</b>.</p>`,
+              watch: { id: 'pctof', p: 30, n: 80 },
+              try: () => genPctOf(),
+              remember: 'Find 10% first (divide by 10), then count up the 10% parts you need.'
+            },
+            {
+              t: 'Percent of a number: friendly fractions',
+              html: `<p>50% is ${fr(1, 2)}, 25% is ${fr(1, 4)}, 75% is ${fr(3, 4)}. 25% of 80: cut 80 into 4 parts, 20 each, so the answer is <b>20</b>.</p>`,
+              watch: { id: 'pctof', p: 25, n: 80, wrong: '25' },
+              try: () => genPctOf(),
+              remember: '25% of 80 is not 25. The answer is always a part of the whole, so it is less than 80.'
+            },
+            {
+              t: 'Percent of a number: 5% is half of 10%',
+              html: `<p>15% of 60: 10% = 6, so 5% = 3. 15% = 10% + 5% = 6 + 3 = <b>9</b>.</p>`,
+              watch: { id: 'pctof', p: 15, n: 60 },
+              try: () => genPctOf()
             }
           ]
         }
@@ -910,7 +936,8 @@
         { id: 'nline', name: 'Number line', gen: genLine },
         { id: 'ratios', name: 'Ratios', gen: genRatioCore },
         { id: 'percents', name: 'Percents', gen: genPercentCore },
-        { id: 'f2p', name: 'Fraction ↔ percent', gen: genF2P }
+        { id: 'f2p', name: 'Fraction ↔ percent', gen: genF2P },
+        { id: 'pctof-core', name: 'Percent of a number', gen: genPctOf }
       ],
       test: testCore
     },
@@ -965,6 +992,7 @@
               t: 'A percent of a number',
               html: `<p>25% of 80 means ${fr(25, 100)} of 80, or 0.25 × 80. That is <b>20</b>.</p>
                      <p>Friendly percents help: 50% is half, 25% is one fourth, 10% is one tenth.</p>`,
+              watch: { id: 'pctof', p: 75, n: 40 },
               try: () => genPctOf(),
               remember: '25% of 80 is not 25. The percent tells you the share, not the answer by itself.'
             }
@@ -976,7 +1004,7 @@
         { id: 'rtable', name: 'Ratio tables', gen: genRatioTable },
         { id: 'pct', name: 'Fraction → percent', gen: genPercent },
         { id: 'mixpct', name: 'Mixed number → percent', gen: genMixPct },
-        { id: 'pctof', name: 'Percent of a number', gen: () => Object.assign(genPctOf(), { watch: false }) },
+        { id: 'pctof', name: 'Percent of a number', gen: genPctOf },
         { id: 'f2p-adv', name: 'Fraction ↔ percent', gen: genF2P }
       ],
       test: testAdv
