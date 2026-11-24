@@ -210,8 +210,17 @@ const unitFiles = [
   'js/units/unit9.js', 'js/units/unit10.js', 'js/units/unit11.js'
 ];
 
+/* Load the explainer files the unit's page loads (js/explainers/*.js), so helpers they define
+   at load time (e.g. GV in geometry.js, used by Unit 9's lessons) exist, like in the browser. */
+function pageExplainers(uf) {
+  const html = path.join(root, 'units', path.basename(uf, '.js') + '.html');
+  if (!fs.existsSync(html)) return [];
+  return [...fs.readFileSync(html, 'utf8').matchAll(/src="\.\.\/(js\/explainers\/[\w-]+\.js)"/g)].map((m) => m[1]);
+}
+
 for (const uf of unitFiles) {
   const ctx = loadShared();
+  for (const ex of pageExplainers(uf)) load(ctx, ex);
   load(ctx, uf);
   const UNIT = ctx.UNIT;
   if (ctx.WP && UNIT) ctx.WP.attach(UNIT);
