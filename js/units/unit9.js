@@ -2,19 +2,19 @@
 /* V2 data: Regular Unit 9, Geometry & Measurement (5.MG.2, 5.MG.3) */
 (function(){
 var L = V2L, f = L.fr, mc = L.mc;
-function tri(b, h){ var W = 220, H = 150, s = Math.min(170 / b, 110 / h), x0 = 30, y0 = 130; return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="220" height="150" style="display:block;margin:6px auto"><polygon points="' + x0 + ',' + y0 + ' ' + (x0 + b*s) + ',' + y0 + ' ' + x0 + ',' + (y0 - h*s) + '" fill="rgba(0,217,181,.25)" stroke="#00f6ff" stroke-width="2.5"/><rect x="' + x0 + '" y="' + (y0 - 12) + '" width="12" height="12" fill="none" stroke="#b6ff3c" stroke-width="1.5"/><text x="' + (x0 + b*s/2) + '" y="' + (y0 + 17) + '" text-anchor="middle" fill="#eafffa" font-size="14" font-weight="700">' + b + ' cm</text><text x="' + (x0 - 6) + '" y="' + (y0 - h*s/2) + '" text-anchor="end" fill="#eafffa" font-size="14" font-weight="700">' + h + ' cm</text></svg>'; }
+function tri(b, h){ var W = 260, H = 150, s = Math.min(170 / b, 110 / h), x0 = 70, y0 = 130; return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="260" height="150" style="display:block;margin:6px auto;max-width:100%;height:auto"><polygon points="' + x0 + ',' + y0 + ' ' + (x0 + b*s) + ',' + y0 + ' ' + x0 + ',' + (y0 - h*s) + '" fill="rgba(0,217,181,.25)" stroke="#00f6ff" stroke-width="2.5"/><rect x="' + x0 + '" y="' + (y0 - 12) + '" width="12" height="12" fill="none" stroke="#b6ff3c" stroke-width="1.5"/><text x="' + (x0 + b*s/2) + '" y="' + (y0 + 17) + '" text-anchor="middle" fill="#eafffa" font-size="14" font-weight="700">' + b + ' cm</text><text x="' + (x0 - 6) + '" y="' + (y0 - h*s/2) + '" text-anchor="end" fill="#eafffa" font-size="14" font-weight="700">' + h + ' cm</text></svg>'; }
 var lessons = [
  {id:'u9L1', name:'Angles & triangles', icon:'📐', cards:[
   {t:'Name the angle', h:L.tbl(['Angle','Size'], [['acute','less than 90°'],['right','exactly 90°'],['obtuse','between 90° and 180°'],['straight','exactly 180°']]) + '<p>The three angles inside any triangle add up to <b>180°</b>.</p>', key:'Missing angle: 180 − (the two you know).'},
   {t:'Classify triangles two ways', h:L.tbl(['By angles','By sides'], [['acute: all angles &lt; 90°','equilateral: 3 equal sides'],['right: one 90° angle','isosceles: at least 2 equal sides'],['obtuse: one angle &gt; 90°','scalene: no equal sides']]), trap:'An equilateral triangle IS also isosceles (it has at least 2 equal sides).', tr:{type:'num', q:'A triangle has angles of 47° and 68°. What is the third angle in degrees?', a:65, why:'180 − 47 − 68 = 65°.'}}
  ]},
  {id:'u9L2', name:'Area of a right triangle', icon:'🔺', cards:[
-  {t:'Half a rectangle', h:tri(8, 5) + '<p>A right triangle is exactly half of a rectangle.</p><div class="big">A = ' + f(1,2) + ' × b × h = ' + f(1,2) + ' × 8 × 5 = 20 cm²</div>', trap:'Forgetting the ½. 8 × 5 = 40 is the whole rectangle.'},
-  {t:'Your turn', h:tri(6, 9), tr:{type:'num', q:'Find the area of the right triangle above in cm².', a:27, why:f(1,2) + ' × 6 × 9 = 27 cm².'}}
+  {t:'Half a rectangle', h:tri(8, 5) + '<p>A right triangle is exactly half of a rectangle.</p><div class="big">A = ' + f(1,2) + ' × b × h = ' + f(1,2) + ' × 8 × 5 = 20 cm²</div>', trap:'Forgetting the ½. 8 × 5 = 40 is the whole rectangle.', watch:{id:'tri-area', b:8, h:5}},
+  {t:'Your turn', h:tri(6, 9), watch:{id:'tri-area', b:6, h:9}, tr:{type:'num', q:'Find the area of the right triangle above in cm².', a:27, why:f(1,2) + ' × 6 × 9 = 27 cm².'}}
  ]},
  {id:'u9L3', name:'Volume', icon:'📦', cards:[
-  {t:'Layers of cubes', h:'<p>Volume counts the cubes that fill a box. A box 4 long, 3 wide and 2 tall holds 4 × 3 = 12 cubes per layer, and 2 layers.</p><div class="big">V = l × w × h = 4 × 3 × 2 = 24 cubic units</div>'},
-  {t:'Perimeter, area or volume?', h:L.tbl(['Question asks about…','Use','Units'], [['a fence around a yard','perimeter','cm, m'],['carpet to cover a floor','area','cm², m²'],['water to fill a tank','volume','cm³, m³']]), tr:mc('Which measure tells how much sand fills a sandbox?', 'volume', [['area', 'Area covers a flat surface. Filling a box takes space in 3 directions.'], ['perimeter', 'Perimeter is the distance around.'], ['mass', 'Not one of the three measures here.']], 'Filling a 3-D space = volume.')}
+  {t:'Layers of cubes', h:GV.prism(4, 3, 2, {hl:'base', note:'bottom layer: 4 × 3 = 12 cubes'}) + '<p>Volume counts the cubes that fill a box. A box 4 long, 3 wide and 2 tall holds 4 × 3 = 12 cubes in each layer, and there are 2 layers.</p><div class="big">V = l × w × h = 4 × 3 × 2 = 24 cubic units</div>', key:'V = base area × height: (cubes in one layer) × (number of layers).', watch:{id:'volume', l:4, w:3, h:2}},
+  {t:'Perimeter, area or volume?', h:GV.pav() + L.tbl(['Question asks about…','Use','Units'], [['a fence around a yard','perimeter','cm, m'],['carpet to cover a floor','area','cm², m²'],['water to fill a tank','volume','cm³, m³']]), tr:mc('Which measure tells how much sand fills a sandbox?', 'volume', [['area', 'Area covers a flat surface. Filling a box takes space in 3 directions.'], ['perimeter', 'Perimeter is the distance around.'], ['mass', 'Not one of the three measures here.']], 'Filling a 3-D space = volume.')}
  ]}
 ];
 var test = [
@@ -28,6 +28,11 @@ var bg = {
     var r = L.ri(2, 10), useD = Math.random() < .5, C = Math.round(2 * 3.14 * r * 100) / 100;
     return {type:'num', q:'A circle has a ' + (useD ? 'diameter of ' + 2*r : 'radius of ' + r) + ' cm. Using π ≈ 3.14, what is its circumference in cm?', a:C, tol:.02, why:'C = π × d = 3.14 × ' + 2*r + ' = ' + C + ' cm.' + (useD ? '' : ' (diameter = 2 × radius = ' + 2*r + ')')};
   }},
+  anytri: {name:'Area of any triangle', f:function(lv){
+    var b = L.ri(4, 16), h = L.ri(2, 12); if ((b * h) % 2) b++;
+    var s = h + L.ri(1, 4);
+    return mc('A triangle has base ' + b + ' cm, height ' + h + ' cm and a slanted side of ' + s + ' cm. What is its area?', b*h/2 + ' cm²', [[b*h + ' cm²', 'That is the whole rectangle. A triangle is half of it.'], [b*s/2 + ' cm²', 'Use the HEIGHT (straight up), not the slanted side.'], [(b + h + s) + ' cm²', 'Adding sides gives a perimeter-type number, not an area.']], 'A = ' + f(1,2) + ' × ' + b + ' × ' + h + ' = ' + b*h/2 + ' cm².');
+  }},
   para: {name:'Parallelogram area', f:function(lv){
     var b = L.ri(3, 15), h = L.ri(2, 12), s = h + L.ri(1, 4);
     return mc('A parallelogram has base ' + b + ' cm, height ' + h + ' cm and slanted side ' + s + ' cm. What is its area?', b*h + ' cm²', [[b*s + ' cm²', 'Use the HEIGHT (straight up), not the slanted side.'], [b*h/2 + ' cm²', 'That is a triangle. A parallelogram is a full rectangle in disguise.'], [2*(b+s) + ' cm²', 'That is the perimeter.']], 'A = b × h = ' + b + ' × ' + h + ' = ' + b*h + ' cm².');
@@ -36,11 +41,12 @@ var bg = {
 var bridge = {
   title:'Go Further: circles & parallelograms', tab:'🚀 Go Further',
   intro:'Advanced Unit 9 covers <b>circles</b> (radius, diameter, circumference, π) and the area of <b>parallelograms and all triangles</b>.',
-  lessons:[{id:'u9B1', name:'Circles & π', icon:'⚫', cards:[
+  lessons:[{id:'u9B1', name:'Circles, parallelograms & triangles', icon:'⚫', cards:[
     {t:'Parts of a circle', h:L.tbl(['Part','Meaning'], [['radius (r)','center to edge'],['diameter (d)','edge to edge through the center = 2r'],['circumference (C)','distance around']]) + '<p>For every circle, C ÷ d ≈ <b>3.14</b>. That number is π (pi).</p><div class="big">C = π × d</div>'},
-    {t:'Parallelogram = rectangle in disguise', h:'<p>Slice a triangle off one side and slide it to the other: you get a rectangle with the same base and height.</p><div class="big">A = b × h</div>', trap:'Use the straight-up height, not the slanted side.', tr:bg.para.f()}
+    {t:'Parallelogram = rectangle in disguise', h:GV.para(8, 4, 3) + '<p>Slice a triangle off one side and slide it to the other: you get a rectangle with the same base and height.</p><div class="big">A = b × h</div>', trap:'Use the straight-up height, not the slanted side.', watch:{id:'para-area', b:8, h:4, o:3}, tr:bg.para.f()},
+    {t:'Any triangle is half a rectangle', h:GV.anyTri(10, 6, 3) + '<p>Draw the height straight up from the base. It splits the triangle into two right triangles, and each one is half of its own rectangle. So the whole triangle is half of the big rectangle.</p><div class="big">A = ' + f(1,2) + ' × b × h</div>', trap:'The height must make a square corner with the base. A slanted side is not the height.', watch:{id:'tri-area', b:10, h:6, a:3, any:true}, tr:bg.anytri.f()}
   ]}],
-  gens:bg, repIds:['circ','para'],
+  gens:bg, repIds:['circ','para','anytri'],
   next:'Stay in the Advanced (Go Further) path of this unit for more practice.'
 };
 window.V2 = {key:'u9', lessons:lessons, test:test, bridge:bridge};

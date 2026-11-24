@@ -1411,3 +1411,40 @@ html[data-theme="dark"] .gl-eq .gr,html[data-theme="dark"] .gl-eq .ar,html[data-
   .gl svg .cube.on .ft{fill:var(--gl-vt)}.gl svg .cube.on .fl{fill:var(--gl-vl)}.gl svg .cube.on .fr{fill:var(--gl-vr)}
 }
 @media print{.gl{display:none}}
+
+/* ---------- Geometry pictures + explainers (js/explainers/geometry.js) ----------
+   Still pictures (.gv) and explainer scenes share these classes; colors follow the theme. */
+.gv{display:block;margin:0 auto;font-family:var(--display);overflow:visible}
+:root{--gv-green:#2b8a0e;--gv-ct:#e6eef9;--gv-cl:#cbd9ee;--gv-cr:#adc2df;--gv-cs:#5b7aa6;--gv-ht:#ffe08a;--gv-hl:#ffc43d;--gv-hr:#e0a21a;--gv-hs:#a26a00;--gv-vt:#d6c8ff;--gv-vl:#a68cf2;--gv-vr:#7f62d6;--gv-vs:#5a3fc0}
+html[data-theme="dark"]{--gv-green:#8ae03a;--gv-ct:#1f4a5f;--gv-cl:#143546;--gv-cr:#0d2632;--gv-cs:#5fc6b5;--gv-ht:#8a6200;--gv-hl:#694a00;--gv-hr:#4f3800;--gv-hs:#ffd56a;--gv-vt:#8f74e6;--gv-vl:#6d52c4;--gv-vr:#55409e;--gv-vs:#d6c8ff}
+.gv-fill{fill:color-mix(in srgb,var(--teal) 34%,transparent);stroke:var(--teal);stroke-width:2.5;stroke-linejoin:round}
+.gv-fill2{fill:color-mix(in srgb,var(--blue) 16%,transparent);stroke:color-mix(in srgb,var(--blue) 60%,transparent);stroke-width:2;stroke-linejoin:round}
+.gv-fill2.solid{fill:color-mix(in srgb,var(--blue) 30%,var(--card));stroke:var(--blue);stroke-width:2.5}
+.gv-coral{fill:color-mix(in srgb,var(--coral) 34%,transparent);stroke:var(--coral);stroke-width:2.5;stroke-linejoin:round}
+.gv-ghost{fill:none;stroke:var(--muted);stroke-width:2;stroke-dasharray:6 5}
+.gv-ghostc{fill:none;stroke:var(--coral);stroke-width:2;stroke-dasharray:6 5}
+.gv-edgeonly{fill:none;stroke:var(--teal);stroke-width:2.5;stroke-linejoin:round}
+.gv-grid{stroke:color-mix(in srgb,var(--ink) 20%,transparent);stroke-width:1}
+.gv-cut{stroke:var(--coral);stroke-width:3.5;stroke-linecap:round}
+.gv-alt{stroke:var(--coral);stroke-width:2.5;stroke-dasharray:6 5}
+.gv-rad{stroke:var(--teal);stroke-width:3.5;stroke-linecap:round}
+.gv-ring{fill:color-mix(in srgb,var(--teal) 12%,transparent);stroke:var(--teal);stroke-width:3}
+.gv-dot{fill:var(--ink)}
+.gv-ra{fill:none;stroke:var(--ink);stroke-width:1.6}
+.gv-arrow{stroke:var(--coral);stroke-width:2.5;stroke-linecap:round}
+.gv-arrowhead{fill:var(--coral)}
+.gv-strike{stroke:var(--coral);stroke-width:4;stroke-linecap:round}
+.gv-lab{fill:var(--ink);font-family:var(--display);font-weight:700;font-size:15px;paint-order:stroke;stroke:var(--card);stroke-width:4px;stroke-linejoin:round}
+.gv-lab.t{fill:var(--teal)}.gv-lab.c{fill:var(--coral)}.gv-lab.b{fill:var(--blue)}.gv-lab.v{fill:var(--violet)}.gv-lab.g{fill:var(--gv-green)}.gv-lab.m{fill:var(--muted)}
+.gv-note{fill:var(--muted);font-family:var(--font);font-weight:800;font-size:12.5px}
+.gv-big{fill:var(--ink);font-family:var(--display);font-weight:700;font-size:22px}
+.gv-big.xl{font-size:30px}
+.gv-big.t{fill:var(--teal)}.gv-big.c{fill:var(--coral)}.gv-big.b{fill:var(--blue)}.gv-big.v{fill:var(--violet)}
+.gv-cube polygon{stroke:var(--gv-cs);stroke-width:1;stroke-linejoin:round}
+.gv-cube .gv-ct{fill:var(--gv-ct)}.gv-cube .gv-cl{fill:var(--gv-cl)}.gv-cube .gv-cr{fill:var(--gv-cr)}
+.gv-cube.hl polygon{stroke:var(--gv-hs)}.gv-cube.hl .gv-ct{fill:var(--gv-ht)}.gv-cube.hl .gv-cl{fill:var(--gv-hl)}.gv-cube.hl .gv-cr{fill:var(--gv-hr)}
+.gv-cube.vol polygon{stroke:var(--gv-vs)}.gv-cube.vol .gv-ct{fill:var(--gv-vt)}.gv-cube.vol .gv-cl{fill:var(--gv-vl)}.gv-cube.vol .gv-cr{fill:var(--gv-vr)}
+.gv-per{fill:none;stroke:var(--gv-green);stroke-width:4;stroke-linejoin:round}
+.gv-perdot{fill:var(--gv-green)}
+.gv-area{fill:color-mix(in srgb,var(--blue) 30%,transparent);stroke:var(--blue);stroke-width:2.5}
+.gv-areagrid{stroke:color-mix(in srgb,var(--blue) 70%,transparent);stroke-width:1}

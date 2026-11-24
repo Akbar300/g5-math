@@ -45,5 +45,8 @@ EX.register('my-id', {
 | `eighths` | explain.js | eighths by halving, count by 0.125, anchor trick |
 | `pctof` | percent.js | percent of a number on a percent bar: the whole is 100% and n, cut into equal parts (halves, fourths, fifths, tenths, or tenths + 5%), shade and count up, multiplication check, trap (the percent itself, the unshaded part, more than the whole) |
 | `round` | round.js | round to the nearest whole, tenth, hundredth: place + decider, keep or bump, zoom number line, rule, 9 rollover, don't round twice, trap, clean finish |
+| `tri-area` | geometry.js | why A = ½ × b × h: rectangle, cut corner to corner, turn one half onto the other, any triangle (opt. `any`), rule, trap |
+| `para-area` | geometry.js | why A = b × h: height not slant, cut and slide into a rectangle, rule, slanted-side trap |
+| `volume` | geometry.js | why V = l × w × h: one row, bottom layer, stack the layers, rule, add-the-edges trap |
 
 Ideas queued: estimate with rounded decimals (5.CE.3a), sale price (percent off, then subtract), place the decimal point in a product.

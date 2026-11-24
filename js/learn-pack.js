@@ -1059,7 +1059,7 @@
     },
     u9L2: {
       'Half a rectangle': {
-        viz: () => V.areaRect(12, 7, { unit: 'm' }),
+        viz: () => GV.triHalf(12, 7, 'm'),
         steps: ['A right triangle is half of a rectangle (or half of a square).', 'Area = ' + fr(1, 2) + ' × base × height.', 'For legs 12 m and 7 m: ' + fr(1, 2) + ' × 12 × 7 = 42 m².'],
         trap: 'Forgetting the 1/2 and reporting 84, which is the rectangle, not the triangle.',
         aap: 'AAP: the 1/2 works for any triangle if the height is perpendicular to the base, not only for right triangles.',
@@ -1069,7 +1069,7 @@
         ]
       },
       'Your turn': {
-        viz: () => V.areaRect(10, 6, { unit: 'cm' }),
+        viz: () => GV.triHalf(10, 6, 'cm'),
         steps: ['Identify the two legs (the sides that meet at the right angle).', 'They are the base and the height.', 'Multiply, then take half.'],
         trap: 'Using a slanted side as the height. The height must be perpendicular to the base.',
         aap: 'AAP: a triangle with base 9 and height 4 has area 18, even if it is not a right triangle.',
@@ -1081,7 +1081,7 @@
     },
     u9L3: {
       'Layers of cubes': {
-        viz: () => V.cycleSteps(['base 6×4', '× height 5', 'volume 120']),
+        viz: () => GV.prism(6, 4, 5, { hl: 'top', note: '5 layers of 6 × 4 = 24 cubes → 120' }),
         steps: ['Volume of a rectangular prism is length × width × height, or base area × height.', 'A 6 cm by 4 cm by 5 cm box: base 24 cm², times 5 = 120 cm³.', 'You can picture 5 layers of 24 cubes.'],
         trap: 'Adding the three edges (6+4+5=15) or finding only the surface. Volume is a fill, in cubic units.',
         aap: 'AAP: if one edge doubles, the volume doubles. If all three edges double, the volume is 8 times as big.',
@@ -1091,7 +1091,7 @@
         ]
       },
       'Perimeter, area or volume?': {
-        viz: () => V.areaRect(6, 4, { unit: 'cm' }),
+        viz: () => GV.pav(),
         steps: ['Perimeter is the distance around (units).', 'Area is the space on a face (square units).', 'Volume is the space inside (cubic units).'],
         trap: 'Reporting a volume with cm², or an area with cm. The unit tells you which measure you found.',
         aap: 'AAP: a 6-by-4-by-5 box has volume 120 cm³ and a base area of 24 cm². The perimeter of the base is 20 cm — three different measures.',
@@ -1103,7 +1103,7 @@
     },
     u9B1: {
       'Parts of a circle': {
-        viz: () => V.angle(180, { label: 'diameter' }),
+        viz: () => GV.circle(5),
         steps: ['Radius is from the center to the edge. Diameter is all the way across (2 × radius).', 'Circumference is the distance around: C = π × diameter, or 2 × π × radius.', 'π is a little more than 3, or about 3.14.'],
         trap: 'Using the radius in C = πd (or the diameter in 2πr) without converting. Diameter is twice the radius.',
         aap: 'AAP: a circle with radius 5 has diameter 10 and circumference about 31.4. Area (πr²) is a later AAP extension: about 78.5.',
@@ -1113,7 +1113,7 @@
         ]
       },
       'Parallelogram = rectangle in disguise': {
-        viz: () => V.areaRect(8, 5, { unit: 'cm' }),
+        viz: () => GV.paraRect(8, 5, 3),
         steps: ['A parallelogram has the same area as a rectangle with the same base and height.', 'Area = base × height, where the height is perpendicular to the base.', 'A slanted side is not the height unless it is already perpendicular.'],
         trap: 'Multiplying the two side lengths (the slanted side and the base) instead of base × height.',
         aap: 'AAP: if a parallelogram has base 9 and area 36, the height is 4. Area ÷ base = height.',
