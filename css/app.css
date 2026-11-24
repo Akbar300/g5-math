@@ -1213,3 +1213,29 @@ html[data-theme="dark"] .ix-cp .ix-btn.go,html[data-theme="dark"] .sp-side .ix-b
 .sl-trcard .sp-step{display:flex;align-items:center;gap:6px;margin-right:12px}
 @media (prefers-reduced-motion:reduce){.sl-hop,.sl-hopn{animation:none;opacity:1}}
 @media print{.sl-tr{display:none}}
+
+/* Test Lab: exam mode (grade on Submit) */
+.q-card.exam-ok{border-color:var(--ok-line)}
+.q-card.exam-no{border-color:var(--no-line)}
+.qpager .qcell{max-width:720px}
+.q-dots{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.q-dot{min-width:38px;height:38px;border-radius:999px;border:2px solid var(--line);background:var(--btn-face);color:var(--ink);font-weight:800;font-family:var(--display);font-size:15px;touch-action:manipulation;cursor:pointer}
+.q-dot.on{background:var(--ok-bg);border-color:var(--ok-line)}
+.q-dot.cur{box-shadow:0 0 0 3px color-mix(in srgb,var(--teal) 40%,transparent);border-color:var(--teal)}
+.exam-nav{align-items:center}
+.exam-nav .set-left{flex:1 1 auto}
+.exam-missed{align-items:center;margin-top:8px}
+.qpager.review .qcell{margin-bottom:14px}
+
+/* Tricks: use the whole width on big screens */
+.sl-trick.ph{display:none}
+@media (min-width:1000px){
+  .sl-tr{max-width:none}
+  .sl-trcard{display:grid;grid-template-columns:minmax(340px,5fr) minmax(380px,6fr);gap:14px 24px;align-items:start}
+  .sl-trcard>*{grid-column:1}
+  .sl-trcard>.sl-trick{grid-column:2;grid-row:1 / span 6;position:sticky;top:12px}
+  .sl-trick.ph{display:flex;opacity:.65;border-left-style:dashed;min-height:140px;justify-content:center}
+  .sl-nl{width:min(660px,100%)}
+  .sl-mini{width:min(400px,100%)}
+}
+@media (min-width:1500px){.sp-wrap{justify-content:center}}

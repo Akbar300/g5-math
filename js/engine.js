@@ -632,6 +632,19 @@ function paperDivide(dividend, divisor) {
       if (opts.onDone) opts.onDone(ok, tries, correct);
       offerAdvance(lastOk);
     };
+    /* Exam mode (Test Lab): answers are only recorded while the student works. box.__exam.grade() runs on Submit
+       and shows right/wrong and the explanation, like the real test. Practice never sets opts.exam. */
+    const ex = {};
+    if (opts.exam) box.__exam = ex;
+    const examReveal = (correct, note) => {
+      done = true;
+      box.classList.add('is-done', correct ? 'exam-ok' : 'exam-no');
+      fb.className = 'fb ' + (correct ? 'ok' : 'no');
+      fb.innerHTML = correct ? '✅ Correct' : '❌ Not quite' + (note ? ' — ' + note : '');
+      formatFractionsIn(fb);
+      if (item.why) why.classList.add('show');
+      return correct;
+    };
 
     if (item.type === 'mc' || item.type === 'ms') {
       const ch = item.ch.slice();
@@ -651,7 +664,7 @@ function paperDivide(dividend, divisor) {
         wrap.classList.add('opts-ms');
         const hint = document.createElement('div');
         hint.className = 'ms-hint';
-        hint.textContent = 'Select all that apply. Tap every correct answer, then press Check.';
+        hint.textContent = opts.exam ? 'Select all that apply.' : 'Select all that apply. Tap every correct answer, then press Check.';
         body.appendChild(hint);
       }
       const paintSel = () => {
@@ -673,6 +686,7 @@ function paperDivide(dividend, divisor) {
         if (isMS) b.setAttribute('aria-label', (isMS ? 'Toggle: ' : '') + U.strip(html));
         bindTap(b, () => {
           if (done) return;
+          if (opts.exam && !isMS) { selected.clear(); selected.add(k); paintSel(); return; }
           if (isMS) {
             b.classList.remove('wrong');
             if (selected.has(k)) selected.delete(k);
@@ -727,13 +741,31 @@ function paperDivide(dividend, divisor) {
           }
         }
       };
-      if (isMS) {
+      if (isMS && !opts.exam) {
         const chk = document.createElement('button');
         chk.className = 'btn teal';
         chk.type = 'button';
         chk.textContent = 'Check';
         bindTap(chk, gradeChoices);
         actions.appendChild(chk);
+      }
+      if (opts.exam) {
+        ex.answered = () => selected.size > 0;
+        ex.grade = () => {
+          const opts_ = wrap.querySelectorAll('.opt');
+          if (isMS) {
+            const wantArr = (Array.isArray(item.a) ? item.a : [item.a]);
+            const want = wantArr.slice().sort().join(','), got = [...selected].map((k) => order[k]).sort().join(',');
+            opts_.forEach((el, k) => { const isRight = wantArr.indexOf(order[k]) >= 0; if (isRight) el.classList.add('right'); else if (selected.has(k)) el.classList.add('wrong'); });
+            return examReveal(got === want, got === want ? '' : 'select every right one, and only those');
+          }
+          const sel = selected.size ? order[[...selected][0]] : null;
+          const wantArr = Array.isArray(item.a) ? item.a : [item.a];
+          const correct = sel != null && wantArr.indexOf(sel) >= 0;
+          opts_.forEach((el, k) => { if (wantArr.indexOf(order[k]) >= 0) el.classList.add('right'); else if (selected.has(k)) el.classList.add('wrong'); });
+          const trap = !correct && sel != null && item.traps && item.traps[sel] ? formatHTML(item.traps[sel]) : '';
+          return examReveal(correct, correct ? '' : (sel == null ? 'no answer chosen' : trap));
+        };
       }
     } else if (item.type === 'num') {
       const row = document.createElement('div'); row.className = 'num-in';
@@ -747,10 +779,20 @@ function paperDivide(dividend, divisor) {
         if (U.eqNum(inp.value, item.a != null ? (item.acc || item.a) : item.acc)) finish(tries === 0);
         else { tries++; fb.className = 'fb no'; fb.textContent = 'Not yet — try a different form or re-check the work.'; if (tries >= 2) why.classList.add('show'); offerAdvance(false); }
       };
-      bindTap(chk, go);
-      inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
-      row.appendChild(inp); row.appendChild(chk);
-      body.appendChild(row);
+      if (opts.exam) {
+        row.appendChild(inp); body.appendChild(row);
+        ex.answered = () => String(inp.value).trim() !== '';
+        ex.grade = () => {
+          const ok = U.eqNum(inp.value, item.a != null ? (item.acc || item.a) : item.acc);
+          inp.readOnly = true;
+          return examReveal(ok, ok || item.a == null ? '' : 'answer: ' + formatHTML(String(item.a)));
+        };
+      } else {
+        bindTap(chk, go);
+        inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+        row.appendChild(inp); row.appendChild(chk);
+        body.appendChild(row);
+      }
     } else if (item.type === 'nline') {
       const min = item.min != null ? +item.min : 0;
       const max = item.max != null ? +item.max : 10;
@@ -800,7 +842,12 @@ function paperDivide(dividend, divisor) {
           offerAdvance(false);
         }
       });
-      actions.appendChild(chk);
+      if (opts.exam) {
+        let touched = false;
+        range.addEventListener('input', () => { touched = true; });
+        ex.answered = () => touched;
+        ex.grade = () => { const ok = U.eqNum(range.value, item.a); range.disabled = true; return examReveal(ok, ok ? '' : 'answer: ' + item.a); };
+      } else actions.appendChild(chk);
     } else if (item.type === 'order') {
 
       const wrap = document.createElement('div');
@@ -818,6 +865,7 @@ function paperDivide(dividend, divisor) {
           if (b.classList.contains('sel')) return;
           seq.push(i); b.classList.add('sel');
           if (seq.length === item.items.length) {
+            if (opts.exam) return;
             const ok = seq.every((v, k) => v === item.order[k]);
             if (ok) finish(tries === 0);
             else { tries++; fb.className = 'fb no'; fb.textContent = 'That order is not quite right. Tap a selected chip to undo, or Reset and try again.'; seq.length = 0; pool.querySelectorAll('.opt').forEach((x) => { x.classList.remove('sel'); }); if (tries >= 2) why.classList.add('show'); offerAdvance(false); }
@@ -828,6 +876,8 @@ function paperDivide(dividend, divisor) {
       const reset = document.createElement('button'); reset.className = 'btn ghost'; reset.textContent = 'Reset';
       bindTap(reset, () => { if (done) return; seq.length = 0; pool.querySelectorAll('.opt').forEach((x) => { x.classList.remove('sel'); }); });
       body.appendChild(pool); actions.appendChild(reset);
+      ex.answered = () => seq.length === (item.items || []).length;
+      ex.grade = () => { const ok = ex.answered() && seq.every((v, k) => v === item.order[k]); return examReveal(ok, ok ? '' : 'check the order'); };
     } else if (item.type === 'paper-mul' || item.type === 'paper-div') {
       const widget = item.type === 'paper-mul' ? paperMultiply(item.a, item.b) : paperDivide(item.a, item.b);
       body.appendChild(widget);
@@ -838,20 +888,29 @@ function paperDivide(dividend, divisor) {
         if (widget.check()) finish(tries === 0);
         else { tries++; fb.className = 'fb no'; fb.textContent = 'A digit is off. Check carries, place-value zeros, and the last add (or remainder).'; if (tries >= 2) { widget.reveal(); why.classList.add('show'); } offerAdvance(false); }
       });
-      actions.appendChild(chk);
+      if (opts.exam) {
+        ex.answered = () => true;
+        ex.grade = () => { const ok = widget.check(); if (!ok && widget.reveal) widget.reveal(); return examReveal(ok, ok ? '' : 'see the worked steps'); };
+      } else actions.appendChild(chk);
     } else if (item.type === 'multi') {
       const parts = item.parts || [];
       let left = parts.length, missed = 0, wrongEnd = 0;
+      const subs = [];
       parts.forEach((p, i) => {
         const sub = document.createElement('div');
         sub.className = 'q-part';
-        renderItem(sub, p, {
+        subs.push(renderItem(sub, p, {
           label: 'Part ' + String.fromCharCode(65 + i),
           noScroll: opts.noScroll,
+          exam: opts.exam,
           onDone: (ok, t, correct) => { left--; if (!ok) missed++; if (correct === false) wrongEnd++; if (left === 0) finish(missed === 0 && tries === 0, wrongEnd === 0); }
-        });
+        }));
         body.appendChild(sub);
       });
+      if (opts.exam) {
+        ex.answered = () => subs.every((b) => b.__exam && b.__exam.answered && b.__exam.answered());
+        ex.grade = () => { let ok = true; subs.forEach((b) => { if (!(b.__exam && b.__exam.grade && b.__exam.grade())) ok = false; }); done = true; box.classList.add('is-done', ok ? 'exam-ok' : 'exam-no'); return ok; };
+      }
     }
 
     return box;
@@ -1362,62 +1421,85 @@ function paperDivide(dividend, divisor) {
       const T = track();
       const items = (typeof T.test === 'function' ? T.test() : (T.test || [])).slice();
       items.forEach((it) => SEEN.add(itemKey(it)));
-      const wide = isWide();
+      const wide = isWide(), N = items.length;
       stage.innerHTML = `<h2>Test Lab · ${M.lvl === 'advanced' ? 'Advanced' : 'Core'}</h2>
-        <p class="lede">SOL-style formats. Every part must be right. ${wide ? 'All questions are on the page — answer them in any order.' : 'One question at a time — take all the time you need.'}</p>
+        <p class="lede">SOL-style formats, like the real test: answer every question, then press <b>Submit test</b>. You'll see what was right and why only after you finish. ${wide ? 'All questions are on the page — answer them in any order.' : 'One question at a time — you can go back to change an answer.'}</p>
         <div id="tHost" class="stage-host"></div>`;
       const host = stage.querySelector('#tHost');
-      let i = 0, right = 0, left = items.length;
-      const results = (into) => {
-        const box = document.createElement('div');
-        box.className = 'test-done';
-        box.innerHTML = `<div class="remember">🧪 Checkpoint done: <b>${right} / ${items.length}</b> correct. ${right >= Math.ceil(items.length * 0.8) ? 'Strong work.' : 'Review the lessons, then try a fresh pack.'}</div>`;
-        const b = document.createElement('button'); b.className = 'btn'; b.textContent = 'New checkpoint';
-        b.onclick = () => showTest(); box.appendChild(b);
-        into.appendChild(box);
-        M.xp += right * 4; save(); setXP();
-        return box;
-      };
-      if (wide) {
-        const grid = document.createElement('div'); grid.className = 'qgrid';
-        host.appendChild(grid);
-        const nav = document.createElement('div'); nav.className = 'row-btns set-nav';
-        const status = document.createElement('span'); status.className = 'set-left';
-        nav.appendChild(status);
-        host.appendChild(nav);
-        const paint = () => { status.textContent = left ? left + ' of ' + items.length + ' left' : 'All done!'; };
-        items.forEach((it, k) => {
-          const cell = document.createElement('div'); cell.className = 'qcell';
-          grid.appendChild(cell);
-          renderItem(cell, it, {
-            label: 'Q' + (k + 1) + ' of ' + items.length,
-            noScroll: true,
-            noWatch: true,
-            onDone: (ok) => {
-              if (ok) right++;
-              left--; paint();
-              if (left === 0) { nav.innerHTML = ''; const box = results(nav); try { box.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) {} }
-            }
+      const grid = document.createElement('div'); grid.className = wide ? 'qgrid' : 'qpager';
+      host.appendChild(grid);
+      const cells = [], boxes = [];
+      items.forEach((it, k) => {
+        const cell = document.createElement('div'); cell.className = 'qcell';
+        grid.appendChild(cell); cells.push(cell);
+        boxes.push(renderItem(cell, it, { label: 'Q' + (k + 1) + ' of ' + N, noScroll: true, noWatch: true, exam: true }));
+        if (cell.querySelector('.paper-wrap')) cell.classList.add('span-all');
+      });
+      const nav = document.createElement('div'); nav.className = 'row-btns set-nav exam-nav';
+      const status = document.createElement('span'); status.className = 'set-left';
+      const dots = document.createElement('div'); dots.className = 'q-dots';
+      if (!wide) host.insertBefore(dots, grid);
+      host.appendChild(nav);
+      let cur = 0, submitted = false, warned = false;
+      const isAns = (b) => !b.__exam || !b.__exam.answered || b.__exam.answered();
+      const answeredCount = () => boxes.filter(isAns).length;
+      const mkBtn = (label, cls, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn ' + (cls || ''); b.textContent = label; bindTap(b, fn); return b; };
+      function paint() {
+        if (submitted) return;
+        const n = answeredCount();
+        status.textContent = wide ? (n + ' of ' + N + ' answered') : ('Question ' + (cur + 1) + ' of ' + N + ' · ' + n + ' answered');
+        if (!wide) {
+          cells.forEach((c, k) => { c.style.display = k === cur ? '' : 'none'; });
+          dots.innerHTML = '';
+          boxes.forEach((b, k) => {
+            const d = document.createElement('button'); d.type = 'button';
+            d.className = 'q-dot' + (isAns(b) ? ' on' : '') + (k === cur ? ' cur' : '');
+            d.textContent = String(k + 1); d.setAttribute('aria-label', 'Go to question ' + (k + 1));
+            bindTap(d, () => { cur = k; warned = false; paint(); });
+            dots.appendChild(d);
           });
-          if (cell.querySelector('.paper-wrap')) cell.classList.add('span-all');
-        });
-        paint();
-        formatFractionsIn(host);
-        return;
+          nav.innerHTML = '';
+          const back = mkBtn('Back', 'ghost', () => { if (cur > 0) { cur--; paint(); } }); back.disabled = cur === 0;
+          nav.appendChild(back); nav.appendChild(status);
+          if (cur < N - 1) nav.appendChild(mkBtn('Next', '', () => { cur++; paint(); }));
+          if (cur === N - 1 || warned) nav.appendChild(mkBtn('Submit test', 'teal', submit));
+        }
       }
-      const draw = () => {
-        if (i >= items.length) { host.innerHTML = ''; results(host); return; }
-        host.innerHTML = '';
-        renderItem(host, items[i], {
-          sticky: true,
-          label: 'Q' + (i + 1) + ' of ' + items.length,
-          noWatch: true,
-          nextLabel: i === items.length - 1 ? 'See results' : 'Next question',
-          onDone: (ok) => { if (ok) right++; },
-          onNext: () => { i++; keepPlace(host, draw); }
-        });
-      };
-      draw();
+      function submit() {
+        if (submitted) return;
+        const left = N - answeredCount();
+        if (left && !warned) {
+          warned = true;
+          status.textContent = left + ' unanswered — press Submit test again to finish anyway.';
+          if (!wide) { const first = boxes.findIndex((b) => !isAns(b)); if (first >= 0) { cur = first; paint(); status.textContent = left + ' unanswered — press Submit test again to finish anyway.'; } }
+          return;
+        }
+        submitted = true;
+        let right = 0; const missed = [];
+        boxes.forEach((b, k) => { const g = b.__exam && b.__exam.grade ? b.__exam.grade() : false; if (g) right++; else missed.push(k + 1); });
+        cells.forEach((c) => { c.style.display = ''; });
+        grid.className = wide ? 'qgrid' : 'qpager review';
+        dots.remove(); nav.remove();
+        formatFractionsIn(host);
+        const box = document.createElement('div'); box.className = 'test-done';
+        const pct = N ? Math.round(100 * right / N) : 0;
+        box.innerHTML = `<div class="remember">🧪 Test complete: <b>${right} / ${N}</b> correct (${pct}%). ${right >= Math.ceil(N * 0.8) ? 'Strong work.' : 'Read the explanations below, review the lessons, then try a fresh pack.'}</div>`;
+        if (missed.length) {
+          const row = document.createElement('div'); row.className = 'row-btns exam-missed';
+          const lab = document.createElement('span'); lab.className = 'set-left'; lab.textContent = 'Review the ones to learn from:'; row.appendChild(lab);
+          missed.forEach((q) => row.appendChild(mkBtn('Q' + q, 'ghost', () => { try { cells[q - 1].scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) {} })));
+          box.appendChild(row);
+        }
+        box.appendChild(mkBtn('New checkpoint', '', () => showTest()));
+        host.insertBefore(box, host.firstChild);
+        M.xp += right * 4; save(); setXP();
+        try { stage.scrollIntoView({ block: 'start' }); w.scrollTo(0, 0); } catch (e) {}
+      }
+      if (wide) { nav.appendChild(status); nav.appendChild(mkBtn('Submit test', 'teal', submit)); }
+      const refresh = () => setTimeout(() => { if (!submitted) { warned = false; paint(); } }, 0);
+      ['click', 'input', 'pointerup', 'keyup'].forEach((ev) => host.addEventListener(ev, (e) => { const path = e.composedPath ? e.composedPath() : []; if (path.some((x) => x.classList && (x.classList.contains('exam-nav') || x.classList.contains('q-dots')))) return; refresh(); }));
+      paint();
+      formatFractionsIn(host);
     }
 
     let wasWide = isWide();

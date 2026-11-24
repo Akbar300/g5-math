@@ -781,7 +781,7 @@
         const m = h('div', 'sp-mission'); m.innerHTML = `<div class="k">${learn ? it.title : '🧠 No-grid question'}</div><div class="t">${qHtml(it)}</div>${learn ? `<div class="ix-note">${it.intro}</div>` : ''}`;
         card.appendChild(m);
         if (it.pts) card.appendChild(h('div', 'sl-chips', it.type === 'fourth' ? it.pts.slice(0, 3).map((p, k) => `<span class="sl-chip">${NAMES[k]} ${pairH(p)}</span>`).join(' ') : chipRow(it)));
-        const inRow = h('div', 'sl-ansrow'), fb = h('div', 'ix-fb'), trick = h('div', 'sl-trick'), nav = h('div', 'ix-ctr');
+        const inRow = h('div', 'sl-ansrow'), fb = h('div', 'ix-fb'), trick = h('div', 'sl-trick ph', '<div class="k">✨ The trick</div><div>Give it a try first. The trick shows up here.</div>'), nav = h('div', 'ix-ctr');
         let inp = null, inY = null;
         if (it.type === 'fourth') {
           const mkStep = (lab, get, set, color) => {
@@ -798,10 +798,9 @@
         }
         const go = btn('Check', check, 'go'); inRow.appendChild(go);
         card.appendChild(inRow); card.appendChild(fb); card.appendChild(trick); card.appendChild(nav);
-        trick.style.display = 'none';
         function reveal() {
           done = true; inRow.querySelectorAll('button,input').forEach((e) => { e.disabled = true; });
-          trick.style.display = ''; trick.innerHTML = ''; trick.appendChild(h('div', 'k', '✨ The trick'));
+          trick.classList.remove('ph'); trick.innerHTML = ''; trick.appendChild(h('div', 'k', '✨ The trick'));
           const g = trickHtml(it, trick);
           const gridBox = h('div', 'sl-gridbox');
           trick.appendChild(btn('Show it on the grid 🗺️', function () { if (gridBox.firstChild) { gridBox.innerHTML = ''; this.textContent = 'Show it on the grid 🗺️'; } else { gridBox.appendChild(miniGrid(g[0], g[1], quad, n)); this.textContent = 'Hide the grid'; } }, 'ghost'));
