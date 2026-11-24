@@ -68,24 +68,29 @@
     B.dot = (p, cls) => { const c = mk('circle', { cx: G.px(p.x), cy: G.py(p.y), r: 4.5, class: 'cp-dot cp-pop' + (cls ? ' ' + cls : '') }); fx.appendChild(c); return c; };
     B.ring = (p) => { const c = mk('circle', { cx: G.px(p.x), cy: G.py(p.y), r: 9, class: 'sl-ring' }); marks.appendChild(c); return c; };
     B.ghost = (p) => fx.appendChild(mk('circle', { cx: G.px(p.x), cy: G.py(p.y), r: 9, class: 'cp-dot ghost' }));
-    /* Corner label: try the 4 spots around the dot (left/right x above/below) and take the one that stays on
-       the board and keeps off the axes and their tick numbers. The side away from the shape's centre wins ties. */
-    B.vlabel = (p, c) => {
+    /* Corner label: try spots around the dot (right / left / centred, above / below, near / lifted) and take the one
+       that stays on the board, keeps off the axes and their tick numbers, and does not cover other labels or corner
+       dots. The side away from the shape's centre wins ties. `others` = every corner of the shape. */
+    B.vlabel = (p, c, others) => {
       const S = G.S, txt = `(${sgn(p.x)}, ${sgn(p.y)})`, wd = txt.length * 6.4 + 2, X = G.px(p.x), Y = G.py(p.y);
-      const wantR = p.x >= c.x, wantUp = p.y >= c.y, tick = G.quad ? 22 : 22;
+      const wantR = p.x >= c.x, wantUp = p.y >= c.y;
       const hit = (r, q) => r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0;
-      const strips = [{ x0: G.ox - tick, x1: G.ox + 3, y0: -1e3, y1: 1e3 }, { x0: -1e3, x1: 1e3, y0: G.oy - 3, y1: G.oy + 19 }];
-      let bestScore = 1e9, bx = X + 7, by = Y - 8, ba = 'start';
-      [true, false].forEach((right) => [true, false].forEach((up) => {
-        const x = X + (right ? 7 : -7), y = Y + (up ? -8 : 15);
-        const r = { x0: right ? x : x - wd, x1: right ? x + wd : x, y0: y - 10, y1: y + 3 };
-        let sc = (right === wantR ? 0 : 1) + (up === wantUp ? 0 : 0.5);
+      const strips = [{ x0: G.ox - 22, x1: G.ox + 3, y0: -1e3, y1: 1e3 }, { x0: -1e3, x1: 1e3, y0: G.oy - 3, y1: G.oy + 19 }];
+      const placed = Array.prototype.map.call(marks.querySelectorAll('.sl-vl'), (e) => e.__r).filter(Boolean);
+      const dots = (others || []).map((o) => ({ x0: G.px(o.x) - 7, x1: G.px(o.x) + 7, y0: G.py(o.y) - 7, y1: G.py(o.y) + 7 }));
+      let best = 1e9, pick = null;
+      ['r', 'l', 'm'].forEach((mode) => [true, false].forEach((up) => [0, 13].forEach((lift) => {
+        const x = X + (mode === 'r' ? 7 : mode === 'l' ? -7 : 0), y = up ? Y - 8 - lift - (mode === 'm' ? 3 : 0) : Y + 15 + lift + (mode === 'm' ? 3 : 0);
+        const x0 = mode === 'r' ? x : mode === 'l' ? x - wd : x - wd / 2, r = { x0, x1: x0 + wd, y0: y - 10, y1: y + 3 };
+        let sc = (mode === 'm' ? 0.7 : (mode === 'r') === wantR ? 0 : 1) + (up === wantUp ? 0 : 0.5) + (lift ? 2 : 0);
         if (r.x0 < 2 || r.x1 > S - 2 || r.y0 < 4 || r.y1 > S - 2) sc += 100;
         strips.forEach((q) => { if (hit(r, q)) sc += 20; });
-        if (sc < bestScore) { bestScore = sc; bx = x; by = y; ba = right ? 'start' : 'end'; }
-      }));
-      const t = mk('text', { x: bx, y: by, class: 'sl-vl', 'text-anchor': ba }, [txt]);
-      marks.appendChild(t); return t;
+        placed.forEach((q) => { if (hit(r, q)) sc += 40; });
+        dots.forEach((q) => { if (hit(r, q)) sc += 25; });
+        if (sc < best) { best = sc; pick = { x, y, r, anchor: mode === 'r' ? 'start' : mode === 'l' ? 'end' : 'middle' }; }
+      })));
+      const t = mk('text', { x: pick.x, y: pick.y, class: 'sl-vl', 'text-anchor': pick.anchor }, [txt]);
+      t.__r = pick.r; marks.appendChild(t); return t;
     };
     B.edge = (a, b, fresh) => {
       const len = Math.hypot(G.px(b.x) - G.px(a.x), G.py(b.y) - G.py(a.y));
@@ -231,7 +236,7 @@
       B.clearAll(); drawHud();
       fb.className = 'ix-fb'; fb.innerHTML = ''; log.innerHTML = ''; ans.innerHTML = ''; row.innerHTML = '';
       const c = centre();
-      if (t.fourth) t.given.forEach((p) => { B.dot(p); B.vlabel(p, c); });
+      if (t.fourth) t.given.forEach((p) => { B.dot(p); B.vlabel(p, c, t.ccw); });
       mission.innerHTML = t.fourth
         ? `<div class="k">🧩 Find the 4th corner</div><div class="t">Three corners of a ${t.name} are shown. Find the ${askWord()}.</div><div class="ix-note"></div>`
         : `<div class="k">📐 Plot, connect, measure</div><div class="t">A ${t.name} has these corners. Find its ${askWord()}.</div><div class="ix-note"></div>`;
@@ -255,7 +260,7 @@
     function tapPlot(q) {
       const target = t.toPlot[idx];
       if (eq(q, target)) {
-        B.dot(target); B.vlabel(target, centre()); idx++; misses = 0;
+        B.dot(target); B.vlabel(target, centre(), t.ccw); idx++; misses = 0;
         fb.className = 'ix-fb ok'; fb.innerHTML = `✓ ${pair(target.x, target.y)}: ${moveText(target.x, target.y)}.`;
         if (idx >= t.toPlot.length) {
           phase = 'connect'; B.hideHover(); drawChips();
@@ -484,7 +489,7 @@
       if (closed && m >= 3) B.edges.appendChild(mk('polygon', { points: pts.map((p) => B.G.px(p.x) + ',' + B.G.py(p.y)).join(' '), class: 'sl-fill' }));
       for (let i = 0; i < m - 1; i++) B.edge(pts[i], pts[i + 1], i + 1 === freshIdx);
       if (closed && m >= 3) B.edge(pts[m - 1], pts[0], true);
-      pts.forEach((p, i) => { B.dot(p, i === 0 && !closed && m >= 3 ? 'sl-start' : ''); B.vlabel(p, c); });
+      pts.forEach((p, i) => { B.dot(p, i === 0 && !closed && m >= 3 ? 'sl-start' : ''); B.vlabel(p, c, pts); });
       drawChips(); drawInfo(); drawButtons();
     }
     function drawChips() {
@@ -636,5 +641,218 @@
     drawPick(); render();
   }
 
-  w.ShapeLab = { guided, free };
+  /* =====================================================================
+     3. TRICKS: count steps and measure rectangles from the numbers alone
+     ===================================================================== */
+  const gap = (a, b) => {
+    const d = Math.abs(b - a);
+    const how = a * b < 0 ? `${Math.abs(a)} + ${Math.abs(b)} = ${d} <i>(opposite signs: you pass through 0, so ADD)</i>`
+      : `${Math.max(Math.abs(a), Math.abs(b))} − ${Math.min(Math.abs(a), Math.abs(b))} = ${d}`;
+    return { d, how };
+  };
+  function stepsExplain(p, q) {
+    const horiz = p.y === q.y, a = horiz ? p.x : p.y, b = horiz ? q.x : q.y, g = gap(a, b);
+    const same = horiz ? `y = ${sgn(p.y)}` : `x = ${sgn(p.x)}`, ax = horiz ? 'x' : 'y';
+    return { d: g.d, ax, a, b, html: `${horiz ? 'The y is the same' : 'The x is the same'} (${same}), so the points are lined up ${horiz ? 'flat across' : 'straight up and down'}. Only look at <b>${ax}</b>: ${sgn(a)} to ${sgn(b)}.<br><b>${g.how}</b>` };
+  }
+  /* Number line with one hop per step. Hops before 0 are blue and after 0 green when the trip crosses zero. */
+  function nline(a, b, axis) {
+    const lo = Math.min(a, b, 0) - 1, hi = Math.max(a, b, 0) + 1, W = 340, pad = 16, span = hi - lo;
+    const sx = (v) => pad + (v - lo) * (W - 2 * pad) / span, Y = 74, cross = a * b < 0, dir = b > a ? 1 : -1, d = Math.abs(b - a);
+    const s = mk('svg', { viewBox: `0 0 ${W} 112`, class: 'sl-nl', role: 'img', 'aria-label': `Number line from ${a} to ${b}` });
+    s.appendChild(mk('line', { x1: pad - 6, y1: Y, x2: W - pad + 6, y2: Y, class: 'sl-nax' }));
+    for (let v = lo; v <= hi; v++) {
+      s.appendChild(mk('line', { x1: sx(v), y1: Y - 5, x2: sx(v), y2: Y + 5, class: 'sl-ntk' + (v === 0 ? ' z' : '') }));
+      s.appendChild(mk('text', { x: sx(v), y: Y + 22, class: 'sl-nt' + (v === a || v === b || v === 0 ? ' on' : ''), 'text-anchor': 'middle' }, [sgn(v)]));
+    }
+    s.appendChild(mk('text', { x: W - 4, y: Y - 9, class: 'sl-nt ax', 'text-anchor': 'end' }, [axis + '-numbers']));
+    for (let i = 0, v = a; i < d; i++, v += dir) {
+      const x1 = sx(v), x2 = sx(v + dir), after = cross && (dir > 0 ? v >= 0 : v <= 0);
+      const arc = mk('path', { d: `M${x1},${Y} Q${(x1 + x2) / 2},${Y - 30} ${x2},${Y}`, class: 'sl-hop ' + (after ? 'g' : 'b') });
+      arc.style.setProperty('--d', (i * 85) + 'ms'); s.appendChild(arc);
+      if (d <= 12) { const t = mk('text', { x: (x1 + x2) / 2, y: Y - 24, class: 'sl-hopn ' + (after ? 'g' : 'b'), 'text-anchor': 'middle' }, [String(i + 1)]); t.style.setProperty('--d', (i * 85 + 120) + 'ms'); s.appendChild(t); }
+    }
+    s.appendChild(mk('circle', { cx: sx(a), cy: Y, r: 5.5, class: 'cp-dot' }));
+    s.appendChild(mk('circle', { cx: sx(b), cy: Y, r: 5.5, class: 'cp-dot sl-end' }));
+    if (cross) {
+      s.appendChild(mk('text', { x: sx(a / 2), y: 14, class: 'sl-cr ' + (a < 0 ? 'b' : 'g'), 'text-anchor': 'middle' }, [String(Math.abs(a))]));
+      s.appendChild(mk('text', { x: sx(0), y: 14, class: 'sl-cr', 'text-anchor': 'middle' }, ['+']));
+      s.appendChild(mk('text', { x: sx(b / 2), y: 14, class: 'sl-cr ' + (b < 0 ? 'b' : 'g'), 'text-anchor': 'middle' }, [String(Math.abs(b))]));
+    }
+    return s;
+  }
+  function miniGrid(pts, labels, quad, n) {
+    const s = V.planeSVG([], { quad, n, size: 260 }), G = s.__geo, fx = s.querySelector('.cp-pts'), g = mk('g');
+    s.insertBefore(g, fx);
+    if (pts.length > 1) for (let i = 0; i < pts.length; i++) { if (pts.length === 2 && i === 1) break; const a = pts[i], b = pts[(i + 1) % pts.length]; const l = mk('line', { x1: G.px(a.x), y1: G.py(a.y), x2: G.px(b.x), y2: G.py(b.y), class: 'sl-edge ' + dirOf(a, b) }); g.appendChild(l); }
+    pts.forEach((p, i) => { fx.appendChild(mk('circle', { cx: G.px(p.x), cy: G.py(p.y), r: 4.5, class: 'cp-dot' })); fx.appendChild(mk('text', { x: G.px(p.x) + 8, y: G.py(p.y) - 7, class: 'sl-vl' }, [labels[i]])); });
+    const d = h('div', 'sl-mini'); d.appendChild(s); return d;
+  }
+
+  function tricks(host, api) {
+    const adv = api.lvl === 'advanced', quad = adv, n = adv ? 6 : 8, lo = quad ? -n : 0;
+    const best = load(), bestKey = 't' + (adv ? 'adv' : 'core'), NAMES = 'ABCD';
+    host.innerHTML = `<h2>🧠 No-Grid Tricks · ${adv ? 'All four quadrants' : 'Quadrant I'}</h2>
+      <p class="lede">Count steps and measure rectangles from the <b>numbers alone</b>, no grid needed. Try each one your own way first, then see the trick.</p>`;
+    const bar = h('div', 'sp-modes'), area = h('div', 'sl-tr'); host.appendChild(bar); host.appendChild(area);
+
+    function pline(kind, horiz) {
+      if (horiz == null) horiz = Math.random() < 0.5;
+      let a, b, tt = 0;
+      do {
+        tt++;
+        if (kind === 'cross') { a = ri(1, n); b = -ri(1, n); }
+        else if (kind === 'neg') { a = -ri(1, n); b = -ri(1, n); }
+        else { a = ri(quad ? 1 : 0, n); b = ri(quad ? 1 : 0, n); }
+        if (Math.random() < 0.5) { const t = a; a = b; b = t; }
+      } while ((Math.abs(a - b) < 2) && tt < 100);
+      const f = ri(lo, n);
+      const p = horiz ? { x: a, y: f } : { x: f, y: a }, q = horiz ? { x: b, y: f } : { x: f, y: b };
+      return { type: 'steps', p, q, ex: stepsExplain(p, q) };
+    }
+    function rectItem(type) {
+      const w0 = ri(2, Math.min(7, n - lo)); let h0 = ri(2, Math.min(6, n - lo)); if (w0 === h0) h0 = h0 < 6 ? h0 + 1 : h0 - 1;
+      const x1 = ri(lo, n - w0), y1 = ri(lo, n - h0), x2 = x1 + w0, y2 = y1 + h0, rot = ri(0, 3);
+      const ccw = [{ x: x1, y: y1 }, { x: x2, y: y1 }, { x: x2, y: y2 }, { x: x1, y: y2 }];
+      const c = ccw.slice(rot).concat(ccw.slice(0, rot)), it = { type, pts: c, R: { x1, y1, x2, y2 }, w0, h0 };
+      if (type === 'side') { it.idx = ri(0, 3); it.P = c[it.idx]; it.Q = c[(it.idx + 1) % 4]; it.lab = NAMES[it.idx] + NAMES[(it.idx + 1) % 4]; it.ans = Math.abs(it.P.x - it.Q.x) + Math.abs(it.P.y - it.Q.y); }
+      if (type === 'perim') it.ans = 2 * (w0 + h0);
+      if (type === 'area') it.ans = w0 * h0;
+      if (type === 'fourth') it.ans = c[3];
+      return it;
+    }
+    const learnItems = () => {
+      const L = [
+        Object.assign(pline('pos', true), { title: '📘 Trick 1 · What is the same?', intro: 'Two points. Look for the number that <b>matches</b>. Try it your own way first.' }),
+        Object.assign(pline('pos', false), { title: '📘 Trick 2 · Up and down works the same', intro: 'This time the <b>x</b> matches. Which number do you look at now?' })
+      ];
+      if (adv) {
+        L.push(Object.assign(pline('cross', Math.random() < 0.5), { title: '📘 Trick 3 · Crossing zero', intro: 'One number is negative, one is positive. Think: steps <b>to 0</b>, then steps <b>past 0</b>.' }));
+        L.push(Object.assign(pline('neg', Math.random() < 0.5), { title: '📘 Trick 4 · Both negative', intro: 'Same side of zero: ignore the minus signs, then subtract.' }));
+      }
+      L.push(Object.assign(rectItem('perim'), { title: '📘 Trick ' + (adv ? 5 : 3) + ' · Rectangles have two x\'s and two y\'s', intro: 'Corners are listed in order around the rectangle. Find the two different x\'s and the two different y\'s.' }));
+      return L;
+    };
+    const PRACTICE = ['steps', 'steps', 'steps', 'side', 'steps', 'perim', 'area', 'steps', 'fourth', 'side'];
+    const practiceItems = () => PRACTICE.map((t) => t === 'steps' ? pline(quad ? ['cross', 'cross', 'neg', 'pos'][ri(0, 3)] : 'pos') : rectItem(t));
+
+    const pairH = (p) => pair(p.x, p.y);
+    const chipRow = (it) => it.pts.map((p, k) => `<span class="sl-chip">${NAMES[k]} ${pairH(p)}</span>`).join(' ');
+    function qHtml(it) {
+      if (it.type === 'steps') return `How many steps from <b>P</b> ${pairH(it.p)} to <b>Q</b> ${pairH(it.q)}?`;
+      if (it.type === 'side') return `A rectangle's corners, in order, are below. How long is side <b>${it.lab}</b>?`;
+      if (it.type === 'perim') return 'A rectangle\'s corners, in order, are below. Find its <b>perimeter</b>.';
+      if (it.type === 'area') return 'A rectangle\'s corners, in order, are below. Find its <b>area</b>.';
+      return 'Three corners of a rectangle are below. Find corner <b>D</b>.';
+    }
+    function hintOf(it) {
+      if (it.type === 'steps') return 'Which number is the <b>same</b> in both points? Ignore it, and count steps between the <b>other</b> numbers.';
+      if (it.type === 'side') return 'Neighbors share an x or a y. Ignore the shared number and find the gap between the other two.';
+      if (it.type === 'fourth') return 'The missing corner uses the x that shows up <b>once</b> and the y that shows up <b>once</b>.';
+      return 'Length = gap between the two different x\'s. Width = gap between the two different y\'s.';
+    }
+    function trickHtml(it, box) {
+      if (it.type === 'steps') { box.appendChild(h('div', '', it.ex.html)); box.appendChild(nline(it.ex.a, it.ex.b, it.ex.ax)); return [[it.p, it.q], ['P', 'Q']]; }
+      if (it.type === 'side') {
+        const e = stepsExplain(it.P, it.Q);
+        box.appendChild(h('div', '', `Side <b>${it.lab}</b>: ${e.html}`)); box.appendChild(nline(e.a, e.b, e.ax)); return [it.pts, ['A', 'B', 'C', 'D']];
+      }
+      const R = it.R, gx = gap(R.x1, R.x2), gy = gap(R.y1, R.y2);
+      if (it.type === 'fourth') {
+        const D = it.pts[3], xs = it.pts.slice(0, 3).map((p) => p.x), ys = it.pts.slice(0, 3).map((p) => p.y);
+        box.appendChild(h('div', '', `x's: ${xs.map(sgn).join(', ')}. The one that shows up <b>once</b> is <b>${sgn(D.x)}</b>.<br>y's: ${ys.map(sgn).join(', ')}. The one that shows up <b>once</b> is <b>${sgn(D.y)}</b>.<br>So D = ${pairH(D)}.`));
+        return [it.pts, ['A', 'B', 'C', 'D']];
+      }
+      box.appendChild(h('div', '', `Only two different x's (<b>${sgn(R.x1)}</b> and <b>${sgn(R.x2)}</b>) and two different y's (<b>${sgn(R.y1)}</b> and <b>${sgn(R.y2)}</b>).<br>Length: <b>${gx.how}</b><br>Width: <b>${gy.how}</b><br>${it.type === 'area' ? `Area = ${it.w0} × ${it.h0} = <b>${it.w0 * it.h0}</b> square units` : `Perimeter = 2 × (${it.w0} + ${it.h0}) = <b>${2 * (it.w0 + it.h0)}</b> units`}`));
+      box.appendChild(nline(R.x1, R.x2, 'x')); box.appendChild(nline(R.y1, R.y2, 'y'));
+      return [it.pts, ['A', 'B', 'C', 'D']];
+    }
+
+    function run(items, learn) {
+      let i = 0, stars = 0, streak = 0;
+      area.innerHTML = '';
+      const hud = h('div', 'sp-hud'), card = h('div', 'sl-trcard'); area.appendChild(hud); area.appendChild(card);
+      const drawHud = () => {
+        hud.innerHTML = learn ? `<span>Trick ${Math.min(i + 1, items.length)} / ${items.length}</span>`
+          : `<span>Question ${Math.min(i + 1, items.length)} / ${items.length}</span><span class="sp-stars">⭐ ${stars}</span>${streak > 1 ? `<span>🔥 ${streak} in a row</span>` : ''}${best[bestKey] != null ? `<span>Best ${best[bestKey]} / ${items.length}</span>` : ''}`;
+      };
+      function show() {
+        const it = items[i]; let tries = 0, done = false, fx = 0, fy = 0; drawHud(); card.innerHTML = '';
+        const m = h('div', 'sp-mission'); m.innerHTML = `<div class="k">${learn ? it.title : '🧠 No-grid question'}</div><div class="t">${qHtml(it)}</div>${learn ? `<div class="ix-note">${it.intro}</div>` : ''}`;
+        card.appendChild(m);
+        if (it.pts) card.appendChild(h('div', 'sl-chips', it.type === 'fourth' ? it.pts.slice(0, 3).map((p, k) => `<span class="sl-chip">${NAMES[k]} ${pairH(p)}</span>`).join(' ') : chipRow(it)));
+        const inRow = h('div', 'sl-ansrow'), fb = h('div', 'ix-fb'), trick = h('div', 'sl-trick'), nav = h('div', 'ix-ctr');
+        let inp = null, inY = null;
+        if (it.type === 'fourth') {
+          const mkStep = (lab, get, set, color) => {
+            const w1 = h('div', 'sp-step'), v = h('span', 'ix-val', sgn(get())); v.style.color = color;
+            w1.appendChild(h('span', 'ix-lab', `<span style="color:${color}">${lab}</span>`));
+            w1.appendChild(btn('−', () => { set(Math.max(lo, get() - 1)); v.textContent = sgn(get()); })); w1.appendChild(v); w1.appendChild(btn('+', () => { set(Math.min(n, get() + 1)); v.textContent = sgn(get()); }));
+            inRow.appendChild(w1);
+          };
+          mkStep('D x', () => fx, (v) => { fx = v; }, 'var(--cp-x)'); mkStep('D y', () => fy, (v) => { fy = v; }, 'var(--cp-y)');
+        } else {
+          inp = h('input', 'sl-in'); inp.type = 'number'; inp.step = 'any'; inp.setAttribute('inputmode', 'numeric'); inp.setAttribute('aria-label', 'Your answer');
+          inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') check(); });
+          inRow.appendChild(h('div', 'ix-lab', it.type === 'area' ? 'Area (square units)' : it.type === 'perim' ? 'Perimeter (units)' : 'Steps')); inRow.appendChild(inp);
+        }
+        const go = btn('Check', check, 'go'); inRow.appendChild(go);
+        card.appendChild(inRow); card.appendChild(fb); card.appendChild(trick); card.appendChild(nav);
+        trick.style.display = 'none';
+        function reveal() {
+          done = true; inRow.querySelectorAll('button,input').forEach((e) => { e.disabled = true; });
+          trick.style.display = ''; trick.innerHTML = ''; trick.appendChild(h('div', 'k', '✨ The trick'));
+          const g = trickHtml(it, trick);
+          const gridBox = h('div', 'sl-gridbox');
+          trick.appendChild(btn('Show it on the grid 🗺️', function () { if (gridBox.firstChild) { gridBox.innerHTML = ''; this.textContent = 'Show it on the grid 🗺️'; } else { gridBox.appendChild(miniGrid(g[0], g[1], quad, n)); this.textContent = 'Hide the grid'; } }, 'ghost'));
+          trick.appendChild(gridBox);
+          nav.innerHTML = '';
+          nav.appendChild(btn(i + 1 >= items.length ? (learn ? 'Go to practice 🏋️' : 'Finish round') : 'Next →', () => { i++; if (i >= items.length) finish(); else show(); }, 'go'));
+          see(nav);
+        }
+        function check() {
+          if (done) return;
+          let ok, shown;
+          if (it.type === 'fourth') { ok = fx === it.ans.x && fy === it.ans.y; }
+          else {
+            const v = parseFloat(inp.value); if (isNaN(v)) { fb.className = 'ix-fb no'; fb.innerHTML = 'Type a number first.'; return; }
+            const right = it.type === 'steps' ? it.ex.d : it.ans; ok = v === right;
+          }
+          tries++;
+          if (ok) {
+            const first = tries === 1;
+            if (!learn) { if (first) { stars++; streak++; if (api.addXP) api.addXP(2); } else streak = 0; }
+            fb.className = 'ix-fb ok'; fb.innerHTML = learn ? (first ? '✓ You got it your own way! Here is the trick that works for any size.' : '✓ Yes! Here is the trick that works for any size.') : (first ? '⭐ Perfect!' : '✓ Yes!');
+            drawHud(); reveal();
+          } else if (learn || tries >= 2) {
+            if (!learn) { streak = 0; drawHud(); }
+            fb.className = 'ix-fb no'; fb.innerHTML = learn ? 'Not quite. Here is the trick:' : 'Not this time. Here is the trick, so it sticks:'; reveal();
+          } else {
+            fb.className = 'ix-fb no'; fb.innerHTML = '💡 ' + hintOf(it); see(fb);
+          }
+        }
+        see(m);
+      }
+      function finish() {
+        if (learn) { setTab('practice'); return; }
+        if (api.addXP) api.addXP(5);
+        if (best[bestKey] == null || stars > best[bestKey]) { best[bestKey] = stars; keep(best); }
+        card.innerHTML = ''; drawHud();
+        const msg = stars === items.length ? 'Flawless! Every answer on the first try.' : stars >= items.length - 2 ? 'Sharp! Just a bump or two.' : 'Round saved. The tricks get easier every time.';
+        const m = h('div', 'sp-mission'); m.innerHTML = `<div class="k">🏁 Round complete (+5 XP)</div><div class="t">⭐ ${stars} / ${items.length} on the first try</div><div class="ix-note">${msg}</div>`;
+        card.appendChild(m);
+        const row = h('div', 'ix-ctr'); row.appendChild(btn('Practice again 🏋️', () => run(practiceItems(), false), 'go')); row.appendChild(btn('Review the tricks 📘', () => setTab('learn'), 'ghost')); card.appendChild(row);
+      }
+      show();
+    }
+    function setTab(m) {
+      Array.prototype.forEach.call(bar.children, (b) => b.classList.toggle('on', b.getAttribute('data-m') === m));
+      if (m === 'learn') run(learnItems(), true); else run(practiceItems(), false);
+    }
+    [['learn', '📘 Learn the tricks'], ['practice', '🏋️ Practice']].forEach((m) => { const b = btn(m[1], () => setTab(m[0])); b.setAttribute('data-m', m[0]); bar.appendChild(b); });
+    setTab('learn');
+  }
+
+  w.ShapeLab = { guided, free, tricks };
+
 })(window);
