@@ -48,7 +48,7 @@
       <p class="lede">Your ship starts at the origin (0, 0). It always flies <b style="color:var(--cp-x)">across first</b>, then <b style="color:var(--cp-y)">${adv ? 'up or down' : 'up'}</b>. ${ROUND} missions, no timer.${adv ? '' : ' Switch to <b>Advanced</b> for negative numbers.'}</p>`;
     const wrap = h('div', 'sp-wrap');
     const board = h('div', 'sp-board');
-    const s = V.planeSVG([], { quad, n });
+    const s = V.planeSVG([], { quad, n, size: w.matchMedia && w.matchMedia('(min-width:900px)').matches ? 400 : 260 });
     const G = s.__geo;
     const fx = s.querySelector('.cp-pts');
     const trails = mk('g'); s.insertBefore(trails, fx);
@@ -70,7 +70,7 @@
     host.appendChild(wrap);
 
     let k = 0, stars = 0, streak = 0, tries = 0, cur = null, busy = false, aim = null, sx = 0, sy = 0, used = {};
-    const place = (gx, gy, rot) => ship.setAttribute('transform', `translate(${G.px(gx)} ${G.py(gy)}) rotate(${rot || 0}) scale(${G.c < 22 ? 0.85 : 1})`);
+    const place = (gx, gy, rot) => ship.setAttribute('transform', `translate(${G.px(gx)} ${G.py(gy)}) rotate(${rot || 0}) scale(${G.c < 22 ? 0.85 : G.S > 300 ? 1.25 : 1})`);
     const flame = (on) => ship.querySelector('.flame').setAttribute('visibility', on ? 'visible' : 'hidden');
 
     function newTarget() {

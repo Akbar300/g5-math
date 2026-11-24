@@ -37,7 +37,7 @@
     const lo = quad ? -n : 0;
     const wrap = h('div', 'sp-wrap');
     const board = h('div', 'sp-board sl-board');
-    const s = V.planeSVG([], { quad, n });
+    const s = V.planeSVG([], { quad, n, size: w.matchMedia && w.matchMedia('(min-width:900px)').matches ? 400 : 260 });
     const G = s.__geo;
     const fx = s.querySelector('.cp-pts');
     const cells = mk('g'); s.insertBefore(cells, s.querySelector('line'));
@@ -53,7 +53,7 @@
     host.appendChild(wrap);
 
     const clamp = (v) => Math.max(lo, Math.min(n, v));
-    const place = (gx, gy, rot) => ship.setAttribute('transform', `translate(${G.px(gx)} ${G.py(gy)}) rotate(${rot || 0}) scale(${G.c < 22 ? 0.85 : 1})`);
+    const place = (gx, gy, rot) => ship.setAttribute('transform', `translate(${G.px(gx)} ${G.py(gy)}) rotate(${rot || 0}) scale(${G.c < 22 ? 0.85 : G.S > 300 ? 1.25 : 1})`);
     const flame = (on) => ship.querySelector('.flame').setAttribute('visibility', on ? 'visible' : 'hidden');
     const snap = (e) => {
       const p = IX.svgPoint(s, e.clientX, e.clientY); if (!p) return null;
@@ -68,9 +68,23 @@
     B.dot = (p, cls) => { const c = mk('circle', { cx: G.px(p.x), cy: G.py(p.y), r: 4.5, class: 'cp-dot cp-pop' + (cls ? ' ' + cls : '') }); fx.appendChild(c); return c; };
     B.ring = (p) => { const c = mk('circle', { cx: G.px(p.x), cy: G.py(p.y), r: 9, class: 'sl-ring' }); marks.appendChild(c); return c; };
     B.ghost = (p) => fx.appendChild(mk('circle', { cx: G.px(p.x), cy: G.py(p.y), r: 9, class: 'cp-dot ghost' }));
+    /* Corner label: try the 4 spots around the dot (left/right x above/below) and take the one that stays on
+       the board and keeps off the axes and their tick numbers. The side away from the shape's centre wins ties. */
     B.vlabel = (p, c) => {
-      const right = p.x >= c.x, up = p.y >= c.y;
-      const t = mk('text', { x: G.px(p.x) + (right ? 7 : -7), y: G.py(p.y) + (up ? -8 : 15), class: 'sl-vl', 'text-anchor': right ? 'start' : 'end' }, [`(${sgn(p.x)}, ${sgn(p.y)})`]);
+      const S = G.S, txt = `(${sgn(p.x)}, ${sgn(p.y)})`, wd = txt.length * 6.4 + 2, X = G.px(p.x), Y = G.py(p.y);
+      const wantR = p.x >= c.x, wantUp = p.y >= c.y, tick = G.quad ? 22 : 22;
+      const hit = (r, q) => r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0;
+      const strips = [{ x0: G.ox - tick, x1: G.ox + 3, y0: -1e3, y1: 1e3 }, { x0: -1e3, x1: 1e3, y0: G.oy - 3, y1: G.oy + 19 }];
+      let bestScore = 1e9, bx = X + 7, by = Y - 8, ba = 'start';
+      [true, false].forEach((right) => [true, false].forEach((up) => {
+        const x = X + (right ? 7 : -7), y = Y + (up ? -8 : 15);
+        const r = { x0: right ? x : x - wd, x1: right ? x + wd : x, y0: y - 10, y1: y + 3 };
+        let sc = (right === wantR ? 0 : 1) + (up === wantUp ? 0 : 0.5);
+        if (r.x0 < 2 || r.x1 > S - 2 || r.y0 < 4 || r.y1 > S - 2) sc += 100;
+        strips.forEach((q) => { if (hit(r, q)) sc += 20; });
+        if (sc < bestScore) { bestScore = sc; bx = x; by = y; ba = right ? 'start' : 'end'; }
+      }));
+      const t = mk('text', { x: bx, y: by, class: 'sl-vl', 'text-anchor': ba }, [txt]);
       marks.appendChild(t); return t;
     };
     B.edge = (a, b, fresh) => {
