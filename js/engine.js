@@ -223,7 +223,8 @@
     const width = (widthEl && widthEl.clientWidth)
       ? Math.max(200, widthEl.clientWidth - 24)
       : Math.max(200, (stage ? stage.clientWidth : document.documentElement.clientWidth) - 48);
-    const chipMin = short ? 68 : (maxLen > 28 ? 200 : 140);
+    /* Long numbers (1600000, 25953) need a wider chip so the digits never wrap onto a second line. */
+    const chipMin = short ? Math.max(68, Math.ceil(maxLen * 15) + 34) : (maxLen > 28 ? 200 : 140);
     const maxPerRow = Math.max(1, Math.floor((width + 8) / (chipMin + 8)));
     let cols;
     if (!short && maxLen > 42) cols = 1;

@@ -161,7 +161,8 @@
     let cols;
     if (typeof digits === 'string') {
       const [a, b = ''] = digits.split('.');
-      const namesW = ['Hundreds', 'Tens', 'Ones'].slice(-a.length);
+      const PV = ['Ones', 'Tens', 'Hundreds', 'Thousands', 'Ten thous.', 'Hund. thous.', 'Millions'];
+      const namesW = PV.slice(0, a.length).reverse();
       const namesD = ['Tenths', 'Hundredths', 'Thousandths'].slice(0, b.length);
       cols = [];
       a.split('').forEach((ch, i) => cols.push({ h: namesW[i] || '', v: ch, side: 'w' }));
@@ -439,9 +440,171 @@
     return wrap(s);
   }
 
+
+  /* ---------- Unit 3 visuals ---------- */
+  const PVN = ['Ones', 'Tens', 'Hundreds', 'Thousands', 'Ten thous.', 'Hund. thous.', 'Millions'];
+  const INK_ON_LIGHT = '#1b2437';
+
+  /* Rounding rows: each number in place-value boxes, the rounding place in gold, the digit next door that
+     decides in peach, and the rounded result on the right. rows = [{ n: 387, place: 2 }] (place 0=ones, 1=tens, 2=hundreds). */
+  function roundRows(rows) {
+    const W = 340, bw = 50, gap = 6, rowH = 112;
+    const s = svg(W, rows.length * rowH + 6);
+    s.setAttribute('width', '100%'); s.removeAttribute('height'); s.setAttribute('style', 'width:100%;max-width:460px');
+    rows.forEach((r, ri) => {
+      const str = String(r.n), n = str.length, y0 = ri * rowH + 4;
+      const p = r.place, nextD = p > 0 ? +str[n - p] : 0;
+      const up = nextD >= 5;
+      const base = Math.pow(10, p);
+      const rounded = (Math.floor(r.n / base) + (up ? 1 : 0)) * base;
+      str.split('').forEach((ch, i) => {
+        const pos = n - 1 - i; /* 0 = ones */
+        const x = 8 + i * (bw + gap);
+        const isRound = pos === p, isNext = pos === p - 1;
+        const fill = isRound ? '#ffd45c' : (isNext ? '#ffc4b0' : '#eef4ff');
+        s.appendChild(el('text', { x: x + bw / 2, y: y0 + 12, 'text-anchor': 'middle', 'font-size': '11', 'font-weight': '800', fill: 'var(--muted)' }, [PVN[pos] || '']));
+        s.appendChild(el('rect', { x, y: y0 + 18, width: bw, height: 48, rx: 10, fill, stroke: 'var(--ink)', 'stroke-width': isRound || isNext ? '3' : '2' }));
+        s.appendChild(el('text', { x: x + bw / 2, y: y0 + 51, 'text-anchor': 'middle', 'font-size': '28', 'font-weight': '800', fill: INK_ON_LIGHT }, [ch]));
+      });
+      const ax = 8 + n * (bw + gap) + 2;
+      s.appendChild(el('path', { d: `M ${ax} ${y0 + 42} L ${ax + 22} ${y0 + 42} M ${ax + 14} ${y0 + 34} L ${ax + 22} ${y0 + 42} L ${ax + 14} ${y0 + 50}`, fill: 'none', stroke: 'var(--ink)', 'stroke-width': '3', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+      s.appendChild(el('text', { x: ax + 30, y: y0 + 52, 'font-size': '30', 'font-weight': '800', fill: 'var(--ink)' }, [String(rounded)]));
+      const cap = `${PVN[p]} place · next digit ${nextD} → round ${up ? 'up' : 'down'}`;
+      s.appendChild(el('text', { x: 8, y: y0 + 90, 'font-size': '13.5', 'font-weight': '800', fill: 'var(--ink)' }, [cap]));
+    });
+    return wrap(s);
+  }
+
+  /* Column multiplication, top to bottom, with the carries, the placeholder zeros and the added total. */
+  function stackMul(a, b) {
+    const A = String(a), B = String(b), prod = String(a * b);
+    const ad = A.split('').reverse().map(Number);
+    const bd = B.split('').reverse().map(Number);
+    const rows = bd.map((d, k) => {
+      const carries = {}; let c = 0;
+      ad.forEach((x, i) => { const t = x * d + c; c = Math.floor(t / 10); if (c > 0 && i + 1 < ad.length) carries[i + 1] = c; });
+      return { d, k, str: String(a * d), carries };
+    });
+    const R = rows.length;
+    const L = Math.max(prod.length, A.length + 1, ...rows.map((r) => r.str.length + r.k));
+    const colW = 44, padL = 34, annoW = 128;
+    const W = padL + L * colW + 10 + annoW;
+    const cx = (c) => padL + (L - 1 - c) * colW + colW / 2;
+    const tints = ['#0fb39c', '#2f80ed', '#6c4ee0'].map(themeFill);
+    const carryH = 22, numH = 42, rowH = 42, barGap = 6;
+    const yCarry0 = 6;
+    const yA = yCarry0 + R * carryH;
+    const yB = yA + numH;
+    const yBar1 = yB + numH + barGap - 2;
+    const yP0 = yBar1 + barGap;
+    const yBar2 = yP0 + R * rowH + barGap - 2;
+    const yTot = yBar2 + barGap;
+    const H = yTot + numH + 8;
+    const s = svg(W, H);
+    s.setAttribute('width', '100%'); s.removeAttribute('height'); s.setAttribute('style', 'width:100%;max-width:470px');
+    const digit = (x, y, ch, o) => s.appendChild(el('text', Object.assign({ x, y, 'text-anchor': 'middle', 'font-family': 'var(--mono)', 'font-size': '28', 'font-weight': '800', fill: 'var(--ink)' }, o || {}), [ch]));
+    /* carries (one small line per row, same colour as that row) */
+    rows.forEach((r, k) => {
+      const y = yCarry0 + (R - 1 - k) * carryH;
+      Object.keys(r.carries).forEach((c) => {
+        const x = cx(+c);
+        s.appendChild(el('rect', { x: x - 11, y: y + 2, width: 22, height: 18, rx: 9, fill: tints[k % 3], 'fill-opacity': '0.35', stroke: tints[k % 3], 'stroke-width': '1.5' }));
+        digit(x, y + 16, String(r.carries[c]), { 'font-size': '14' });
+      });
+    });
+    ad.forEach((d, i) => digit(cx(i), yA + 32, String(d)));
+    bd.forEach((d, i) => digit(cx(i), yB + 32, String(d)));
+    s.appendChild(el('text', { x: padL - 10, y: yB + 32, 'text-anchor': 'middle', 'font-size': '26', 'font-weight': '800', fill: 'var(--ink)' }, ['×']));
+    const bar = (y) => s.appendChild(el('line', { x1: padL - 6, x2: padL + L * colW, y1: y, y2: y, stroke: 'var(--ink)', 'stroke-width': '3.5', 'stroke-linecap': 'round' }));
+    bar(yBar1);
+    rows.forEach((r, k) => {
+      const y = yP0 + k * rowH;
+      s.appendChild(el('rect', { x: padL - 2, y: y + 2, width: L * colW + 4, height: rowH - 4, rx: 10, fill: tints[k % 3], 'fill-opacity': '0.18' }));
+      for (let z = 0; z < r.k; z++) {
+        s.appendChild(el('rect', { x: cx(z) - 17, y: y + 6, width: 34, height: rowH - 12, rx: 8, fill: 'none', stroke: 'var(--viz-coral)', 'stroke-width': '2.5', 'stroke-dasharray': '5 4' }));
+        digit(cx(z), y + 31, '0', { fill: 'var(--viz-coral)' });
+      }
+      r.str.split('').reverse().forEach((ch, i) => digit(cx(r.k + i), y + 31, ch));
+      const an = `${A} × ${r.d}${'0'.repeat(r.k)}`;
+      s.appendChild(el('text', { x: padL + L * colW + 12, y: y + 20, 'font-size': '15', 'font-weight': '800', fill: 'var(--ink)' }, ['← ' + an]));
+      if (r.k > 0 && k === 1) s.appendChild(el('text', { x: padL + L * colW + 12, y: y + 36, 'font-size': '11.5', 'font-weight': '800', fill: 'var(--viz-coral)' }, ['0 holds the ones place']));
+    });
+    s.appendChild(el('text', { x: padL - 10, y: yP0 + (R - 1) * rowH + 31, 'text-anchor': 'middle', 'font-size': '26', 'font-weight': '800', fill: 'var(--ink)' }, ['+']));
+    bar(yBar2);
+    s.appendChild(el('rect', { x: padL - 2, y: yTot + 2, width: L * colW + 4, height: numH - 2, rx: 10, fill: themeFill('#ffc43d'), 'fill-opacity': '0.4', stroke: 'var(--ink)', 'stroke-width': '2.5' }));
+    prod.split('').reverse().forEach((ch, i) => digit(cx(i), yTot + 33, ch));
+    return wrap(s);
+  }
+
+  /* Box (area) model split by place value, with each partial product in its own box. */
+  function areaModel(a, b) {
+    const parts = (n) => String(n).split('').map((ch, i, arr) => +ch * Math.pow(10, arr.length - 1 - i)).filter((v) => v > 0);
+    const pa = parts(a), pb = parts(b);
+    const cw = pa.map((v) => 64 + 130 * (v / a)), rh = pb.map((v) => 50 + 40 * (v / b));
+    const padL = 56, padT = 36, sumW = cw.reduce((x, y) => x + y, 0), sumH = rh.reduce((x, y) => x + y, 0);
+    const W = padL + sumW + 10, H = padT + sumH + 36;
+    const s = svg(W, H);
+    s.setAttribute('width', '100%'); s.removeAttribute('height'); s.setAttribute('style', 'width:100%;max-width:470px');
+    const cols = ['#0fb39c', '#2f80ed', '#6c4ee0', '#ff5a36', '#ffc43d', '#ff6b9a'].map(themeFill);
+    let x = padL; const sums = [];
+    pa.forEach((va, i) => {
+      s.appendChild(el('text', { x: x + cw[i] / 2, y: padT - 12, 'text-anchor': 'middle', 'font-size': '17', 'font-weight': '800', fill: 'var(--ink)' }, [String(va)]));
+      let y = padT;
+      pb.forEach((vb, j) => {
+        const col = cols[(j * pa.length + i) % cols.length];
+        s.appendChild(el('rect', { x, y, width: cw[i], height: rh[j], fill: col, 'fill-opacity': '0.38', stroke: 'var(--ink)', 'stroke-width': '2.5', rx: 6 }));
+        s.appendChild(el('text', { x: x + cw[i] / 2, y: y + rh[j] / 2 + 2, 'text-anchor': 'middle', 'font-size': '20', 'font-weight': '800', fill: 'var(--ink)' }, [String(va * vb)]));
+        s.appendChild(el('text', { x: x + cw[i] / 2, y: y + rh[j] / 2 + 19, 'text-anchor': 'middle', 'font-size': '11.5', 'font-weight': '800', fill: 'var(--muted)' }, [va + ' × ' + vb]));
+        sums.push(va * vb);
+        y += rh[j];
+      });
+      x += cw[i];
+    });
+    let y = padT;
+    pb.forEach((vb, j) => {
+      s.appendChild(el('text', { x: padL - 10, y: y + rh[j] / 2 + 6, 'text-anchor': 'end', 'font-size': '17', 'font-weight': '800', fill: 'var(--ink)' }, [String(vb)]));
+      y += rh[j];
+    });
+    s.appendChild(el('text', { x: W / 2, y: H - 10, 'text-anchor': 'middle', 'font-size': '14', 'font-weight': '800', fill: 'var(--ink)' }, [sums.join(' + ') + ' = ' + a * b]));
+    return wrap(s);
+  }
+
+  /* Every perfect square from 1² to max², drawn to scale as an n-by-n grid of unit squares. */
+  function squaresGallery(max, { highlight = [] } = {}) {
+    max = max || 20;
+    const GROUPS = ['#0fb39c', '#2f80ed', '#6c4ee0', '#ff5a36'];
+    const wrapEl = document.createElement('div');
+    wrapEl.className = 'viz viz-free sq-gallery';
+    for (let n = 1; n <= max; n++) {
+      const col = GROUPS[Math.min(3, Math.floor((n - 1) / 5))];
+      const u = 4, side = n * u, box = max * u;
+      const t = document.createElement('div');
+      t.className = 'sq-tile' + (n <= 12 ? ' know' : '') + (highlight.indexOf(n) >= 0 ? ' hl' : '');
+      t.style.setProperty('--sq', themeFill(col));
+      const sv = svg(box + 4, box + 4);
+      sv.setAttribute('class', 'sq-art'); sv.setAttribute('aria-hidden', 'true');
+      sv.removeAttribute('width'); sv.removeAttribute('height');
+      let d = '';
+      const o = 2 + (box - side) / 2; /* centre the square in its tile */
+      for (let k = 1; k < n; k++) d += `M ${o + k * u} ${o} V ${o + side} M ${o} ${o + k * u} H ${o + side} `;
+      sv.appendChild(el('rect', { x: o, y: o, width: side, height: side, fill: 'var(--sq)', 'fill-opacity': '0.5', stroke: 'var(--ink)', 'stroke-width': '1.6' }));
+      if (d) sv.appendChild(el('path', { d, stroke: 'var(--ink)', 'stroke-opacity': '0.35', 'stroke-width': '0.6', fill: 'none' }));
+      t.appendChild(sv);
+      const lab = document.createElement('div'); lab.className = 'sq-lab';
+      lab.innerHTML = `<span class="sq-ex">${n}<sup>2</sup></span><b class="sq-v">${n * n}</b><span class="sq-mul">${n} × ${n}</span>`;
+      t.appendChild(lab);
+      wrapEl.appendChild(t);
+    }
+    const cap = document.createElement('div');
+    cap.className = 'sq-cap';
+    cap.innerHTML = '<b>★</b> Know 1² to 12² cold. Squares up to ' + max + '² = ' + max * max + ' are drawn to scale, so you can see how fast they grow.';
+    wrapEl.appendChild(cap);
+    return wrapEl.outerHTML;
+  }
+
   w.V = {
     themeFill, hundredGrid, fractionBar, numberLine, placeValue, linePlot, stemLeaf, pie, barGraph, plane, planeSVG, planeGeo, guidePath, angle,
-    areaRect, metricLadder, cycleSteps,
+    areaRect, metricLadder, cycleSteps, roundRows, stackMul, areaModel, squaresGallery,
     fr(n, d) { return `<span class="frac"><span class="n">${n}</span><span class="d">${d}</span></span>`; },
     mixed(w, n, d) { return `<span class="mix">${w}${this.fr(n, d)}</span>`; }
   };

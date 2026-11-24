@@ -265,8 +265,8 @@
     /* ---------- Unit 3 ---------- */
     u3L1: {
       'Your safety net': {
-        viz: () => V.placeValue('4785'),
-        steps: ['Round each number to something easy.', 'Compute the estimate first: 4800 ÷ 60 = 80.', 'After the exact answer, check: is it close to 80?'],
+        viz: () => V.roundRows([{ n: 387, place: 2 }, { n: 42, place: 1 }]),
+        steps: ['Pick the place you are rounding to. Look at the digit just to its right.', '5 or more: round up. 4 or less: stay. 387 → 400 and 42 → 40.', 'Compute the estimate first: 400 × 40 = 16000. After the exact answer (16254), check: is it close?'],
         trap: 'An estimate that is 10 times too big or too small usually means a place-value slip, not a rounding slip.',
         aap: 'AAP: estimate 39 × 21 two ways (40 × 20 = 800, and 40 × 21 = 840) and say which is closer before you multiply exactly.',
         tries: [
@@ -286,24 +286,34 @@
       }
     },
     u3L2: {
-      'Partial products': {
-        viz: () => V.areaRect(23, 15, { unit: '' }),
-        steps: ['Think of 23 × 15 as an area: (20 + 3) × (10 + 5).', 'Four partial products: 20×10, 20×5, 3×10, 3×5.', 'Add them: 200 + 100 + 30 + 15 = 345.'],
-        trap: 'A missing place-value zero on a partial-product row (writing 20 × 5 as 10) throws the sum off by a factor of 10.',
-        aap: 'AAP: 123 × 45 has six partial products if you split all place values. Estimate first: 120 × 50 = 6,000.',
+      'Multiply top to bottom': {
+        viz: () => V.stackMul(246, 35),
+        steps: ['Estimate first: 250 × 35 is about 8,750.', 'Ones digit: 246 × 5 = 1,230. Carry as you go (the small circles).', 'Tens digit: write a 0 in the ones place first, then 246 × 3 = 738, so the row reads 7,380.', 'Add the two rows: 1,230 + 7,380 = 8,610. It is close to the estimate ✓.'],
+        trap: 'Forgetting the placeholder zero on the tens row. 246 × 3 tens = 7,380, not 738.',
+        aap: 'Stretch: 482 × 316 has three rows. The tens row has one placeholder zero and the hundreds row has two. Estimate first: 500 × 300 = 150,000.',
         tries: [
-          () => num('What is 12 × 15? Use partial products if you want.', 180, '10×15 = 150, 2×15 = 30, total 180.'),
-          () => mc('In 23 × 15, what is the partial product 20 × 10?', '200', [['20', 'Keep the place value: 20 tens is 200.'], ['23', 'That is a factor, not the partial product.'], ['30', 'That is 3 × 10.']], '20 × 10 = 200.')
+          () => num('What is 24 × 13?', 312, '24 × 3 = 72; 24 × 10 = 240; 72 + 240 = 312.'),
+          () => mc('In 246 × 35, what does the 7,380 row stand for?', '246 × 30', [['246 × 3', 'The 3 is in the tens place, so it is 30. That is what the placeholder zero is for.'], ['246 × 5', 'That is the first row, 1,230.'], ['246 + 35', 'This is multiplication, not addition.']], '3 tens is 30, so the row is 246 × 30 = 7,380.')
+        ]
+      },
+      'Why it works: the box picture': {
+        viz: () => V.areaModel(23, 15),
+        steps: ['Split each number by place value: 23 = 20 + 3 and 15 = 10 + 5.', 'Each box is one partial product: 20 × 10, 20 × 5, 3 × 10 and 3 × 5.', 'Add the boxes: 200 + 100 + 30 + 15 = 345.', 'The top-to-bottom rows are the same boxes added in two groups: 23 × 5 = 100 + 15 = 115 and 23 × 10 = 200 + 30 = 230.'],
+        trap: 'Losing a place value in a box: 20 × 10 is 200, not 20.',
+        aap: 'Stretch: split 246 × 35 into six boxes (200, 40, 6 by 30, 5). The six boxes add up to the same 8,610 as the two rows.',
+        tries: [
+          () => num('What is 12 × 15? Use either way.', 180, '12 × 5 = 60; 12 × 10 = 120; total 180.'),
+          () => mc('In 23 × 15, what is the box 20 × 10?', '200', [['20', 'Keep the place value: 20 tens is 200.'], ['23', 'That is a factor, not a box.'], ['30', 'That is 3 × 10.']], '20 × 10 = 200.')
         ]
       },
       'Try one': {
-        viz: () => V.areaRect(14, 12),
-        steps: ['Estimate: 14 × 12 is near 10 × 12 = 120, or 15 × 12 = 180.', 'Partial products: 10×12 + 4×12 = 120 + 48 = 168.', 'Check: 14 × 10 + 14 × 2 = 140 + 28 = 168.'],
-        trap: 'Adding the factors (14 + 12 = 26) is not multiplication.',
-        aap: 'AAP: 36 × 25. Use ×100 ÷ 4: 36 × 100 = 3,600, then 3,600 ÷ 4 = 900.',
+        viz: () => V.stackMul(318, 24),
+        steps: ['Estimate: 300 × 25 = 7,500.', 'Ones digit: 318 × 4 = 1,272.', 'Tens digit: write a 0 first, then 318 × 2 = 636, so the row reads 6,360.', 'Add: 1,272 + 6,360 = 7,632. Close to 7,500 ✓.'],
+        trap: 'Adding the factors (318 + 24) is not multiplication.',
+        aap: 'Stretch: 36 × 25. Use × 100 ÷ 4: 36 × 100 = 3,600, then 3,600 ÷ 4 = 900.',
         tries: [
-          () => num('What is 14 × 12?', 168, '14 × 10 = 140, 14 × 2 = 28, total 168.'),
-          () => num('What is 15 × 11?', 165, '15 × 10 = 150, 15 × 1 = 15, total 165.')
+          () => num('What is 14 × 12?', 168, '14 × 2 = 28; 14 × 10 = 140; total 168.'),
+          () => num('What is 15 × 11?', 165, '15 × 1 = 15; 15 × 10 = 150; total 165.')
         ]
       }
     },
@@ -363,10 +373,10 @@
         ]
       },
       'Perfect squares': {
-        viz: () => V.areaRect(6, 6),
-        steps: ['A perfect square is a whole number times itself: 6 × 6 = 36.', 'You can picture it as a square array.', 'Learn the squares through 12 × 12 (144) and 15 × 15 (225).'],
+        viz: () => V.squaresGallery(20),
+        steps: ['A perfect square is a whole number times itself: 6 × 6 = 36, written 6².', 'Picture n rows of n. The tiles above are drawn to scale, so you can see each square grow.', 'Each square is the last one plus the next odd number: 6² + 13 = 49 = 7².', 'Squares only end in 0, 1, 4, 5, 6 or 9. A number ending in 2, 3, 7 or 8 is never a perfect square.', 'Know 1² to 12² cold. Recognize the rest up to 20² = 400.'],
         trap: '8² is 64, not 16. Square means the number times itself, not twice the number.',
-        aap: 'Stretch: 11² = 121 and 12² = 144. Learn 15² = 225 and 25² = 625 too.',
+        aap: 'Stretch: is 324 a perfect square? 18 × 18 = 324, yes. Is 250? 15² = 225 and 16² = 256, so 250 sits between two squares and is not one. Square root undoes squaring: √144 = 12.',
         tries: [
           () => num('What is 9 squared (9 × 9)?', 81, '9 × 9 = 81.'),
           () => mc('Which is a perfect square?', '49', [['48', '48 is 6 × 8, not a number times itself.'], ['18', '18 is 9 × 2, not a number times itself. The squares go 16, 25, 36.'], ['99', '9 × 11, not a square.']], '7 × 7 = 49.')
@@ -384,17 +394,55 @@
       }
     },
     u3B1: {
-      'Powers grow fast': {
-        viz: () => V.cycleSteps(['2⁴ = 16', '2⁵ = 32', '2⁶ = 64']),
-        steps: ['Each time the exponent goes up by 1, the value is multiplied by the base again.', '2⁴ = 16, 2⁵ = 32, 2⁶ = 64, 2⁷ = 128, 2⁸ = 256.', 'Swapping base and exponent changes the value: 3⁵ = 243 but 5³ = 125.'],
-        trap: 'Thinking a power is just a product: 3⁵ is not 15.',
+      'Three digits by three digits': {
+        viz: () => V.stackMul(482, 316),
+        steps: ['Estimate first: 500 × 300 = 150,000.', 'Ones: 482 × 6 = 2,892. Tens: write one 0, then 482 × 1 = 482, so 4,820. Hundreds: write two 0s, then 482 × 3 = 1,446, so 144,600.', 'Add the three rows: 2,892 + 4,820 + 144,600 = 152,312. Close to the estimate ✓.'],
+        trap: 'A hundreds row needs two placeholder zeros. Writing 1,446 instead of 144,600 makes the answer 100 times too small.',
         tries: [
-          () => num('What is 2⁸?', 256, '2 × 2 = 4, 8, 16, 32, 64, 128, 256.'),
-          () => num('What is 2³ + 3²?', 17, '2³ = 8 and 3² = 9. 8 + 9 = 17.')
+          () => num('What is 123 × 211?', 25953, '123 × 1 = 123; 123 × 10 = 1230; 123 × 200 = 24600; total 25953.'),
+          () => mc('Best estimate for 389 × 412?', '160000', [['16000', 'Count the zeros: 400 × 400 = 160000.'], ['1600000', 'Count the zeros: 400 × 400 = 160000.'], ['800', 'That is about the sum.']], '400 × 400 = 160000.')
+        ]
+      },
+      'Remainder as a decimal': {
+        viz: () => V.cycleSteps(['357 ÷ 8', '44 R5', 'bring down 0s', '44.625']),
+        steps: ['357 ÷ 8 = 44 with 5 left over.', 'Put a decimal point after the 44 and a 0 after 357. Now 50 ÷ 8 = 6 R2.', 'Bring down another 0: 20 ÷ 8 = 2 R4. Again: 40 ÷ 8 = 5, nothing left.', 'So 357 ÷ 8 = 44.625.'],
+        trap: 'Writing 44.5 for 44 R5. The 5 left over is 5 whole units still to divide, not 5 tenths.',
+        tries: [
+          () => num('Find 7 ÷ 4 as a decimal.', 1.75, '7 ÷ 4 = 1 R3. 30 ÷ 4 = 7 R2, then 20 ÷ 4 = 5. So 1.75.'),
+          () => num('Find 18 ÷ 5 as a decimal.', 3.6, '18 ÷ 5 = 3 R3. 30 ÷ 5 = 6. So 3.6.')
+        ]
+      }
+    },
+    u3B2: {
+      'Square roots undo squaring': {
+        viz: () => V.squaresGallery(20, { highlight: [15] }),
+        steps: ['Squaring multiplies a number by itself: 15² = 225.', 'A square root goes the other way: √225 = 15.', 'Find the number in the list, then read its root: 289 → 17, 361 → 19.'],
+        trap: '√49 is 7, not 24.5. A square root is not half.',
+        tries: [
+          () => num('What is √81?', 9, '9 × 9 = 81.'),
+          () => num('What is √324?', 18, '18 × 18 = 324.')
+        ]
+      },
+      'Is it a perfect square?': {
+        viz: () => V.cycleSteps(['12² = 144', '150', '13² = 169']),
+        steps: ['Check the last digit: a square never ends in 2, 3, 7 or 8.', 'Then find its neighbors in the list: 144 < 150 < 169.', 'If it falls strictly between two squares, it is not a perfect square.'],
+        trap: 'Ending in 5 does not make it a square. 65 ends in 5, but 8² = 64 and 9² = 81.',
+        tries: [
+          () => mc('Is 196 a perfect square?', 'Yes, 14 × 14', [['No, it ends in 6', 'Squares can end in 6 (16, 36). 14 × 14 = 196.'], ['No, 196 is even', 'Even squares are common: 4, 16, 36.'], ['Yes, 13 × 15', '13 × 15 = 195, which is one less.']], '14 × 14 = 196.')
+        ]
+      }
+    },
+    u3B3: {
+      'Powers come right after parentheses': {
+        viz: () => V.cycleSteps(['( )', 'powers', '× ÷', '+ −']),
+        steps: ['Parentheses first.', 'Then powers: 2² = 4.', 'Then × and ÷ from left to right: 4 × 5 = 20.', 'Last + and − from left to right: 3 + 20 = 23.'],
+        trap: 'Doing 3 + 2 first. Powers and multiplication beat addition, so 3 + 2² × 5 is 23, not 125.',
+        tries: [
+          () => num('What is 4 + 3² × 2?', 22, '3² = 9; 9 × 2 = 18; 4 + 18 = 22.'),
+          () => num('What is (2 + 3)² − 5?', 20, '2 + 3 = 5; 5² = 25; 25 − 5 = 20.')
         ]
       }
     }
-
     ,
 
     /* ---------- Unit 4 ---------- */

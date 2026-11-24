@@ -8,7 +8,8 @@ var lessons = [
   {t:'Compatible numbers for division', h:'<p>For division, pick numbers that divide nicely, not just rounded ones.</p><div class="big">3196 ÷ 38 ≈ 3200 ÷ 40 = 80</div><p>The exact answer is 84 r4, close to 80 ✓.</p>', trap:'Skipping the estimate. Most "silly mistakes" (a missing zero, a place-value slip) get caught here.', tr:mc('Which is the best estimate for 612 × 29?', '18000', [['1800', 'Count zeros: 600 × 30 = 18000.'], ['180000', 'Count zeros: 600 × 30 = 18000.'], ['641', 'That is about the sum.']], '600 × 30 = 18000.')}
  ]},
  {id:'u3L2', name:'Multiply big numbers', icon:'✖️', cards:[
-  {t:'Partial products', h:'<div class="big">246 × 35</div>', steps:['<p>246 × <b>5</b> = 1230</p>', '<p>246 × <b>30</b> = 7380 &nbsp;(not 738! the 3 is 3 tens)</p>', '<p>1230 + 7380 = <b>8610</b>. Estimate: 250 × 35 ≈ 8750 ✓</p>'], trap:'Forgetting the placeholder zero on the tens row. 246 × 3 tens = 7380.'},
+  {t:'Multiply top to bottom', h:'<div class="big">246 × 35</div><p>Multiply by the ones digit first. Then put a <b>0</b> in the ones place and multiply by the tens digit. Add the two rows.</p>', trap:'Forgetting the placeholder zero on the tens row. 246 × 3 tens = 7380, not 738.'},
+  {t:'Why it works: the box picture', h:'<p>The rows you write are the same pieces as an area picture, added in two groups.</p>'},
   {t:'Try one', h:'<p>Show your work on paper, then type the answer.</p>', tr:{type:'num', q:'Find 318 × 24. (Estimate first: about 300 × 25.)', a:7632, why:'318 × 4 = 1272; 318 × 20 = 6360; 1272 + 6360 = 7632. Estimate 7500 ✓.'}}
  ]},
  {id:'u3L3', name:'Divide by 2 digits', icon:'➗', cards:[
@@ -27,7 +28,7 @@ var lessons = [
  ]},
  {id:'u3L6', name:'Exponents', icon:'⚡', cards:[
   {t:'A shortcut for repeated multiplication', h:'<div class="big">10 × 10 × 10 = 10<sup>3</sup> = 1000</div><p>The exponent counts how many times the base is multiplied. 10<sup>3</sup> has 3 zeros.</p>', trap:'2<sup>3</sup> is not 2 × 3 = 6. It is three factors of 2.'},
-  {t:'Perfect squares', h:'<p>7<sup>2</sup> = 7 × 7 = 49. Picture 7 rows of 7: a perfect square shape.</p><p>Know 1<sup>2</sup> through 12<sup>2</sup>: they show up all through math.</p>', tr:{type:'num', q:'What is 6<sup>2</sup>?', a:36, why:'6 × 6 = 36.'}},
+  {t:'Perfect squares', h:'<p>7<sup>2</sup> = 7 × 7 = 49. Picture 7 rows of 7: a perfect square shape.</p><p>Know 1<sup>2</sup> through 12<sup>2</sup> cold, and recognize the squares up to 20<sup>2</sup> = 400.</p>', tr:{type:'num', q:'What is 6<sup>2</sup>?', a:36, why:'6 × 6 = 36.'}},
   {t:'Powers of 10: count the zeros', h:'<p>Multiplying by 10, 100 and 1000 is the same as multiplying by 10<sup>1</sup>, 10<sup>2</sup> and 10<sup>3</sup>.</p>' + L.tbl(['Power','Means','Value'], [['10<sup>2</sup>','10 × 10','100'],['10<sup>3</sup>','10 × 10 × 10','1000'],['10<sup>4</sup>','10 × 10 × 10 × 10','10000']]), key:'The exponent on 10 tells you how many zeros the answer has.'}
  ]}
 ];
@@ -66,33 +67,60 @@ var bg = {
   }}
 };
 var bgAdv = {
-  big: {name:'Big powers', f:function(lv){
-    var pick = L.ri(0, 2), b, e;
-    if (pick === 0) { b = 2; e = L.ri(5, 9); }
-    else if (pick === 1) { b = L.ri(3, 5); e = L.ri(3, 5); }
-    else { b = 10; e = L.ri(5, 7); }
-    var v = Math.pow(b, e);
-    return {type:'num', q:'What is ' + b + '<sup>' + e + '</sup>?', a:v, why:Array(e).fill(b).join(' × ') + ' = ' + v + '.'};
+  big3: {name:'Three-digit multiplication', f:function(lv){
+    var a = L.ri(112, 489), b = L.ri(112, 389);
+    var p1 = a * (b % 10), p2 = a * (Math.floor(b / 10) % 10) * 10, p3 = a * Math.floor(b / 100) * 100;
+    var est = (Math.round(a / 100) * 100) * (Math.round(b / 100) * 100);
+    return {type:'num', q:'Find <b>' + a + ' × ' + b + '</b>. (Estimate first: about ' + est + '.)', a:a * b, why:a + ' × ' + (b % 10) + ' = ' + p1 + '; ' + a + ' × ' + (Math.floor(b / 10) % 10 * 10) + ' = ' + p2 + '; ' + a + ' × ' + (Math.floor(b / 100) * 100) + ' = ' + p3 + '. Total ' + (a * b) + '.'};
   }},
-  cmp: {name:'Compare powers', f:function(lv){
-    var b, e; do { b = L.ri(2, 5); e = L.ri(2, 4); } while (b === e || Math.pow(b, e) === Math.pow(e, b));
-    var x = Math.pow(b, e), y = Math.pow(e, b), right = x > y ? 0 : 1;
-    return mc('Which is greater: <b>' + b + '<sup>' + e + '</sup></b> or <b>' + e + '<sup>' + b + '</sup></b>?', x > y ? b + '<sup>' + e + '</sup>' : e + '<sup>' + b + '</sup>', [[x > y ? e + '<sup>' + b + '</sup>' : b + '<sup>' + e + '</sup>', 'Work both out: ' + b + '<sup>' + e + '</sup> = ' + x + ' and ' + e + '<sup>' + b + '</sup> = ' + y + '.'], ['They are equal', 'Work both out: ' + x + ' and ' + y + '.']], b + '<sup>' + e + '</sup> = ' + x + ' and ' + e + '<sup>' + b + '</sup> = ' + y + '. Swapping the base and exponent changes the value.');
+  div5: {name:'Divide a five-digit number', f:function(lv){
+    var d = L.ri(12, 48), lo = Math.ceil(10000 / d), hi = Math.min(999, Math.floor(99999 / d)), q = L.ri(lo, hi), n = d * q;
+    return {type:'num', q:'Find <b>' + n + ' ÷ ' + d + '</b>.', a:q, why:d + ' × ' + q + ' = ' + n + '. Check by multiplying back.'};
   }},
-  sum: {name:'Powers in expressions', f:function(lv){
-    var a = L.ri(2, 4), b = L.ri(2, 3), c = L.ri(2, 5), d = 2;
-    var v = Math.pow(a, b) + Math.pow(c, d);
-    return {type:'num', q:'What is ' + a + '<sup>' + b + '</sup> + ' + c + '<sup>' + d + '</sup>?', a:v, why:a + '<sup>' + b + '</sup> = ' + Math.pow(a, b) + ' and ' + c + '<sup>' + d + '</sup> = ' + Math.pow(c, d) + '. ' + Math.pow(a, b) + ' + ' + Math.pow(c, d) + ' = ' + v + '.'};
+  decq: {name:'Remainder as a decimal', f:function(lv){
+    var d = L.pick([2, 4, 5, 8, 20, 25]), n;
+    do { n = L.ri(101, 999); } while (n % d === 0);
+    var v = Math.round(n / d * 1000) / 1000;
+    return {type:'num', q:'Find <b>' + n + ' ÷ ' + d + '</b> as a decimal.', a:v, why:n + ' ÷ ' + d + ' = ' + Math.floor(n / d) + ' R' + (n % d) + '. Put a decimal point after the quotient, add zeros to the dividend, and keep dividing: ' + L.num(v) + '.'};
+  }},
+  sq20: {name:'Squares up to 20²', f:function(lv){
+    var n = L.ri(13, 20);
+    return {type:'num', q:'What is ' + n + '<sup>2</sup>?', a:n * n, why:n + ' × ' + n + ' = ' + (n * n) + '.'};
+  }},
+  sqroot: {name:'Square roots', f:function(lv){
+    var n = L.ri(6, 20), v = n * n;
+    return mc('What is √' + v + '?', String(n), [[String(Math.round(v / 2)), 'That is half of ' + v + '. A square root is the number that multiplies by itself to make ' + v + '.'], [String(n + 1), (n + 1) + ' × ' + (n + 1) + ' = ' + ((n + 1) * (n + 1)) + ', which is too big.'], [String(n - 1), (n - 1) + ' × ' + (n - 1) + ' = ' + ((n - 1) * (n - 1)) + ', which is too small.']], n + ' × ' + n + ' = ' + v + ', so √' + v + ' = ' + n + '.');
+  }},
+  between: {name:'Between two squares', f:function(lv){
+    var n = L.ri(7, 19), lo = n * n, hi = (n + 1) * (n + 1), x = L.ri(lo + 2, hi - 2);
+    return mc('Which two perfect squares is <b>' + x + '</b> between?', lo + ' and ' + hi, [[((n - 1) * (n - 1)) + ' and ' + lo, x + ' is bigger than ' + lo + ', so it is past this pair.'], [hi + ' and ' + ((n + 2) * (n + 2)), x + ' is smaller than ' + hi + '.'], [lo + ' and ' + ((n + 2) * (n + 2)), 'Those are not neighbors: ' + hi + ' sits in between them.']], n + '<sup>2</sup> = ' + lo + ' and ' + (n + 1) + '<sup>2</sup> = ' + hi + '. ' + x + ' is between them, so it is not a perfect square.');
+  }},
+  oop: {name:'Order of operations with powers', f:function(lv){
+    var t = L.ri(0, 2), a, b, c, d, v, q, why;
+    if (t === 0) { a = L.ri(2, 9); b = L.ri(2, 5); c = L.ri(2, 6); v = a + b * b * c; q = a + ' + ' + b + '<sup>2</sup> × ' + c; why = b + '<sup>2</sup> = ' + (b * b) + ' first. Then ' + (b * b) + ' × ' + c + ' = ' + (b * b * c) + '. Then ' + a + ' + ' + (b * b * c) + ' = ' + v + '.'; }
+    else if (t === 1) { a = L.ri(1, 5); b = L.ri(1, 4); c = L.ri(2, 9); v = (a + b) * (a + b) - c; q = '(' + a + ' + ' + b + ')<sup>2</sup> − ' + c; why = 'Parentheses first: ' + a + ' + ' + b + ' = ' + (a + b) + '. Then ' + (a + b) + '<sup>2</sup> = ' + ((a + b) * (a + b)) + '. Then subtract ' + c + ': ' + v + '.'; }
+    else { b = L.ri(2, 3); c = L.ri(2, 6); d = L.ri(2, 5); v = c * Math.pow(b, 3) - d; q = c + ' × ' + b + '<sup>3</sup> − ' + d; why = b + '<sup>3</sup> = ' + Math.pow(b, 3) + ' first. Then ' + c + ' × ' + Math.pow(b, 3) + ' = ' + (c * Math.pow(b, 3)) + '. Then subtract ' + d + ': ' + v + '.'; }
+    return {type:'num', q:'What is <b>' + q + '</b>?', a:v, why:why};
   }}
 };
 var bridge = {
-  title:'Go Further: powers grow fast', tab:'🚀 Go Further',
-  intro:'Exponents are now in the Core path. Here is the stretch: how fast powers grow, comparing them, and using them inside expressions.',
-  lessons:[{id:'u3B1', name:'Powers grow fast', icon:'🚀', cards:[
-    {t:'Powers grow fast', h:'<div class="big">2<sup>8</sup> = 256 &nbsp;&nbsp; 10<sup>6</sup> = 1000000</div><p>Doubling eight times makes 256. Powers grow much faster than multiplying by the exponent.</p>', trap:'3<sup>5</sup> and 5<sup>3</sup> are different. Swapping the base and the exponent changes the answer.', tr:bgAdv.cmp.f()}
-  ]}],
-  gens:bgAdv, repIds:['big','cmp','sum'],
-  next:'Core has the exponent lesson. Come back here for the stretch problems.'
+  title:'Go Further: Grade 6 moves', tab:'🚀 Go Further',
+  intro:'Exponents are already in the Core path, so this goes up a grade: bigger whole-number computation, decimal quotients, square roots, and powers inside expressions.',
+  lessons:[
+    {id:'u3B1', name:'Bigger computation', icon:'🚀', cards:[
+      {t:'Three digits by three digits', h:'<div class="big">482 × 316</div><p>Same top-to-bottom steps, just one more row. Each new row starts with one more placeholder zero than the row above it.</p>', trap:'A hundreds row needs two zeros. 482 × 3 hundreds = 144600, not 1446.', tr:{type:'num', q:'Find 214 × 132. (Estimate first: 200 × 130 = 26000.)', a:28248, why:'214 × 2 = 428; 214 × 30 = 6420; 214 × 100 = 21400; 428 + 6420 + 21400 = 28248.'}},
+      {t:'Remainder as a decimal', h:'<div class="big">357 ÷ 8 = 44 R5 = 44.625</div><p>A remainder can also keep dividing. Put a decimal point after the quotient, add zeros to the dividend, and bring them down one at a time.</p>', trap:'Writing 44.5 for 44 R5. The 5 is 5 left to divide, not 5 tenths.', tr:{type:'num', q:'Find 63 ÷ 5 as a decimal.', a:12.6, why:'63 ÷ 5 = 12 R3. Bring down a 0: 30 ÷ 5 = 6. So 12.6.'}}
+    ]},
+    {id:'u3B2', name:'Squares & square roots', icon:'🟦', cards:[
+      {t:'Square roots undo squaring', h:'<div class="big">15<sup>2</sup> = 225 &nbsp;→&nbsp; √225 = 15</div><p>A square root asks: what number times itself makes this? Every square in the gallery gives you a root for free.</p>', trap:'√49 is 7, not 24.5. Do not halve.', tr:bgAdv.sqroot.f()},
+      {t:'Is it a perfect square?', h:'<p>Two quick tests: a square never ends in 2, 3, 7 or 8, and a non-square sits between two neighbors in the list.</p><div class="big">150 is between 12<sup>2</sup> = 144 and 13<sup>2</sup> = 169</div>', trap:'Ending in 1, 4, 5, 6, 9 or 0 does not make it a square. 65 ends in 5 but 8² = 64 and 9² = 81.', tr:bgAdv.between.f()}
+    ]},
+    {id:'u3B3', name:'Powers in expressions', icon:'⚡', cards:[
+      {t:'Powers come right after parentheses', h:'<div class="big">3 + 2<sup>2</sup> × 5 = 3 + 4 × 5 = 23</div><p>Order: parentheses, then powers, then × and ÷ left to right, then + and − left to right.</p>', trap:'Doing 3 + 2 first. Powers and multiplication beat addition.', tr:bgAdv.oop.f()}
+    ]}
+  ],
+  gens:bgAdv, repIds:['big3','div5','decq','sq20','sqroot','between','oop'],
+  next:'Core has the exponent lesson. Come back here for the Grade 6 stretch problems.'
 };
 window.V2 = {key:'u3', lessons:lessons, test:test, bridge:bridge, gens:bg, repIds:['expo','read','sq','sqstory','p10']};
 })();
