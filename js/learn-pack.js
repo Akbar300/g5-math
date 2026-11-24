@@ -363,13 +363,13 @@
     },
     u3L6: {
       'A shortcut for repeated multiplication': {
-        viz: () => V.cycleSteps(['2 × 2 × 2', '2³', '8']),
-        steps: ['An exponent counts how many times the base is a factor: 2³ = 2 × 2 × 2 = 8.', 'The base is the number being multiplied.', 'The exponent is the small number up high, not a times-table partner.'],
-        trap: '2³ is not 2 × 3 = 6. It is three factors of 2.',
-        aap: 'Stretch: 10⁴ = 10000 (four zeros). 2⁵ = 32. Powers of 10 and of 2 are worth knowing cold.',
+        viz: () => V.cycleSteps(['10 × 10 × 10', '10³', '1000']),
+        steps: ['An exponent counts how many times the base is a factor: 10³ = 10 × 10 × 10 = 1000.', 'The base is the number being multiplied (10 here). The exponent is the small number up high.', 'With base 10, the answer is a 1 followed by that many zeros: 10³ = 1000 and 10⁵ = 100000.'],
+        trap: '10³ is not 10 × 3 = 30. It is three factors of 10, which is 1000.',
+        aap: 'Stretch: other bases. 2⁵ = 2 × 2 × 2 × 2 × 2 = 32 and 3⁴ = 81. Only base 10 just adds zeros; other bases need the repeated multiplication.',
         tries: [
-          () => num('What is 2 to the 4th power (2⁴)?', 16, '2 × 2 × 2 × 2 = 16.'),
-          () => mc('What is 5³?', '125', [['15', 'That is 5 × 3.'], ['8', 'That would be 2³.'], ['53', 'The 3 is an exponent, not a tens digit.']], '5 × 5 × 5 = 125.')
+          () => num('What is 10 to the 4th power (10⁴)?', 10000, '10 × 10 × 10 × 10 = 10000, a 1 with four zeros.'),
+          () => mc('What is 10²?', '100', [['20', 'That is 10 × 2. The exponent counts factors of 10.'], ['1000', 'That would be 10³. 10² has two factors of 10.'], ['102', 'The 2 is an exponent, not a digit.']], '10 × 10 = 100.')
         ]
       },
       'Perfect squares': {
@@ -433,6 +433,15 @@
       }
     },
     u3B3: {
+      'Other bases grow fast': {
+        viz: () => V.cycleSteps(['2⁴ = 16', '2⁵ = 32', '2⁶ = 64']),
+        steps: ['Base 10 only adds zeros. Other bases need the repeated multiplication.', 'Each time the exponent goes up by 1, multiply by the base once more: 2⁴ = 16, 2⁵ = 32, 2⁶ = 64, 2⁷ = 128, 2⁸ = 256.', 'Swapping base and exponent changes the value: 3⁵ = 243 but 5³ = 125.'],
+        trap: 'Thinking a power is a product: 3⁵ is not 15.',
+        tries: [
+          () => num('What is 2⁸?', 256, '2 × 2 = 4, 8, 16, 32, 64, 128, 256.'),
+          () => num('What is 3⁴?', 81, '3 × 3 = 9; 9 × 3 = 27; 27 × 3 = 81.')
+        ]
+      },
       'Powers come right after parentheses': {
         viz: () => V.cycleSteps(['( )', 'powers', '× ÷', '+ −']),
         steps: ['Parentheses first.', 'Then powers: 2² = 4.', 'Then × and ÷ from left to right: 4 × 5 = 20.', 'Last + and − from left to right: 3 + 20 = 23.'],

@@ -103,14 +103,14 @@ html[data-theme="dark"]{
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-html{color-scheme:light}
+html{color-scheme:light;overflow:auto}
 html[data-theme="dark"]{color-scheme:dark}
 html,body{
   margin:0;
   min-height:100%;
   min-height:100dvh;
   height:auto;
-  overflow:auto;
+  overflow:visible;
   background:var(--paper);
   color:var(--ink);
   font-family:var(--font);
@@ -120,7 +120,7 @@ html,body{
 }
 /* Do not lock scroll. Next / Check must stay reachable on every device. */
 body:has(.app-shell),body:has(.hub){
-  overflow:auto;
+  overflow:visible;
   height:auto;
   min-height:100%;
   min-height:100dvh;
@@ -866,6 +866,23 @@ html[data-theme="dark"] .ix-btn.ghost{background:transparent}
 .ls-idea .remember{margin-top:12px}
 .remember .callout-k{margin-bottom:2px}
 .ls-pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+/* Learn layout: with try-its, the left column holds the idea and the pictures; the right column holds
+   the try-its, the worked example, the trap and the stretch. On narrow screens the wrappers vanish and
+   the cards keep the old single-column order. */
+.lesson-body.lesson-split > .lesson-main,.lesson-body.lesson-split > .lesson-side{display:contents}
+.lesson-split .ls-idea{order:1}
+.lesson-split .ls-watch{order:2}
+.lesson-split .ls-see:not(.ls-watch){order:3}
+.lesson-split .ls-work{order:4}
+.lesson-split .ls-pair{order:5}
+.lesson-split .lesson-practice{order:6}
+@media screen and (min-width:1100px){
+  .lesson-body.lesson-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px 22px;align-items:start;min-width:0}
+  .lesson-body.lesson-split > .lesson-main,.lesson-body.lesson-split > .lesson-side{display:flex;flex-direction:column;gap:14px;min-width:0;max-width:100%}
+  .lesson-split .lesson-practice{order:1}
+  .lesson-split .ls-work{order:2}
+  .lesson-split .ls-pair{order:3;grid-template-columns:1fr}
+}
 .ls-b .steps{margin:0;padding-left:1.4em}
 .ls-b .steps li{margin:0 0 8px;padding-left:2px}
 .ls-b .steps li:last-child{margin-bottom:0}

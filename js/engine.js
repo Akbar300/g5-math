@@ -1093,6 +1093,8 @@ function paperDivide(dividend, divisor) {
       body.className = 'lesson-body' + (hasTries ? ' lesson-split' : '');
       const main = document.createElement('div');
       main.className = 'lesson-main';
+      const sideItems = [];
+      const place = (el) => { if (hasTries) sideItems.push(el); else main.appendChild(el); };
 
       if (c.html || c.remember) {
         const s1 = section('ls-idea', '💡', 'Big idea');
@@ -1122,7 +1124,7 @@ function paperDivide(dividend, divisor) {
         const s3 = section('ls-work', '✏️', 'Worked example');
         if (c.steps && c.steps.length) s3.bd.innerHTML = '<ol class="steps">' + c.steps.map((x) => '<li>' + x + '</li>').join('') + '</ol>';
         if (c.example) { const ex = document.createElement('div'); ex.innerHTML = c.example; s3.bd.appendChild(ex); }
-        main.appendChild(s3.sec);
+        place(s3.sec);
       }
       if (c.trap || c.aap || c.stretch) {
         const pair = document.createElement('div');
@@ -1139,7 +1141,7 @@ function paperDivide(dividend, divisor) {
           s5.bd.innerHTML = aapHtml.replace(/^\s*(AAP|Advanced):\s*/i, '');
           pair.appendChild(s5.sec);
         }
-        main.appendChild(pair);
+        place(pair);
       }
       body.appendChild(main);
 
@@ -1175,7 +1177,11 @@ function paperDivide(dividend, divisor) {
           load();
           prac.appendChild(slot);
         });
-        body.appendChild(prac);
+        const side = document.createElement('div');
+        side.className = 'lesson-side';
+        side.appendChild(prac);
+        sideItems.forEach((x) => side.appendChild(x));
+        body.appendChild(side);
       }
       card.appendChild(body);
       const nav = document.createElement('div'); nav.className = 'row-btns lesson-nav';

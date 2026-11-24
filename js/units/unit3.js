@@ -27,7 +27,7 @@ var lessons = [
   {t:'Try one', h:'', tr:{type:'num', q:'Find the remainder when 2026 is divided by 9.', a:1, why:'Digit sum 2+0+2+6 = 10, then 1+0 = 1. Check: 9 × 225 = 2025.'}}
  ]},
  {id:'u3L6', name:'Exponents', icon:'⚡', cards:[
-  {t:'A shortcut for repeated multiplication', h:'<div class="big">10 × 10 × 10 = 10<sup>3</sup> = 1000</div><p>The exponent counts how many times the base is multiplied. 10<sup>3</sup> has 3 zeros.</p>', trap:'2<sup>3</sup> is not 2 × 3 = 6. It is three factors of 2.'},
+  {t:'A shortcut for repeated multiplication', h:'<div class="big">10 × 10 × 10 = 10<sup>3</sup> = 1000</div><p>The exponent counts how many times the base is multiplied. 10<sup>3</sup> has 3 zeros.</p>', trap:'10<sup>3</sup> is not 10 × 3 = 30. It is three factors of 10.'},
   {t:'Perfect squares', h:'<p>7<sup>2</sup> = 7 × 7 = 49. Picture 7 rows of 7: a perfect square shape.</p><p>Know 1<sup>2</sup> through 12<sup>2</sup> cold, and recognize the squares up to 20<sup>2</sup> = 400.</p>', tr:{type:'num', q:'What is 6<sup>2</sup>?', a:36, why:'6 × 6 = 36.'}},
   {t:'Powers of 10: count the zeros', h:'<p>Multiplying by 10, 100 and 1000 is the same as multiplying by 10<sup>1</sup>, 10<sup>2</sup> and 10<sup>3</sup>.</p>' + L.tbl(['Power','Means','Value'], [['10<sup>2</sup>','10 × 10','100'],['10<sup>3</sup>','10 × 10 × 10','1000'],['10<sup>4</sup>','10 × 10 × 10 × 10','10000']]), key:'The exponent on 10 tells you how many zeros the answer has.'}
  ]}
@@ -47,8 +47,8 @@ var bg = {
     return mc(c + ' × 10<sup>' + e + '</sup> = ?', String(v), [[String(c * 10 * e), '10<sup>' + e + '</sup> is not 10 × ' + e + '. It is ' + e + ' tens multiplied: ' + Math.pow(10, e) + '.'], [String(v * 10), 'Count the zeros: exactly ' + e + '.'], [String(v / 10), 'Count the zeros: exactly ' + e + '.']], '10<sup>' + e + '</sup> = ' + Math.pow(10, e) + ', so ' + c + ' × ' + Math.pow(10, e) + ' = ' + v + '.');
   }},
   expo: {name:'Exponents', f:function(lv){
-    var b = L.ri(2, 6), e = L.ri(2, 3), v = Math.pow(b, e);
-    return mc(b + '<sup>' + e + '</sup> = ?', String(v), [[String(b*e), 'Not ' + b + ' × ' + e + '. Multiply ' + b + ' by itself ' + e + ' times.'], [String(Math.pow(e, b)), 'That swaps the base and exponent.'], [String(b+e), 'Repeated multiplication, not addition.']], Array(e).fill(b).join(' × ') + ' = ' + v + '.');
+    var e = L.ri(2, 6), v = Math.pow(10, e);
+    return mc('10<sup>' + e + '</sup> = ?', String(v), [[String(10 * e), 'Not 10 × ' + e + '. Multiply 10 by itself ' + e + ' times.'], [String(v * 10), 'Count the zeros: exactly ' + e + '.'], [String(v / 10), 'Count the zeros: exactly ' + e + '.']], Array(e).fill(10).join(' × ') + ' = ' + v + '.');
   }},
   read: {name:'Exponents: read it and write it', f:function(lv){
     var b = L.ri(2, 9), e = L.ri(3, 6), rep = Array(e).fill(b).join(' × ');
@@ -83,6 +83,10 @@ var bgAdv = {
     var v = Math.round(n / d * 1000) / 1000;
     return {type:'num', q:'Find <b>' + n + ' ÷ ' + d + '</b> as a decimal.', a:v, why:n + ' ÷ ' + d + ' = ' + Math.floor(n / d) + ' R' + (n % d) + '. Put a decimal point after the quotient, add zeros to the dividend, and keep dividing: ' + L.num(v) + '.'};
   }},
+  pow: {name:'Powers with other bases', f:function(lv){
+    var b = L.pick([2, 3, 4, 5, 6, 7]), e = b === 2 ? L.ri(5, 9) : (b <= 4 ? L.ri(3, 5) : L.ri(3, 4)), v = Math.pow(b, e);
+    return {type:'num', q:'What is ' + b + '<sup>' + e + '</sup>?', a:v, why:Array(e).fill(b).join(' × ') + ' = ' + v + '.'};
+  }},
   sq20: {name:'Squares up to 20²', f:function(lv){
     var n = L.ri(13, 20);
     return {type:'num', q:'What is ' + n + '<sup>2</sup>?', a:n * n, why:n + ' × ' + n + ' = ' + (n * n) + '.'};
@@ -105,7 +109,7 @@ var bgAdv = {
 };
 var bridge = {
   title:'Go Further: Grade 6 moves', tab:'🚀 Go Further',
-  intro:'Exponents are already in the Core path, so this goes up a grade: bigger whole-number computation, decimal quotients, square roots, and powers inside expressions.',
+  intro:'Core uses base 10 for exponents. This goes up a grade: bigger whole-number computation, decimal quotients, square roots, other bases, and powers inside expressions.',
   lessons:[
     {id:'u3B1', name:'Bigger computation', icon:'🚀', cards:[
       {t:'Three digits by three digits', h:'<div class="big">482 × 316</div><p>Same top-to-bottom steps, just one more row. Each new row starts with one more placeholder zero than the row above it.</p>', trap:'A hundreds row needs two zeros. 482 × 3 hundreds = 144600, not 1446.', tr:{type:'num', q:'Find 214 × 132. (Estimate first: 200 × 130 = 26000.)', a:28248, why:'214 × 2 = 428; 214 × 30 = 6420; 214 × 100 = 21400; 428 + 6420 + 21400 = 28248.'}},
@@ -115,11 +119,12 @@ var bridge = {
       {t:'Square roots undo squaring', h:'<div class="big">15<sup>2</sup> = 225 &nbsp;→&nbsp; √225 = 15</div><p>A square root asks: what number times itself makes this? Every square in the gallery gives you a root for free.</p>', trap:'√49 is 7, not 24.5. Do not halve.', tr:bgAdv.sqroot.f()},
       {t:'Is it a perfect square?', h:'<p>Two quick tests: a square never ends in 2, 3, 7 or 8, and a non-square sits between two neighbors in the list.</p><div class="big">150 is between 12<sup>2</sup> = 144 and 13<sup>2</sup> = 169</div>', trap:'Ending in 1, 4, 5, 6, 9 or 0 does not make it a square. 65 ends in 5 but 8² = 64 and 9² = 81.', tr:bgAdv.between.f()}
     ]},
-    {id:'u3B3', name:'Powers in expressions', icon:'⚡', cards:[
+    {id:'u3B3', name:'Other bases & expressions', icon:'⚡', cards:[
+      {t:'Other bases grow fast', h:'<div class="big">2<sup>8</sup> = 256 &nbsp;&nbsp; 3<sup>5</sup> = 243</div><p>Base 10 only adds zeros. Any other base needs the repeated multiplication, and the numbers grow fast.</p>', trap:'3<sup>5</sup> and 5<sup>3</sup> are different. Swapping the base and exponent changes the answer.', tr:bgAdv.pow.f()},
       {t:'Powers come right after parentheses', h:'<div class="big">3 + 2<sup>2</sup> × 5 = 3 + 4 × 5 = 23</div><p>Order: parentheses, then powers, then × and ÷ left to right, then + and − left to right.</p>', trap:'Doing 3 + 2 first. Powers and multiplication beat addition.', tr:bgAdv.oop.f()}
     ]}
   ],
-  gens:bgAdv, repIds:['big3','div5','decq','sq20','sqroot','between','oop'],
+  gens:bgAdv, repIds:['big3','div5','decq','pow','sq20','sqroot','between','oop'],
   next:'Core has the exponent lesson. Come back here for the Grade 6 stretch problems.'
 };
 window.V2 = {key:'u3', lessons:lessons, test:test, bridge:bridge, gens:bg, repIds:['expo','read','sq','sqstory','p10']};
