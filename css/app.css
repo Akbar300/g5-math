@@ -1275,3 +1275,139 @@ html[data-theme="dark"] .ix-cp .ix-btn.go,html[data-theme="dark"] .sp-side .ix-b
 .sl-trickL .sl-nl{width:100%;max-width:640px}
 .sl-land{background:color-mix(in srgb,var(--teal) 14%,var(--card));border:2px solid var(--teal);border-radius:12px;padding:6px 10px;width:100%;box-sizing:border-box}
 @media (min-width:1000px){.sl-trick .sl-mini{width:min(520px,100%)}}
+
+/* ---------- Unit 9 Geometry Lab (js/geolab.js) ----------
+   Layout: phone = one column (mission, formula, equation, drawing, answer, hints).
+   Wide (900px+) = drawing on the left (sticky, grows with the window), work panel on the right.
+   Color code: given = teal, perimeter = green, area = blue, volume = violet, unknown = orange. */
+.gl{--gl-giv:#0b8f7c;--gl-per:#2b8a0e;--gl-area:#2563eb;--gl-vol:#6c4ee0;--gl-unk:#d9480f;
+  --gl-bg:#f3f9ff;--gl-cell:rgba(11,143,124,.24);--gl-cellon:rgba(37,99,235,.30);--gl-cellline:rgba(37,99,235,.65);
+  --gl-rega:rgba(217,72,15,.16);--gl-regb:rgba(11,143,124,.14);--gl-ghost:rgba(27,36,55,.5);
+  --gl-ct:#e6eef9;--gl-cl:#cbd9ee;--gl-cr:#adc2df;--gl-cs:#5b7aa6;--gl-ht:#ffe08a;--gl-hl:#ffc43d;--gl-hr:#e0a21a;--gl-hs:#a26a00;
+  --gl-vt:#c9b4ff;--gl-vl:#9877ec;--gl-vr:#7354cc;
+  display:flex;flex-direction:column;gap:10px;min-width:0}
+html[data-theme="dark"] .gl{--gl-giv:#3ee0c8;--gl-per:#8ae03a;--gl-area:#7eb6ff;--gl-vol:#c4b5ff;--gl-unk:#ffb347;
+  --gl-bg:#0d1420;--gl-cell:rgba(62,224,200,.2);--gl-cellon:rgba(126,182,255,.38);--gl-cellline:rgba(160,200,255,.8);
+  --gl-rega:rgba(255,179,71,.2);--gl-regb:rgba(62,224,200,.15);--gl-ghost:rgba(243,246,253,.6);
+  --gl-ct:#143a4f;--gl-cl:#0d2939;--gl-cr:#091c28;--gl-cs:rgba(62,224,200,.55);--gl-ht:#7a5200;--gl-hl:#5c3e00;--gl-hr:#463000;--gl-hs:#ffb347}
+.gl-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 14px}
+.gl-head h2{margin:0}
+.gl-lvl{font-size:14px;font-weight:800;vertical-align:middle;border:2px solid var(--line);border-radius:999px;padding:2px 10px;margin-left:4px;color:var(--muted)}
+.gl-legend{display:flex;flex-wrap:wrap;gap:6px}
+.gl-key{font-size:13px;font-weight:800;border:2px solid currentColor;border-radius:999px;padding:1px 9px}
+.gl-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.gl-top .seg button{font-size:15px;padding:6px 13px;font-family:var(--display)}
+.gl-tip{margin:0}
+.gl-chips{display:flex;flex-wrap:wrap;gap:6px}
+.gl-chips .chip{cursor:pointer;color:var(--ink)}
+.gl-chips .chip.on{color:var(--on-fg)}
+.gl-chips .chip.gl-adv{border-color:color-mix(in srgb,var(--violet) 60%,var(--line))}
+.gl-chips .chip.gl-adv.on{background:var(--violet);border-color:var(--violet);color:#fff}
+html[data-theme="dark"] .gl-chips .chip.gl-adv.on{color:#1b1440}
+/* color words */
+.gl .cy{color:var(--gl-giv);font-weight:800}
+.gl .gr{color:var(--gl-per);font-weight:800}
+.gl .ar{color:var(--gl-area);font-weight:800}
+.gl .vi{color:var(--gl-vol);font-weight:800}
+.gl .un{color:var(--gl-unk);font-weight:800}
+/* layout */
+.gl-wrap{display:flex;flex-direction:column;gap:10px;min-width:0}
+.gl-side{display:contents}
+.gl-mission{order:1}.gl-formula{order:2}.gl-stepnum{order:3}.gl-eq{order:4}.gl-board{order:5}.gl-answer{order:6}.gl .fb{order:7}.gl-steps{order:8}.gl-next{order:9}
+.gl-board{background:var(--gl-bg);border:2px solid var(--line);border-radius:18px;padding:6px;display:flex;align-items:center;justify-content:center;min-height:200px;min-width:0}
+.gl-board svg{display:block;width:100%;max-width:620px;height:auto;max-height:46vh;overflow:visible}
+.gl-mission{font-size:19px;font-weight:700;line-height:1.4;background:var(--why-bg);border-left:5px solid var(--why-edge);border-radius:12px;padding:10px 12px;text-wrap:pretty}
+.gl-formula{display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;background:var(--remember-bg);border-left:5px solid var(--remember-edge);border-radius:12px;padding:8px 12px;font-weight:800;font-family:var(--display);font-size:17px}
+.gl-formula[hidden]{display:none}
+.gl-formula .ft{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-family:var(--font)}
+.gl-stepnum{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.gl-stepnum[hidden]{display:none}
+.gl-eq{font-family:var(--display);font-weight:700;font-size:clamp(19px,1.2vw + 12px,26px);min-height:2.3em;display:flex;flex-wrap:wrap;align-items:center;gap:2px 14px;
+  font-variant-numeric:tabular-nums;background:var(--btn-face);border:2px solid var(--line);border-radius:14px;padding:8px 14px;line-height:1.3}
+.gl-eq small{font-family:var(--font);font-weight:700;font-size:13px;color:var(--muted);flex-basis:100%}
+.gl-answer{display:flex;flex-direction:column;gap:8px}
+.gl-answer[hidden]{display:none}
+.gl-answer .row-btns{margin-top:0}
+.gl-asklab{font-family:var(--display);font-weight:700;font-size:20px}
+.gl-answer .num-in input{width:150px;text-align:center}
+.gl-unit{color:var(--muted);font-weight:700}
+.gl-answer .num-in input.gl-right{border-color:var(--ok-line);background:var(--ok-bg)}
+@media (max-width:600px){.gl-tabx{display:none}.tabs button:has(.gl-tabx){flex:1.4;white-space:nowrap}}
+.gl-pick{min-width:120px;font-size:17px}
+.gl-pick.gl-k-perimeter{border-color:var(--gl-per)}.gl-pick.gl-k-area{border-color:var(--gl-area)}.gl-pick.gl-k-volume{border-color:var(--gl-vol)}
+.gl .btn:disabled{opacity:.45;cursor:not-allowed}
+.gl .fb{font-size:17px;line-height:1.4}
+.gl-steps{display:flex;flex-direction:column;gap:8px}
+.gl-step{background:var(--remember-bg);border-left:5px solid var(--gl-unk);border-radius:0 10px 10px 0;padding:8px 12px;font-weight:700;line-height:1.45;animation:glFade .35s}
+@keyframes glFade{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.gl-next{font-size:18px;padding:12px 18px}
+.gl-next[hidden]{display:none}
+.gl-foot{font-size:13px;color:var(--muted);margin:2px 0 0}
+@media (min-width:900px){
+  .gl-wrap{display:grid;grid-template-columns:minmax(330px,1fr) minmax(0,1.25fr);gap:18px;align-items:start}
+  .gl-side{display:flex;flex-direction:column;gap:10px;min-width:0}
+  .gl-board{position:sticky;top:12px;padding:10px;min-height:300px}
+  .gl-board svg{max-height:calc(100dvh - 300px)}
+}
+@media (min-width:1200px){.gl-wrap{grid-template-columns:minmax(360px,1fr) minmax(0,1.4fr)}}
+/* drawing */
+.gl svg .edge{stroke:var(--gl-giv);stroke-width:4;stroke-linecap:round;transition:opacity .3s}
+.gl svg .edge.green{stroke:var(--gl-per)}
+.gl svg .edge.orange{stroke:var(--gl-unk)}
+.gl svg .edge.dim{opacity:.18}
+.gl svg .edge.faint{opacity:.22}
+.gl svg .edge.pulse{animation:glPulse 1.3s infinite alternate}
+.gl svg .ring{fill:none}
+@keyframes glPulse{from{opacity:.4}to{opacity:1}}
+.gl svg .trace{fill:none;stroke:var(--gl-per);stroke-width:5;stroke-linejoin:round;stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:100;animation:glTrace 1.5s ease-in-out forwards}
+@keyframes glTrace{to{stroke-dashoffset:0}}
+.gl svg .walk{fill:none;stroke:var(--gl-per);stroke-width:5;stroke-linecap:round;stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:glWalk .42s linear forwards;animation-delay:var(--d)}
+@keyframes glWalk{to{stroke-dashoffset:0}}
+.gl svg .lb.walkl{animation:glLbl .25s forwards;animation-delay:var(--d)}
+@keyframes glLbl{to{fill:var(--gl-per)}}
+.gl svg .runline{font:700 17px var(--display);fill:var(--gl-per)}
+.gl svg .run{fill-opacity:0;animation:glRun .2s forwards;animation-delay:var(--d)}
+@keyframes glRun{to{fill-opacity:1}}
+.gl svg .cell{fill:transparent;stroke:var(--gl-cell);stroke-width:1}
+.gl svg .cell.on{animation:glCell .35s ease-out forwards;animation-delay:var(--d)}
+@keyframes glCell{to{fill:var(--gl-cellon);stroke:var(--gl-cellline)}}
+.gl svg .reg-a{fill:var(--gl-rega)} .gl svg .reg-b{fill:var(--gl-regb)}
+.gl svg .splitline{stroke:var(--gl-unk);stroke-width:2.5;stroke-dasharray:7 6}
+.gl svg .ghost{fill:none;stroke:var(--gl-ghost);stroke-width:2;stroke-dasharray:6 6}
+.gl svg .alt{stroke:var(--gl-unk);stroke-width:2.5;stroke-dasharray:6 5}
+.gl svg .rad{stroke:var(--gl-giv);stroke-width:3;stroke-linecap:round}
+.gl svg .ra{fill:none;stroke:var(--ink);stroke-width:1.6;opacity:.75}
+.gl svg .dot{fill:var(--ink)}
+.gl svg .lb{font:700 18px var(--display);paint-order:stroke;stroke:var(--gl-bg);stroke-width:5px;stroke-linejoin:round}
+.gl svg .lb.cyan{fill:var(--gl-giv)} .gl svg .lb.orange{fill:var(--gl-unk)} .gl svg .lb.green{fill:var(--gl-per)} .gl svg .lb.mag{fill:var(--gl-area)} .gl svg .lb.ink{fill:var(--ink)}
+.gl svg .note{fill:var(--muted);font:700 13px var(--font)}
+.gl svg .cube polygon{stroke:var(--gl-cs);stroke-width:1;stroke-linejoin:round}
+.gl svg .cube .ft,.gl svg .solid .ft{fill:var(--gl-ct)}
+.gl svg .cube .fl,.gl svg .solid .fl{fill:var(--gl-cl)}
+.gl svg .cube .fr,.gl svg .solid .fr{fill:var(--gl-cr)}
+.gl svg .cube.hl polygon{stroke:var(--gl-hs)}
+.gl svg .cube.hl .ft{fill:var(--gl-ht)}.gl svg .cube.hl .fl{fill:var(--gl-hl)}.gl svg .cube.hl .fr{fill:var(--gl-hr)}
+.gl svg .cube.on .ft{animation:glVt .4s forwards;animation-delay:var(--d)}
+.gl svg .cube.on .fl{animation:glVl .4s forwards;animation-delay:var(--d)}
+.gl svg .cube.on .fr{animation:glVr .4s forwards;animation-delay:var(--d)}
+.gl svg .cube.on polygon{stroke:#e6dcff}
+@keyframes glVt{to{fill:var(--gl-vt)}}@keyframes glVl{to{fill:var(--gl-vl)}}@keyframes glVr{to{fill:var(--gl-vr)}}
+.gl svg .solid polygon{stroke:var(--gl-giv);stroke-width:2.5;stroke-linejoin:round}
+.gl svg .hgt{stroke:var(--gl-unk);stroke-width:2.5;stroke-dasharray:6 5}
+/* dark mode keeps the neon glow */
+html[data-theme="dark"] .gl svg .edge{filter:drop-shadow(0 0 4px var(--gl-giv))}
+html[data-theme="dark"] .gl svg .edge.green,html[data-theme="dark"] .gl svg .trace,html[data-theme="dark"] .gl svg .walk{filter:drop-shadow(0 0 6px var(--gl-per))}
+html[data-theme="dark"] .gl svg .edge.orange{filter:drop-shadow(0 0 6px var(--gl-unk))}
+html[data-theme="dark"] .gl svg .solid polygon{filter:drop-shadow(0 0 4px var(--gl-giv))}
+html[data-theme="dark"] .gl-eq .gr,html[data-theme="dark"] .gl-eq .ar,html[data-theme="dark"] .gl-eq .vi,html[data-theme="dark"] .gl-eq .un,html[data-theme="dark"] .gl-eq .cy{text-shadow:0 0 8px currentColor}
+.q-gl{margin:2px 0}
+@media (prefers-reduced-motion:reduce){
+  .gl svg .edge.pulse,.gl-step{animation:none}
+  .gl svg .trace,.gl svg .walk{animation:none;stroke-dashoffset:0}
+  .gl svg .lb.walkl{animation:none;fill:var(--gl-per)}
+  .gl svg .run{animation:none;fill-opacity:1}
+  .gl svg .cell.on{animation:none;fill:var(--gl-cellon);stroke:var(--gl-cellline)}
+  .gl svg .cube.on .ft,.gl svg .cube.on .fl,.gl svg .cube.on .fr{animation:none}
+  .gl svg .cube.on .ft{fill:var(--gl-vt)}.gl svg .cube.on .fl{fill:var(--gl-vl)}.gl svg .cube.on .fr{fill:var(--gl-vr)}
+}
+@media print{.gl{display:none}}

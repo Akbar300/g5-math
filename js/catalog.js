@@ -11,7 +11,7 @@ window.CATALOG = {
     { num: 6,  id: 'u6',  file: 'units/unit6.html',  emoji: '⚖️', title: 'Metric Lab',                blurb: 'Length, mass, and liquid volume in metric units, including conversions.', sol: '5.MG.1', dates: ['2027-01-19', '2027-02-05'] },
     { num: 7,  id: 'u7',  file: 'units/unit7.html',  emoji: '💯', title: 'Compare & Percent Studio',  blurb: 'Compare and order fractions and decimals. Percents as another name.', sol: '5.NS.1', dates: ['2027-02-08', '2027-02-26'] },
     { num: 8,  id: 'u8',  file: 'units/unit8.html',  emoji: '🧩', title: 'Fraction Workshop',         blurb: 'Unlike denominators, mixed numbers, and a whole times a fraction.', sol: '5.CE.2', dates: ['2027-03-01', '2027-03-26'] },
-    { num: 9,  id: 'u9',  file: 'units/unit9.html',  emoji: '📐', title: 'Shape & Measure Lab',       blurb: 'Angles, triangles, right-triangle area, and volume.', sol: '5.MG.2 · 5.MG.3', dates: ['2027-03-29', '2027-04-30'] },
+    { num: 9,  id: 'u9',  file: 'units/unit9.html',  emoji: '📐', title: 'Shape & Measure Lab',       blurb: 'Angles, triangles, area, perimeter and volume, plus the Geometry Lab.', sol: '5.MG.2 · 5.MG.3', dates: ['2027-03-29', '2027-04-30'] },
     { num: 10, id: 'u10', file: 'units/unit10.html', emoji: '🎲', title: 'Data & Chance Lab',         blurb: 'Probability, the counting principle, and a fresh look at center and range.', sol: '5.PS.1-3', dates: ['2027-05-03', '2027-05-14'] },
     { num: 11, id: 'u11', file: 'units/unit11.html', emoji: '📍', title: 'Coordinate Quest',          blurb: 'Plot and read points in Quadrant I. (Grade 6 standard.)', sol: '6.MG', dates: ['2027-05-17', '2027-06-16'] }
   ],

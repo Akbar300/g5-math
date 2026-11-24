@@ -48,6 +48,42 @@ window.V2 = {key:'u9', lessons:lessons, test:test, bridge:bridge};
 
 Adapt.fromV2({
   id: 'u9', num: 9, emoji: '📐', title: 'Shape & Measure Lab',
-  blurb: 'Angles, triangles, right-triangle area, and volume.', sol: ['5.MG.2', '5.MG.3'], dates: ['2027-03-29', '2027-04-30'], color: '#1d4ed8'
+  blurb: 'Angles, triangles, area, perimeter and volume, plus the Geometry Lab.', sol: ['5.MG.2', '5.MG.3'], dates: ['2027-03-29', '2027-04-30'], color: '#1d4ed8'
 }, window.V2, { gUnit: 9, coreStds: ['5.MG.2', '5.MG.3'] });
 
+
+/* Geometry Lab tab (js/geolab.js): Learn, Missions and Pick it, shapes drawn to scale.
+   Core = 5.MG.2 / 5.MG.3 shapes; Advanced adds circles, any triangle and parallelograms. */
+UNIT.game = { tab: '\ud83d\udcd0 Geo<span class="gl-tabx">metry</span> Lab', mount: function (host, api) { GeoLab.mount(host, api); } };
+
+/* After a Practice or Test Lab question about perimeter, area or volume, offer the same idea in the Geometry Lab. */
+window.G5ItemHook = function (item, box) {
+  try {
+    if (box.querySelector('.gl-try')) return;
+    var t = String(item.q || '').replace(/<svg[\s\S]*?<\/svg>/g, ' ').replace(/<[^>]*>/g, ' ').toLowerCase();
+    if (!/perimeter|area|volume|circumference|fence|cover|fill|cubic|square (units|feet|meters|centimeters|inches|cm|m|in|ft)|cm²|m²|cm³|m³/.test(t)) return;
+    var adv = !!document.querySelector('.lvl-toggle button.on[data-l="advanced"]');
+    var shape = null, mode = 'learn';
+    if (/perimeter, area,? or volume|which (measure|measurement)|is an example of finding|situations? (is|that use)/.test(t)) mode = 'pick';
+    else if (/circle|circumference|radius|diameter/.test(t)) shape = adv ? 'circle' : null;
+    else if (/parallelogram/.test(t)) shape = adv ? 'para' : null;
+    else if (/\bcube\b/.test(t) && !/unit cubes?|cubes? (fill|fit)/.test(t)) shape = 'cube';
+    else if (/box|prism|tank|sandbox|planter|volume|cubic/.test(t)) shape = 'box';
+    else if (/right triangle/.test(t)) shape = 'rtri';
+    else if (/triangle/.test(t)) shape = adv ? 'tri' : 'rtri';
+    else if (/l-shape|l shape|l-shaped/.test(t)) shape = 'lshape';
+    else if (/pentagon|hexagon|octagon|polygon/.test(t)) shape = 'poly';
+    else if (/\ba square\b|square (garden|tile|room|patio|board|rug)|each side/.test(t)) shape = 'square';
+    else if (/rectang|garden|floor|yard|room|board|fence|carpet|rug|wall|field|patio/.test(t)) shape = 'rect';
+    if (!shape && mode !== 'pick') return;
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'btn ghost gl-try';
+    b.textContent = '\ud83d\udcd0 Try it in Geometry Lab';
+    b.onclick = function () {
+      window.__glPreset = mode === 'pick' ? { mode: 'pick' } : { mode: 'learn', shape: shape };
+      var tb = document.querySelector('#tabs button[data-tab="game"]'); if (tb) tb.click();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    var row = document.createElement('div'); row.className = 'q-gl'; row.appendChild(b);
+    var act = box.querySelector('.q-actions'); if (act) box.insertBefore(row, act); else box.appendChild(row);
+  } catch (e) {}
+};

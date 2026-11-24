@@ -17,6 +17,8 @@ A calm, game-first practice lab for FCPS Grade 5 math and the 2023 Virginia Math
 
 All 11 class units and both paper arenas are live. This is a static site: open `index.html` locally, use GitHub Pages, or deploy the folder to Vercel with no build step.
 
+- **Unit 9 Geometry Lab tab** (`js/geolab.js`, styles in `css/app.css` under "Geometry Lab"): ported from the Neon Geometry Lab. Three modes: **Learn** (formulas shown, solve step by step), **Missions** (a side, height or radius is missing; solve with a variable, then keep going) and **Pick it** (perimeter, area or volume word problems). Shapes are drawn to scale and animate: perimeter walks the edges and adds the sides, area fills the unit squares, volume stacks layers of cubes, an L-shape splits into two rectangles, a triangle shows the rectangle it is half of. Wrong answers get a reason (for example "that is the area"), hints come one at a time and light up the drawing. Core: rectangle, square, right triangle, polygon, L-shape, box, cube. Advanced adds circle (π ≈ 3.14), any triangle and parallelogram. Color code works in light and dark: given teal, perimeter green, area blue, volume violet, unknown orange. +8 XP per mission (+5 with hints). Unit 9 Practice and Test Lab questions about perimeter, area or volume get a **Try it in Geometry Lab** button (`window.__glPreset`). The existing Unit 9 tabs are unchanged.
+
 ## Units
 
 1. Data Detectives (5.PS.1, 5.PS.2)
