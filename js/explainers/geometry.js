@@ -212,6 +212,8 @@
   const lab = (x, y, s, cls, anc) => tx(x, y, s, 'gv-lab' + (cls ? ' ' + cls : ''), anc);
   const big = (x, y, s, o, cls) => op(o, tx(x, y, s, 'gv-big' + (cls ? ' ' + cls : '')));
   const half = '½';
+  let CLIPN = 0;
+  const pulse = (t) => 0.5 + 0.5 * Math.sin(t / 220);
   const wrongs = (right, cands, unit) => {
     const out = [];
     cands.forEach((c) => { const v = nf(c); if (v !== nf(right) && c > 0 && out.indexOf(v) < 0) out.push(v); });
@@ -227,6 +229,8 @@
     const dims = lab(x0 + W / 2, y0 + H + 16, 'b = ' + b) + lab(x0 - 8, y0 + H / 2, 'h = ' + h, '', 'end');
     const rect = (o2) => op(o2, poly([pC, pD, pB, pA], 'gv-ghost'));
     const scenes = [];
+    const aa = o.a != null ? +o.a : NaN, anyMode = !!o.any && aa > 0 && aa < b;
+    if (!anyMode) {
     scenes.push({ dur: 2600, cap: `Start with a rectangle, ${b} by ${h}. It holds ${b} × ${h} = ${b * h} unit squares.`, draw(t) {
       const g = easeOut(span(t, 0, 900)), q = span(t, 700, 1900), p = pop(t, 1800);
       return op(g, `<rect x="${r1(x0)}" y="${r1(y0)}" width="${r1(W)}" height="${r1(H)}" class="gv-fill2"/>`) +
@@ -251,15 +255,47 @@
         at(200, 14, p.s, p.o, tx(0, 0, b * h + ' ÷ 2 = ' + nf(A), 'gv-big')) +
         at(x0 + W * 0.3, y0 + H * 0.7, q.s, q.o, tx(0, 0, nf(A), 'gv-big t'));
     } });
-    if (o.any) {
-      const a = Math.max(1, Math.min(b - 1, +o.a || Math.round(b / 3)));
-      const T = [x0 + a * s, y0], F = [x0 + a * s, y0 + H];
-      scenes.push({ dur: 4200, cap: 'Any triangle works too. The height splits it into two right triangles, and each one is half of its own rectangle.', draw(t) {
-        const f1 = easeOut(span(t, 300, 1100)), f2 = easeOut(span(t, 1100, 1900)), f3 = easeOut(span(t, 1900, 2700)), p = pop(t, 2900);
-        return poly([pC, pD, pB, pA], 'gv-ghost') + op(f2, poly([pA, pC, T], 'gv-fill2') + poly([T, pD, pB], 'gv-fill2')) +
-          poly([pA, pB, T], 'gv-fill') + op(f1, ln(T, F, 'gv-alt')) + op(f3, ln([x0, y0], [x0, y0 + H], 'gv-ghost') + ln(F, T, 'gv-alt')) +
-          lab(x0 + W / 2, y0 + H + 16, 'b = ' + b) + op(f1, lab(F[0] + 8, y0 + H / 2, 'h = ' + h, 'c', 'start')) +
-          at(200, 14, p.s, p.o, tx(0, 0, 'still half: ' + nf(A), 'gv-big'));
+    } else {
+      /* the triangle on screen: apex T above the point a units along the base, height h */
+      const T = [x0 + aa * s, y0], F = [x0 + aa * s, y0 + H], TL = [x0, y0], TR = [x0 + W, y0];
+      const s1 = o.s1, s2 = o.s2;
+      const sideLabs = (s1 ? lab((pA[0] + T[0]) / 2 - 10, (pA[1] + T[1]) / 2, String(s1), 'm', 'end') : '') + (s2 ? lab((pB[0] + T[0]) / 2 + 10, (pB[1] + T[1]) / 2, String(s2), 'm', 'start') : '');
+      const tri = (cls) => poly([pA, pB, T], cls || 'gv-fill');
+      const hl = aa > b / 2 ? -1 : 1, hy = y0 + H * 0.74;   /* low, where the triangle is wide, on the roomier side */
+      const hLab = () => lab(F[0] + hl * 8, hy, 'h = ' + h, 'c', hl > 0 ? 'start' : 'end');
+      const alt = (o2) => op(o2, ln(T, F, 'gv-alt') + ra(F, [1, 0], [0, -1], 9) + hLab());
+      const base = lab(x0 + W / 2, y0 + H + 16, 'b = ' + b);
+      const outL = [pA, TL, T], outR = [T, TR, pB], mL = [(pA[0] + T[0]) / 2, (pA[1] + T[1]) / 2], mR = [(pB[0] + T[0]) / 2, (pB[1] + T[1]) / 2];
+      scenes.push({ dur: 3000, cap: `This is the triangle: base ${b}. Its height goes straight up from the base to the top corner: h = ${h}. The slanted sides are not the height.`, draw(t) {
+        const d = ease(span(t, 700, 1700)), f = easeOut(span(t, 1600, 2100));
+        return op(easeOut(span(t, 0, 600)), tri() + base + sideLabs) + ln(T, [T[0], lerp(T[1], F[1], d)], 'gv-alt') +
+          op(f, ra(F, [1, 0], [0, -1], 9) + hLab());
+      } });
+      scenes.push({ dur: 2800, cap: `Draw a rectangle around it, ${b} by ${h}. The triangle sits inside, with two pieces left over outside it.`, draw(t) {
+        const g = easeOut(span(t, 200, 1000)), f = easeOut(span(t, 1100, 1800)), p = pop(t, 1900);
+        return op(f, poly(outL, 'gv-fill2 solid') + poly(outR, 'gv-fill2 solid')) + op(g, poly([TL, TR, pB, pA], 'gv-ghost')) + tri() + alt(1) + base + sideLabs +
+          at(200, 14, p.s, p.o, tx(0, 0, 'rectangle ' + b + ' × ' + h + ' = ' + b * h, 'gv-big b'));
+      } });
+      scenes.push({ dur: 3400, cap: `The height splits the rectangle into two smaller rectangles. A slanted side cuts each one corner to corner: one half inside the triangle, one half outside.`, draw(t) {
+        const p = pulse(t);
+        return poly(outL, 'gv-fill2 solid') + poly(outR, 'gv-fill2 solid') + poly([TL, TR, pB, pA], 'gv-ghost') + tri() + alt(1) + base +
+          op(0.55 + 0.45 * p, ln(pA, T, 'gv-cut') + ln(T, pB, 'gv-cut')) +
+          lab(x0 + aa * s / 2, y0 + H + 34, String(aa), 'm') + lab(x0 + aa * s + (b - aa) * s / 2, y0 + H + 34, String(b - aa), 'm');
+      } });
+      scenes.push({ dur: 4600, cap: 'Flip each outside piece over its slanted side. Each one lands exactly on its twin inside the triangle.', draw(t) {
+        const r1a = ease(span(t, 300, 1900)) * 180, r2a = ease(span(t, 2100, 3700)) * 180;
+        const lift1 = Math.sin(Math.PI * r1a / 180) * 10, lift2 = Math.sin(Math.PI * r2a / 180) * 10;
+        return poly([TL, TR, pB, pA], 'gv-ghost') + tri() + alt(1) + base +
+          `<g transform="translate(0 ${r1(-lift1)}) rotate(${r1(r1a)} ${r1(mL[0])} ${r1(mL[1])})">${poly(outL, 'gv-fill2 solid')}</g>` +
+          `<g transform="translate(0 ${r1(-lift2)}) rotate(${r1(r2a)} ${r1(mR[0])} ${r1(mR[1])})">${poly(outR, 'gv-fill2 solid')}</g>` +
+          op(easeOut(span(t, 3800, 4200)), tx(200, y0 + H + 40, 'both pieces match: outside = inside', 'gv-note'));
+      } });
+      const cid = 'gvtri' + (++CLIPN);
+      scenes.push({ dur: 3400, cap: `So the triangle is exactly half of the rectangle: ${half} × ${b} × ${h} = ${b * h} ÷ 2 = ${nf(A)} square units.`, draw(t) {
+        const up = ease(span(t, 200, 1600)), p = pop(t, 1700);
+        return `<defs><clipPath id="${cid}">${poly([pA, pB, T], '')}</clipPath></defs>` + poly([TL, TR, pB, pA], 'gv-ghost') + tri('gv-edgeonly') +
+          `<rect clip-path="url(#${cid})" x="${r1(x0)}" y="${r1(y0 + H * (1 - up))}" width="${r1(W)}" height="${r1(H * up)}" class="gv-fill"/>` + alt(1) + base +
+          at(200, 14, p.s, p.o, tx(0, 0, half + ' × ' + b + ' × ' + h + ' = ' + nf(A), 'gv-big t'));
       } });
     }
     scenes.push({ dur: 3000, cap: `The rule: A = ${half} × b × h = ${half} × ${b} × ${h} = ${nf(A)} ${unit}.`, draw(t) {
@@ -574,7 +610,7 @@
     build: triExplainer, label: () => 'why a triangle is ½ × b × h', order: 60,
     match(item, ctx) { const q = plain(item); if (!/triangle/i.test(q) || !/area/i.test(q)) return null;
       const bh = baseHeight(q); if (!bh || bh[0] > 20 || bh[1] > 20) return null;
-      return { id: 'tri-area', b: bh[0], h: bh[1], any: !/right triangle/i.test(q), wrong: ctx && ctx.answer }; }
+      const any = !/right triangle/i.test(q); return { id: 'tri-area', b: bh[0], h: bh[1], any, a: any ? Math.max(1, Math.round(bh[0] / 3)) : undefined, wrong: ctx && ctx.answer }; }
   });
   w.EX.register('para-area', {
     build: paraExplainer, label: () => 'why a parallelogram is b × h', order: 61,

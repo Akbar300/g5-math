@@ -19,6 +19,43 @@ var bg = {
     var s = h + L.ri(1, 4);
     return mc('A triangle has base ' + b + ' cm, height ' + h + ' cm and a slanted side of ' + s + ' cm. What is its area?', b*h/2 + ' cm²', [[b*h + ' cm²', 'That is the whole rectangle. A triangle is half of it.'], [b*s/2 + ' cm²', 'Use the HEIGHT (straight up), not the slanted side.'], [(b + h + s) + ' cm²', 'Adding sides gives a perimeter-type number, not an area.']], 'A = ' + f(1,2) + ' × ' + b + ' × ' + h + ' = ' + b*h/2 + ' cm².');
   }},
+  cap: {name:'Which box holds more?', f:function(lv){
+    var u = ['in', 'cm', 'ft'][L.ri(0, 2)], un = {in:'cubic inches', cm:'cubic centimeters', ft:'cubic feet'}[u], A, B, va, vb, g = 0;
+    do { A = [L.ri(2, 8), L.ri(2, 6), L.ri(2, 6)]; B = [L.ri(2, 8), L.ri(2, 6), L.ri(2, 6)]; va = A[0]*A[1]*A[2]; vb = B[0]*B[1]*B[2]; }
+    while ((va === vb || Math.abs(va - vb) > 60 || (A[0]+A[1]+A[2] - B[0]-B[1]-B[2]) === (va - vb)) && g++ < 200);
+    var big = va > vb ? 'A' : 'B', sm = big === 'A' ? 'B' : 'A', d = Math.abs(va - vb), sa = A[0]+A[1]+A[2], sb = B[0]+B[1]+B[2];
+    return mc('Box A is ' + A.join(' ' + u + ' × ') + ' ' + u + '. Box B is ' + B.join(' ' + u + ' × ') + ' ' + u + '. Which box holds more, and how much more?',
+      'Box ' + big + ', ' + d + ' ' + un + ' more', [
+        ['Box ' + sm + ', ' + d + ' ' + un + ' more', 'Find each volume first: A = ' + va + ', B = ' + vb + '.'],
+        ['Box ' + big + ', ' + (d + (d % 2 ? 1 : 2)) + ' ' + un + ' more', 'Check the subtraction: ' + Math.max(va, vb) + ' − ' + Math.min(va, vb) + '.'],
+        ['Box ' + (sa > sb ? 'A' : 'B') + ', ' + Math.max(1, Math.abs(sa - sb)) + ' ' + un + ' more', 'Adding the edges does not give the space inside. Multiply l × w × h.']],
+      'Volume A = ' + A.join(' × ') + ' = ' + va + '. Volume B = ' + B.join(' × ') + ' = ' + vb + '. Box ' + big + ' holds ' + d + ' ' + un + ' more.');
+  }},
+  est: {name:'Estimate first', f:function(lv){
+    if (Math.random() < .6) {
+      var l = [9, 11, 19, 21, 29, 31][L.ri(0, 5)], w = L.ri(2, 5), h = L.ri(3, 6), lr = Math.round(l / 10) * 10, e = lr * w * h;
+      return mc('A box is ' + l + ' in long, ' + w + ' in wide and ' + h + ' in tall. Which is the best <b>estimate</b> of its volume?', 'about ' + e + ' cubic inches', [
+        ['about ' + (lr + w + h) + ' cubic inches', 'That adds the edges. Volume multiplies them.'],
+        ['about ' + (lr * w) + ' cubic inches', 'That is only the bottom layer. Multiply by the height too.'],
+        ['about ' + (e * 2) + ' cubic inches', 'Too big: ' + l + ' is close to ' + lr + ', so ' + lr + ' × ' + w + ' × ' + h + ' = ' + e + '.']],
+        l + ' is close to ' + lr + '. ' + lr + ' × ' + w + ' × ' + h + ' = ' + e + ', so about ' + e + ' cubic inches (exact: ' + l*w*h + ').');
+    }
+    var b = [19, 21, 29, 31, 39, 41][L.ri(0, 5)], hh = 2 * L.ri(2, 6), br = Math.round(b / 10) * 10, ea = br * hh / 2;
+    return mc('A triangle has a base of ' + b + ' cm and a height of ' + hh + ' cm. Which is the best <b>estimate</b> of its area?', 'about ' + ea + ' cm²', [
+      ['about ' + br * hh + ' cm²', 'That is the whole rectangle. A triangle is half of it.'],
+      ['about ' + (br + hh) + ' cm²', 'Area multiplies base × height, then takes half.'],
+      ['about ' + ea / 2 + ' cm²', 'You took half twice. ½ × ' + br + ' × ' + hh + ' = ' + ea + '.']],
+      b + ' is close to ' + br + '. ½ × ' + br + ' × ' + hh + ' = ' + ea + ', so about ' + ea + ' cm² (exact: ' + b*hh/2 + ').');
+  }},
+  unit: {name:'Which unit?', f:function(lv){
+    var u = [['inches','square inches','cubic inches'], ['feet','square feet','cubic feet'], ['centimeters','square centimeters','cubic centimeters'], ['meters','square meters','cubic meters']][L.ri(0, 3)];
+    var S = [[0, 'the length of ribbon around the edge of a picture frame'], [0, 'the fence needed to go around a garden'], [0, 'the distance around a soccer field'],
+             [1, 'the carpet needed to cover a floor'], [1, 'the paper needed to cover a bulletin board'], [1, 'the grass that covers a yard'],
+             [2, 'the water a fish tank holds'], [2, 'the sand that fills a sandbox'], [2, 'the number of cubes that fill a box']][L.ri(0, 8)];
+    var why = ['A distance around is a length.', 'Covering a flat surface counts squares.', 'Filling a space counts cubes.'];
+    return mc('Which unit would you use to measure ' + S[1] + '?', u[S[0]], [0, 1, 2].filter(function (i) { return i !== S[0]; }).map(function (i) { return [u[i], why[i] + ' This one is about ' + ['going around', 'covering', 'filling'][S[0]] + '.']; }).concat([[u[S[0]].replace(/s$/, '') + ' per second', 'That measures speed, not size.']]),
+      why[S[0]] + ' So use ' + u[S[0]] + '.');
+  }},
   para: {name:'Parallelogram area', f:function(lv){
     var b = L.ri(3, 15), h = L.ri(2, 12), s = h + L.ri(1, 4);
     return mc('A parallelogram has base ' + b + ' cm, height ' + h + ' cm and slanted side ' + s + ' cm. What is its area?', b*h + ' cm²', [[b*s + ' cm²', 'Use the HEIGHT (straight up), not the slanted side.'], [b*h/2 + ' cm²', 'That is a triangle. A parallelogram is a full rectangle in disguise.'], [2*(b+s) + ' cm²', 'That is the perimeter.']], 'A = b × h = ' + b + ' × ' + h + ' = ' + b*h + ' cm².');
@@ -58,7 +95,7 @@ var bridge = {
   title:'All shapes together', tab:'🚀 Go Further',
   intro:'Angles, perimeter and area, triangles and parallelograms, circles and volume, all in one path.',
   lessons:lessons,
-  gens:bg, repIds:['circ','para','anytri'],
+  gens:bg, repIds:['circ','para','anytri','cap','est','unit'],
   next:'Try the Geometry Lab tab to practice every shape with pictures.'
 };
 window.V2 = {key:'u9', lessons:lessons, test:test, bridge:bridge};

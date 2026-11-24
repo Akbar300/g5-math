@@ -40,7 +40,7 @@ var SHAPES=[
 function available(){return SHAPES.filter(function(s){return s.id!=='mix'&&(!s.aap||S.aap);});}
 
 var F={
-  rect:['P = 2 × (L + H)','A = L × H'],
+  rect:['P = 2 × (L + W)','A = L × W'],
   square:['P = 4 × s','A = s × s = s²'],
   rtri:['P = add all 3 sides','A = ½ × b × h'],
   poly:['P = add all the sides','Equal sides: P = n × s'],
@@ -60,7 +60,7 @@ function missedSides(P,sides,n){return sides.map(function(s){return [P-s,'You mi
 
 /* rectangle asks */
 function askPerimRect(L,H,u,hn){
-  hn=hn||'H';var P=2*(L+H),X=U(u);
+  hn=hn||'W';var P=2*(L+H),X=U(u);
   return ask({label:'P =',ans:P,unit:X.len,mission:'Now find the '+gr('perimeter')+': the distance around.',
     bar:gr('P')+' = 2 × ('+cy('L')+' + '+cy(hn)+')',
     hints:[{bar:'P = '+L+' + '+H+' + '+L+' + '+H,text:'Perimeter is the distance around all 4 sides. Opposite sides match, so P = L + '+hn+' + L + '+hn+', which is the same as 2 × (L + '+hn+').',vis:{pulse:true}},
@@ -71,7 +71,7 @@ function askPerimRect(L,H,u,hn){
     done:{msg:'Correct! P = 2 × ('+L+' + '+H+') = '+P+' '+X.len,bar:gr('P')+' = 2 × ('+L+' + '+H+') = '+gr(P),keep:{outline:'green'},flash:{trace:true}}});
 }
 function askAreaRect(L,H,u,hn){
-  hn=hn||'H';var A=L*H,X=U(u);
+  hn=hn||'W';var A=L*H,X=U(u);
   return ask({label:'A =',ans:A,unit:X.sq,mission:'Now find the '+ar('area')+': how many unit squares cover the inside?',
     bar:ar('A')+' = '+cy('L')+' × '+cy(hn),
     hints:[{bar:'A = '+L+' × '+H,text:'Area counts the unit squares inside. There are '+H+' rows with '+L+' squares in each row, so A = L × '+hn+'.',vis:{grid:true}}],
@@ -82,29 +82,29 @@ function askAreaRect(L,H,u,hn){
 /* ---------- generators ---------- */
 function gRect(mode){
   var H=rand(2,8),L=H+rand(2,5),P=2*(L+H),A=L*H;
-  var geo={type:'poly',aria:'Rectangle',pts:[[0,0],[L,0],[L,H],[0,H]],sides:[L,H,L,H],labels:[null,lbl('H = '+H),lbl('L = '+L),null],gridOK:true};
-  if(mode==='learn')return {geo:geo,base:{grid:true},mission:'This rectangle is '+L+' units long and '+H+' units high. Find its '+gr('perimeter')+', then its '+ar('area')+'.',asks:[askPerimRect(L,H),askAreaRect(L,H)]};
-  geo.labels[1]=Q('H = ?');
-  var reveal=function(g){g.labels[1]=lbl('H = '+H);};
+  var geo={type:'poly',aria:'Rectangle',pts:[[0,0],[L,0],[L,H],[0,H]],sides:[L,H,L,H],labels:[null,lbl('W = '+H),lbl('L = '+L),null],gridOK:true};
+  if(mode==='learn')return {geo:geo,base:{grid:true},mission:'This rectangle is '+L+' units long and '+H+' units wide. Find its '+gr('perimeter')+', then its '+ar('area')+'.',asks:[askPerimRect(L,H),askAreaRect(L,H)]};
+  geo.labels[1]=Q('W = ?');
+  var reveal=function(g){g.labels[1]=lbl('W = '+H);};
   if(Math.random()<0.5){
-    return {geo:geo,mission:'The '+gr('perimeter is '+P)+'. The '+cy('length is '+L)+'. Find the missing '+un('height')+'.',
-      known:known(['P = '+P,'L = '+L],'H','P = perimeter, L = length, H = height'),
-      asks:[ask({label:'H =',ans:H,unit:'units',
-        hints:[{bar:P+' = 2 × ('+L+' + '+un('H')+')',text:'Perimeter is the distance around all 4 sides: P = 2 × (L + H). Put in what we know.',vis:{pulse:true}},
-               {bar:L+' + '+un('H')+' = '+P+' ÷ 2 = '+(P/2),text:'Undo the "× 2" by cutting the perimeter in half. That leaves one length and one height: '+L+' + H = '+(P/2)+'.',vis:{dim:[0,3]}},
-               {bar:un('H')+' = '+(P/2)+' − '+L,text:'Undo the "+ '+L+'" by subtracting '+L+'. Now you can solve it!',vis:{dim:[0,2,3],hl:{1:'orange'}}}],
-        wrongs:[[P/2,'That is L + H together ('+(P/2)+'). Subtract the length '+L+' to get H on its own.'],[L,'That is the length. The question asks for the height, H.'],
-                [P-L,'Taking away one length leaves 2 heights and 1 length. Cut the perimeter in half first.'],[P,'That is the whole perimeter. The height is only part of it.']],
+    return {geo:geo,mission:'The '+gr('perimeter is '+P)+'. The '+cy('length is '+L)+'. Find the missing '+un('width')+'.',
+      known:known(['P = '+P,'L = '+L],'W','P = perimeter, L = length, W = width'),
+      asks:[ask({label:'W =',ans:H,unit:'units',
+        hints:[{bar:P+' = 2 × ('+L+' + '+un('W')+')',text:'Perimeter is the distance around all 4 sides: P = 2 × (L + W). Put in what we know.',vis:{pulse:true}},
+               {bar:L+' + '+un('W')+' = '+P+' ÷ 2 = '+(P/2),text:'Undo the "× 2" by cutting the perimeter in half. That leaves one length and one width: '+L+' + W = '+(P/2)+'.',vis:{dim:[0,3]}},
+               {bar:un('W')+' = '+(P/2)+' − '+L,text:'Undo the "+ '+L+'" by subtracting '+L+'. Now you can solve it!',vis:{dim:[0,2,3],hl:{1:'orange'}}}],
+        wrongs:[[P/2,'That is L + W together ('+(P/2)+'). Subtract the length '+L+' to get W on its own.'],[L,'That is the length. The question asks for the width, W.'],
+                [P-L,'Taking away one length leaves 2 widths and 1 length. Cut the perimeter in half first.'],[P,'That is the whole perimeter. The width is only part of it.']],
         fallback:'Not quite. Check it: 2 × ('+L+' + your number) should equal '+P+'. Try a hint if you like.',
         done:{msg:'Correct! Check: 2 × ('+L+' + '+H+') = '+P+' ✓',bar:'2 × ('+L+' + '+H+') = '+gr(P)+CHECK,reveal:reveal,keep:{outline:'green'},flash:{trace:true}}}),
         askAreaRect(L,H)]};
   }
-  return {geo:geo,mission:'The '+ar('area is '+A+' square units')+'. The '+cy('length is '+L)+'. Find the missing '+un('height')+'.',
-    known:known(['A = '+A,'L = '+L],'H','A = area, L = length, H = height'),
-    asks:[ask({label:'H =',ans:H,unit:'units',
-      hints:[{bar:A+' = '+L+' × '+un('H'),text:'Area = L × H. Put in what we know.'},
-             {bar:un('H')+' = '+A+' ÷ '+L,text:'Undo the "× '+L+'" by dividing. Or think: '+L+' × what = '+A+'?'}],
-      wrongs:[[A-L,'Area uses multiplication, so undo it with division, not subtraction.'],[A,'That is the area. The question asks for the height.'],[L,'That is the length. The question asks for the height.']],
+  return {geo:geo,mission:'The '+ar('area is '+A+' square units')+'. The '+cy('length is '+L)+'. Find the missing '+un('width')+'.',
+    known:known(['A = '+A,'L = '+L],'W','A = area, L = length, W = width'),
+    asks:[ask({label:'W =',ans:H,unit:'units',
+      hints:[{bar:A+' = '+L+' × '+un('W'),text:'Area = L × W. Put in what we know.'},
+             {bar:un('W')+' = '+A+' ÷ '+L,text:'Undo the "× '+L+'" by dividing. Or think: '+L+' × what = '+A+'?'}],
+      wrongs:[[A-L,'Area uses multiplication, so undo it with division, not subtraction.'],[A,'That is the area. The question asks for the width.'],[L,'That is the length. The question asks for the width.']],
       fallback:'Not quite. Check it: '+L+' × your number should equal '+A+'.',
       done:{msg:'Correct! Check: '+L+' × '+H+' = '+A+' ✓',bar:L+' × '+H+' = '+ar(A)+CHECK,reveal:reveal,keep:{fill:true}}}),
       askPerimRect(L,H)]};
@@ -120,9 +120,9 @@ function askPerimSq(s){
 function askAreaSq(s){
   var A=s*s;
   return ask({label:'A =',ans:A,unit:'square units',mission:'Now find the '+ar('area')+': how many unit squares cover the inside?',bar:ar('A')+' = s × s = s²',
-    hints:[{bar:'A = '+s+'² = '+s+' × '+s,text:'s² ("s squared") means s × s. It is called squared because it makes a square!',vis:{grid:true}}],
+    hints:[{bar:'A = '+s+' × '+s,text:'s² ("s squared") means s × s. It is called squared because it makes a square!',vis:{grid:true}}],
     wrongs:[[2*s,'s² means s × s, not 2 × s.'],[4*s,'That is the perimeter. Area is s × s.'],[s+2,'The little 2 means multiply s by itself.']],
-    done:{msg:'Correct! A = '+s+'² = '+A+' square units',bar:ar('A')+' = '+s+'² = '+ar(A),keep:{fill:true}}});
+    done:{msg:'Correct! A = '+s+' × '+s+' = '+A+' square units',bar:ar('A')+' = '+s+' × '+s+' = '+ar(A),keep:{fill:true}}});
 }
 function gSquare(mode){
   var s=rand(3,10),P=4*s,A=s*s;
@@ -141,7 +141,7 @@ function gSquare(mode){
   }
   return {geo:geo,mission:'The '+ar('area is '+A+' square units')+'. Find the '+un('side length')+' of the square.',known:known(['A = '+A],'s','A = area, s = side'),
     asks:[ask({label:'s =',ans:s,unit:'units',
-      hints:[{bar:A+' = '+un('s')+'²',text:'A = s², which means s × s. So s × s = '+A+'.'},
+      hints:[{bar:A+' = '+un('s')+' × '+un('s'),text:'A = s × s. So s × s = '+A+'.'},
              {bar:un('s')+' × '+un('s')+' = '+A,text:'Which number times itself makes '+A+'? Think of square numbers: 9, 16, 25, 36, 49, 64, 81, 100.'}],
       wrongs:[[A/2,'s² is s × s, not 2 × s. Find a number times itself.'],[A/4,'Dividing by 4 works for perimeter, not area. Find a number times itself.']],
       fallback:'Not quite. Check it: your number × your number should equal '+A+'.',
@@ -327,8 +327,8 @@ function gCircle(mode){
            {bar:'d = 2 × '+r+' = '+d+'  →  C = 3.14 × '+d,text:'The diameter is 2 × the radius. Then multiply by 3.14.',vis:{diam:true}}],
     wrongs:[[3.14*r,'That uses the radius. Circumference uses the diameter: d = 2 × r.'],[3.14*r*r,'That is the area.'],[d,'That is the diameter, the distance across. Circumference goes around.']],
     done:{msg:'Correct! C = 3.14 × '+d+' = '+nf(C)+' units',bar:gr('C')+' = 3.14 × '+d+' = '+gr(nf(C)),keep:{outline:'green'},flash:{trace:true}}});
-  var askA=ask({label:'A =',ans:A,unit:'square units',dec:true,mission:'Now find the '+ar('area')+' of the circle.',bar:ar('A')+' = π × r²',
-    hints:[{bar:'A = 3.14 × '+r+'²',text:'r² means r × r. Area of a circle = π × r × r, with π ≈ 3.14.',vis:{grid:true}},
+  var askA=ask({label:'A =',ans:A,unit:'square units',dec:true,mission:'Now find the '+ar('area')+' of the circle.',bar:ar('A')+' = π × r × r',
+    hints:[{bar:'A = 3.14 × '+r+' × '+r,text:'Area of a circle = π × r × r, with π ≈ 3.14. (r × r can also be written r².)',vis:{grid:true}},
            {bar:'A = 3.14 × '+(r*r),text:'First '+r+' × '+r+' = '+(r*r)+'. Then multiply by 3.14.',vis:{grid:true}}],
     wrongs:[[3.14*d,'That is π × d, the circumference.'],[3.14*d*d,'Use the radius in r², not the diameter.'],[r*r,'Multiply by π (3.14) too.'],[3.14*r*2,'r² means r × r, not r × 2.']],
     done:{msg:'Correct! A = 3.14 × '+(r*r)+' = '+nf(A)+' square units',bar:ar('A')+' = 3.14 × '+r+'² = '+ar(nf(A)),keep:{fill:true}}});
@@ -346,11 +346,11 @@ function gCircle(mode){
   }
   return {geo:geo,mission:'The '+ar('area is '+nf(A)+' square units')+'. Find the '+un('radius')+'. Use π ≈ 3.14.',known:known(['A = '+nf(A),'π ≈ 3.14'],'r'),
     asks:[ask({label:'r =',ans:r,unit:'units',
-      hints:[{bar:nf(A)+' = 3.14 × '+un('r')+'²',text:'A = π × r². Put in what we know.'},
+      hints:[{bar:nf(A)+' = 3.14 × '+un('r')+' × '+un('r'),text:'A = π × r × r. Put in what we know.'},
              {bar:un('r')+'² = '+nf(A)+' ÷ 3.14 = '+(r*r),text:'Undo "× 3.14" by dividing. Now r × r = '+(r*r)+'.'},
              {bar:un('r')+' × '+un('r')+' = '+(r*r),text:'Which number times itself makes '+(r*r)+'?'}],
       wrongs:[[r*r,'That is r². Now find the number that times itself makes it.'],[r2(r*r/2),'r² is r × r, not 2 × r.']],
-      done:{msg:'Correct! Check: 3.14 × '+r+'² = '+nf(A)+' ✓',bar:'3.14 × '+r+'² = '+ar(nf(A))+CHECK,reveal:reveal,keep:{fill:true}}}),askC]};
+      done:{msg:'Correct! Check: 3.14 × '+r+'² = '+nf(A)+' ✓',bar:'3.14 × '+r+' × '+r+' = '+ar(nf(A))+CHECK,reveal:reveal,keep:{fill:true}}}),askC]};
 }
 
 /* boxes */
@@ -386,16 +386,16 @@ function gCube(mode){
   var geo={type:'iso',aria:'Cube',l:s,w:s,h:s,labels:{l:lbl('s = '+s),w:null,h:null}};
   if(mode==='learn')return {geo:geo,mission:'Every edge of this cube is '+s+' units. Find its '+vi('volume')+'.',
     asks:[ask({label:'V =',ans:V,unit:'cubic units',bar:vi('V')+' = s³ = s × s × s',
-      hints:[{bar:'V = '+s+'³ = '+s+' × '+s+' × '+s,text:'s³ ("s cubed") means s × s × s. That is why it is called cubed!',vis:{layerHl:0}},
+      hints:[{bar:'V = '+s+' × '+s+' × '+s,text:'Multiply the edge 3 times: s × s × s (you may see it written s³, "s cubed").',vis:{layerHl:0}},
              {bar:'V = '+(s*s)+' × '+s,text:'One layer is '+s+' × '+s+' = '+(s*s)+' cubes. Stack '+s+' layers.',vis:{layerHl:0}}],
       wrongs:[[3*s,'s³ means s × s × s, not 3 × s.'],[s*s,'That is one layer. Stack all the layers.'],[s+3,'The little 3 means multiply s by itself 3 times.']],
-      done:{msg:'Correct! V = '+s+'³ = '+V+' cubic units',bar:vi('V')+' = '+s+'³ = '+vi(V),keep:{fill:true,layerHl:null}}})]};
+      done:{msg:'Correct! V = '+s+' × '+s+' × '+s+' = '+V+' cubic units',bar:vi('V')+' = '+s+' × '+s+' × '+s+' = '+vi(V),keep:{fill:true,layerHl:null}}})]};
   geo.labels.l=Q('s = ?');
   return {geo:geo,base:{solid:true},mission:'This cube has a '+vi('volume of '+V+' cubic units')+'. Find the '+un('edge length')+'.',known:known(['V = '+V],'s'),
     asks:[ask({label:'s =',ans:s,unit:'units',
-      hints:[{bar:un('s')+'³ = '+V,text:'s³ means s × s × s.'},{bar:un('s')+' × '+un('s')+' × '+un('s')+' = '+V,text:'Which number times itself 3 times makes '+V+'? Try 2 × 2 × 2, then 3 × 3 × 3, and so on.'}],
+      hints:[{bar:un('s')+' × '+un('s')+' × '+un('s')+' = '+V,text:'V = s × s × s.'},{bar:un('s')+' × '+un('s')+' × '+un('s')+' = '+V,text:'Which number times itself 3 times makes '+V+'? Try 2 × 2 × 2, then 3 × 3 × 3, and so on.'}],
       wrongs:[[V/3,'s³ is not 3 × s. Find a number multiplied by itself 3 times.'],[V,'That is the volume. The edge is much shorter.']],
-      done:{msg:'Correct! Check: '+s+' × '+s+' × '+s+' = '+V+' ✓',bar:s+'³ = '+vi(V)+CHECK,reveal:function(g){g.labels.l=lbl('s = '+s);},keep:{fill:true,solid:false}}})]};
+      done:{msg:'Correct! Check: '+s+' × '+s+' × '+s+' = '+V+' ✓',bar:s+' × '+s+' × '+s+' = '+vi(V)+CHECK,reveal:function(g){g.labels.l=lbl('s = '+s);},keep:{fill:true,solid:false}}})]};
 }
 
 /* pick-the-measure word problems */
@@ -441,7 +441,7 @@ function whyFor(shape, g) {
     case 'rect': return {id: 'rect-pa', l: d.l, w: d.w};
     case 'square': return {id: 'rect-pa', l: d.s, w: d.s};
     case 'rtri': return {id: 'tri-area', b: d.b, h: d.h};
-    case 'tri': return {id: 'tri-area', b: d.b, h: d.h, a: d.a, any: true};
+    case 'tri': return {id: 'tri-area', b: d.b, h: d.h, a: d.a, any: true, s1: d.s1, s2: d.s2};
     case 'poly': return d.reg ? {id: 'poly-perim', n: d.n, s: d.sides[0]} : {id: 'poly-perim', sides: d.sides};
     case 'lshape': return {id: 'lshape', W: d.W, H: d.H, cw: d.cw, ch: d.ch};
     case 'para': return {id: 'para-area', b: d.b, h: d.h, o: d.o};
@@ -511,10 +511,16 @@ function gPick(shape) {
     Volume: {lab: 'V =', u: 'cubic feet', keep: {fill: true, solid: false}, name: 'volume'}}[m];
   var wr = keys.filter(function (k) { return k !== m; }).map(function (k) { return [M[k].ans, 'That is the ' + k.toLowerCase() + '. The story asks about ' + (m === 'Perimeter' ? 'going around' : m === 'Area' ? 'covering' : 'filling') + '.']; });
   var col = m === 'Perimeter' ? gr : m === 'Area' ? ar : vi;
-  var calc = ask({label: it.lab || X.lab, ans: it.ans, unit: X.u, dec: !!it.dec, mission: 'Now find the ' + col(m.toLowerCase()) + '.', bar: col(it.bar.split(' = ')[0]) + ' = ' + it.bar.split(' = ').slice(1).join(' = '),
+  var calc = ask({label: it.lab || X.lab, ans: it.ans, unit: '', dec: !!it.dec, mission: 'Now find the ' + col(m.toLowerCase()) + '.', bar: col(it.bar.split(' = ')[0]) + ' = ' + it.bar.split(' = ').slice(1).join(' = '),
     hints: [{bar: it.bar, text: it.hint}], wrongs: wr,
-    done: {msg: 'Correct! ' + it.bar + ' = ' + nf(it.ans) + ' ' + X.u, bar: col(it.bar.split(' = ')[0]) + ' = ' + it.bar.split(' = ').slice(1).join(' = ') + ' = ' + col(nf(it.ans)), keep: X.keep, flash: X.flash}});
-  return {geo: geo, mission: sent, known: 'Which measurement fits: ' + gr('perimeter') + ', ' + ar('area') + ' or ' + vi('volume') + '?', asks: [choice, calc]};
+    done: {msg: 'Correct! ' + it.bar + ' = ' + nf(it.ans) + '.', bar: col(it.bar.split(' = ')[0]) + ' = ' + it.bar.split(' = ').slice(1).join(' = ') + ' = ' + col(nf(it.ans)), keep: X.keep, flash: X.flash}});
+  var UN = {Perimeter: 'feet', Area: 'square feet', Volume: 'cubic feet'};
+  var unitAsk = ask({type: 'choice', label: 'Which unit goes with ' + nf(it.ans) + '?', ans: UN[m], options: ['feet', 'square feet', 'cubic feet'],
+    mission: 'Last step: name the unit.', bar: col(nf(it.ans)) + ' … what?',
+    hints: [{bar: 'around → feet · cover → square feet · fill → cubic feet', text: 'A distance around is a length (feet). Covering counts squares (square feet). Filling counts cubes (cubic feet).'}],
+    wrongs: [['feet', 'Feet measure a length, like a distance around.'], ['square feet', 'Square feet count squares that cover a flat surface.'], ['cubic feet', 'Cubic feet count cubes that fill a space.']],
+    done: {msg: 'Yes! ' + nf(it.ans) + ' ' + UN[m] + '.', bar: col(nf(it.ans) + ' ' + UN[m]) + CHECK, keep: X.keep}});
+  return {geo: geo, mission: sent, known: 'Which measurement fits: ' + gr('perimeter') + ', ' + ar('area') + ' or ' + vi('volume') + '?', asks: [choice, calc, unitAsk]};
 }
 
 /* ---------- drawing ---------- */
@@ -565,7 +571,7 @@ function polySVG(g,v){
   if(g.alt){/* height label: right of the dashed line, or left of it if a side label is in the way */
     var af=g.alt.from,at=g.alt.to,ax=tx(af[0]),aw=String(g.alt.L.t).length*10+8,hit=function(x0,ay){var b=[x0,ay-11,x0+aw,ay+11];
       return LBS.some(function(q){var c=box(q);return b[0]<c[2]+3&&c[0]<b[2]+3&&b[1]<c[3]+3&&c[1]<b[3]+3;});};
-    var C=[[.5,1],[.5,-1],[.75,1],[.75,-1],[.25,1],[.25,-1]].map(function(c){return {ay:ty(af[1])+(ty(at[1])-ty(af[1]))*c[0],sd:c[1]};});
+    var C=[[.72,1],[.72,-1],[.5,1],[.5,-1],[.25,1],[.25,-1]].map(function(c){return {ay:ty(af[1])+(ty(at[1])-ty(af[1]))*c[0],sd:c[1]};});
     var ch=C.filter(function(c){return !hit(c.sd>0?ax+8:ax-8-aw,c.ay);})[0]||C[0];
     o.push(textAt(ch.sd>0?ax+8:ax-8,ch.ay,ch.sd,0,g.alt.L));}
   LBS.forEach(function(q){o.push(textAt(q.bx+q.nx*q.off,q.by+q.ny*q.off,q.nx,q.ny,q.L,walking?' walkl" style="--d:'+(q.i*STEP+0.4).toFixed(2)+'s':''));});
@@ -578,14 +584,19 @@ function polySVG(g,v){
 function circleSVG(g,v){
   var r=g.r,s=Math.max(Math.min(95/r,40),62/r),R=r*s,p=60,VW=2*R+2*p,VH=2*R+2*p,cx=VW/2,cy0=VH/2,o=[];
   o.push('<defs><clipPath id="'+CPID+'"><circle cx="'+cx+'" cy="'+cy0+'" r="'+R+'"/></clipPath></defs>');
-  if(v.grid||v.fill){var cells=[];for(var y=-r;y<r;y++)for(var x=-r;x<r;x++)
-    cells.push('<rect class="cell'+(v.fill?' on':'')+'" style="--d:'+((y+r)*0.1).toFixed(2)+'s" x="'+(cx+x*s).toFixed(1)+'" y="'+(cy0+y*s).toFixed(1)+'" width="'+s.toFixed(1)+'" height="'+s.toFixed(1)+'"/>');
+  if(v.grid&&!v.fill){var cells=[];for(var y=-r;y<r;y++)for(var x=-r;x<r;x++)
+    cells.push('<rect class="cell" x="'+(cx+x*s).toFixed(1)+'" y="'+(cy0+y*s).toFixed(1)+'" width="'+s.toFixed(1)+'" height="'+s.toFixed(1)+'"/>');
     o.push('<g clip-path="url(#'+CPID+')">'+cells.join('')+'</g>');}
+  /* area = the space the radius sweeps out: a pie that grows as the radius turns once */
+  if(v.fill)o.push('<circle class="sweep" cx="'+cx+'" cy="'+cy0+'" r="'+(R/2).toFixed(1)+'" pathLength="100" style="stroke-width:'+R.toFixed(1)+'px" transform="rotate(-90 '+cx+' '+cy0+')"/>');
   o.push('<circle class="edge ring '+(v.outline==='green'?'green':'')+(v.pulse?' pulse':'')+'" cx="'+cx+'" cy="'+cy0+'" r="'+R+'"/>');
-  if(v.trace)o.push('<circle class="trace" pathLength="100" cx="'+cx+'" cy="'+cy0+'" r="'+R+'" transform="rotate(-90 '+cx+' '+cy0+')"/>');
+  if(v.trace){o.push('<circle class="trace" pathLength="100" cx="'+cx+'" cy="'+cy0+'" r="'+R+'" transform="rotate(-90 '+cx+' '+cy0+')"/>');
+    /* a pen-dot leads the trace once around, clockwise from the top */
+    o.push('<circle class="pen" r="7" cx="0" cy="0"><animateMotion dur="1.5s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.42 0 0.58 1" path="M'+cx+' '+(cy0-R)+' A'+R+' '+R+' 0 1 1 '+cx+' '+(cy0+R)+' A'+R+' '+R+' 0 1 1 '+cx+' '+(cy0-R)+'"/></circle>');}
   if(v.diam){o.push('<line class="alt" x1="'+(cx-R)+'" y1="'+cy0+'" x2="'+(cx+R)+'" y2="'+cy0+'"/>');
     o.push(textAt(cx,cy0+12,0,1,lbl('d = 2 × r','orange')));}
   o.push('<line class="rad" x1="'+cx+'" y1="'+cy0+'" x2="'+(cx+R)+'" y2="'+cy0+'"/><circle class="dot" cx="'+cx+'" cy="'+cy0+'" r="3.5"/>');
+  if(v.fill)o.push('<line class="rad sweeparm" style="transform-origin:'+cx+'px '+cy0+'px" x1="'+cx+'" y1="'+cy0+'" x2="'+(cx+R)+'" y2="'+cy0+'"/>');
   o.push(textAt(cx+R/2,cy0-10,0,-1,g.lab));
   return '<svg viewBox="0 0 '+VW.toFixed(0)+' '+VH.toFixed(0)+'" role="img" aria-label="Circle">'+o.join('')+'</svg>';
 }
@@ -679,6 +690,54 @@ function focusInput() {
   try { i.focus({preventScroll: true}); } catch (e) {}
 }
 
+/* ---------- formula card (Learn) and letter key (all modes) ----------
+   One row per formula; the row for the current step is full strength, finished rows get a check. */
+var FT = {P: ['PERIMETER', 'per'], A: ['AREA', 'area'], V: ['VOLUME', 'vol'], C: ['CIRCUMFERENCE', 'per'], B: ['BASE AREA', 'area'], d: ['DIAMETER', 'giv']};
+var FROWS = {
+  rect: [['P', 'P = 2 × (L + W)', 'add all 4 sides'], ['A', 'A = L × W', 'rows × squares in a row']],
+  square: [['P', 'P = 4 × s', '4 equal sides'], ['A', 'A = s × s', 'also written s²']],
+  rtri: [['P', 'P = add all 3 sides'], ['A', 'A = ½ × b × h', 'b and h meet at the square corner']],
+  tri: [['P', 'P = add all 3 sides'], ['A', 'A = ½ × b × h', 'h goes straight up']],
+  poly: [['P', 'P = add all the sides', 'equal sides: P = n × s']],
+  lshape: [['P', 'P = add all 6 sides', 'shortcut: 2 × (big L + big W)'], ['A', 'A = rectangle 1 + rectangle 2', 'or whole rectangle − missing corner']],
+  box: [['B', 'B = l × w', 'cubes in the bottom layer'], ['V', 'V = l × w × h = B × h', 'layers × cubes in a layer']],
+  cube: [['V', 'V = s × s × s', 'also written s³']],
+  circle: [['d', 'd = 2 × r'], ['C', 'C = π × d', 'π ≈ 3.14'], ['A', 'A = π × r × r', 'π ≈ 3.14']],
+  para: [['P', 'P = 2 × (b + slanted side)'], ['A', 'A = b × h', 'h goes straight up']]
+};
+var LETTER = {P: 'perimeter (distance around)', A: 'area (space inside)', V: 'volume (space filled)', C: 'circumference (around a circle)', B: 'base area (bottom layer)',
+  L: 'length', W: 'width', l: 'length', w: 'width', h: 'height (straight up)', b: 'base', s: 'side', r: 'radius (center to edge)', d: 'diameter (across the middle)', n: 'number of sides', 'π': 'pi ≈ 3.14'};
+var KEYS = {rect: ['P', 'A', 'L', 'W'], square: ['P', 'A', 's'], rtri: ['P', 'A', 'b', 'h'], tri: ['P', 'A', 'b', 'h'], poly: ['P', 's', 'n'], lshape: ['P', 'A'],
+  box: ['B', 'V', 'l', 'w', 'h'], cube: ['V', 's'], circle: ['C', 'A', 'r', 'd', 'π'], para: ['P', 'A', 'b', 'h']};
+var LCOL = {P: 'gr', C: 'gr', A: 'ar', B: 'ar', V: 'vi'};
+function unitsLine(shape) {
+  return shape === 'box' || shape === 'cube' ? 'units: base area in <b>square units</b> · volume in <b>cubic units</b>'
+    : 'units: ' + (shape === 'circle' ? 'circumference' : 'perimeter') + ' in <b>units</b> · area in <b>square units</b>';
+}
+function keyHtml(shape) {
+  var k = KEYS[shape] || [];
+  var chips = k.map(function (x) { return '<span class="gl-kc"><b class="' + (LCOL[x] || 'cy') + '">' + x + '</b> ' + LETTER[x] + '</span>'; }).join('');
+  var wide = KEYOPEN != null ? KEYOPEN : (!window.matchMedia || matchMedia('(min-width: 700px)').matches);
+  return '<details class="gl-keyd"' + (wide ? ' open' : '') + '><summary>What do the letters mean?</summary><div class="gl-keys">' + chips + '</div><div class="gl-units">' + unitsLine(shape) + '</div></details>';
+}
+var KEYOPEN = null;
+function stepLetter(a) { var m = /^([PAVCB])\s*=/.exec(a.label || ''); return m ? m[1] : null; }
+function renderFormula() {
+  var box = $('formula'), rows = FROWS[P.shape];
+  if (!rows || S.mode === 'pick' && P.shape === 'pick') { box.hidden = true; return; }
+  box.hidden = false;
+  if (S.mode !== 'learn') { box.className = 'gl-fcard keyonly'; box.innerHTML = keyHtml(P.shape); return; }
+  var cur = P.fin ? null : stepLetter(P.asks[P.i]), done = {};
+  for (var i = 0; i < P.asks.length; i++) { var L = stepLetter(P.asks[i]); if (L && (i < P.i || P.fin || (i === P.i && P.locked))) done[L] = 1; }
+  var html = rows.map(function (r) {
+    var st = done[r[0]] ? 'done' : r[0] === cur ? 'cur' : (r[0] === 'd' ? 'aid' : 'dim');
+    return '<div class="gl-frow k-' + FT[r[0]][1] + ' ' + st + '"><span class="gl-ftag">' + FT[r[0]][0] + '</span><span class="gl-ff">' + r[1] + '</span>' +
+      (r[2] ? '<span class="gl-fnote">' + r[2] + '</span>' : '') + '<span class="gl-fok" aria-hidden="true">' + (done[r[0]] ? '✓' : '') + '</span></div>';
+  }).join('');
+  box.className = 'gl-fcard';
+  box.innerHTML = '<div class="gl-frows">' + html + '</div>' + keyHtml(P.shape);
+}
+
 /* ---------- render ---------- */
 var MODES = [['learn', '📖 Learn'], ['mission', '🎯 Missions'], ['pick', '🧩 Pick it']];
 var MODE_TIP = {
@@ -699,9 +758,7 @@ function renderStage() {
   if (!P || !root) return;
   var a = P.asks[P.i];
   $('mission').innerHTML = P.mission;
-  var f = F[P.shape];
-  $('formula').hidden = !(S.mode === 'learn' && f);
-  if (f) $('formula').innerHTML = '<span class="ft">Formulas</span>' + f.map(function (x) { return '<span>' + x + '</span>'; }).join('');
+  renderFormula();
   $('stepnum').textContent = P.asks.length > 1 ? 'Step ' + (P.i + 1) + ' of ' + P.asks.length : '';
   $('stepnum').hidden = P.asks.length < 2;
   $('eq').innerHTML = /^<span>/.test(P.bar) ? P.bar : '<span>' + P.bar + '</span>';
@@ -765,7 +822,7 @@ function mount(host, api) {
       '<div class="gl-left"><div class="gl-board" id="gl-board"></div><div class="gl-why" id="gl-why" hidden></div></div>' +
       '<div class="gl-side">' +
         '<div class="gl-mission" id="gl-mission" aria-live="polite"></div>' +
-        '<div class="gl-formula" id="gl-formula" hidden></div>' +
+        '<div class="gl-fcard" id="gl-formula" hidden></div>' +
         '<div class="gl-stepnum" id="gl-stepnum"></div>' +
         '<div class="gl-eq" id="gl-eq" aria-live="polite"></div>' +
         '<div class="gl-answer" id="gl-answer"></div>' +
@@ -783,6 +840,7 @@ function mount(host, api) {
     if (t.id === 'gl-verify') submit($('ans').value); else if (t.id === 'gl-hint') hint(); else if (t.getAttribute('data-v')) submit(t.getAttribute('data-v')); });
   $('answer').addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.id === 'gl-ans') { e.preventDefault(); submit(e.target.value); } });
   $('next').addEventListener('click', function () { newProblem(); focusInput(); });
+  $('formula').addEventListener('toggle', function (e) { if (e.target.classList && e.target.classList.contains('gl-keyd')) KEYOPEN = e.target.open; }, true);
   newProblem();
 }
 

@@ -23,6 +23,15 @@ All 11 class units and both paper arenas are live. This is a static site: open `
 
 - **Unit 9 is one consolidated path (Nov 24):** Learn has five lessons for every level: Angles & triangles, **Perimeter & area** (new: around vs cover, squares, missing sides, L-shapes, polygons), Triangles & parallelograms, **Circles** (parts, π by rolling the circle out, circle area), Volume (+ cubes). Core Practice also includes circles, parallelograms and any triangle. New explainers: `rect-pa`, `lshape`, `circle`, `poly-perim`. Geometry Lab shows all shapes at every level. **Pick it** tells a story about the selected shape (box and cube stories ask perimeter of the top, base area or volume), and Mix picks a shape. Learn and Missions have a **Why does it work?** card that plays the matching explainer with the shape's own numbers. In Pick it the card appears after the measurement is chosen.
 
+- **Unit 9 audit follow-up (Nov 24, rev 3 handoff):**
+  - **Any-triangle Watch it** uses the real triangle on screen: height, rectangle around it, two outside pieces that flip over the slanted sides onto their twins, then the triangle fills from the base up. Checked on all 7 Lab presets.
+  - **Circles:** a pen-dot leads the circumference trace. Area is the radius sweeping once around (no clipped squares).
+  - **Formula card** (Lab Learn): one big row per formula. The current step is highlighted, done steps get a check, other rows dim. A letter key and units line go underneath, and Missions and Pick it show the key only.
+  - **Notation:** the rectangle is L × W. Exponents are written out (s × s, r × r, s × s × s).
+  - **Pick it** adds a third step: which unit (feet, square feet or cubic feet).
+  - **New Practice skills** (both levels): Which box holds more?, Estimate first (box volume, triangle area), Which unit?
+  - The 3-part prism item, the perimeter/area/volume matching item and the triangle and angle items already come from the question library (`mg2_3part`, `mg2_pav`, `mg3_*`).
+
 ## Units
 
 1. Data Detectives (5.PS.1, 5.PS.2)
