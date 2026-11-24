@@ -1513,3 +1513,20 @@ html[data-theme="dark"]{--gv-green:#8ae03a;--gv-ct:#1f4a5f;--gv-cl:#143546;--gv-
 .ex-end[hidden]{display:none}
 .ex-end .btn{min-height:48px;font-size:18px;padding:10px 18px}
 .ex-xp{font-weight:800;color:var(--muted);font-family:var(--display)}
+/* Unit 9 Watch it on phones (under 700 px, incl. iPhone Pro Max at 428 px): full screen, icon-only controls */
+@media (max-width:699px){
+  .wm-back{padding:0;align-items:stretch}
+  .wm{width:100vw;min-width:0;height:100dvh;max-height:none;border:0;border-radius:0;
+    padding:max(8px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
+  .wm-title{font-size:17px;line-height:1.25}
+  .wm-body{flex:1 1 auto;display:flex;flex-direction:column;min-height:0}
+  .wm-body .ex{flex:1 1 auto;display:flex;flex-direction:column;justify-content:flex-start;gap:4px}
+  .wm-body .ex-ctl{margin-top:auto}                                   /* controls sit at the bottom, near the thumb */
+  .wm-body .ex-end:not([hidden]){margin-top:auto}
+  .wm-body .ex:has(.ex-end:not([hidden])) .ex-ctl,.wm-body .ex:has(.ex-quiz:not([hidden])) .ex-ctl{margin-top:0}
+  .ex-bigctl .ex-w{display:none}
+  .ex-bigctl .ex-ctl{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+  .ex-bigctl .ex-ctl .ex-b{min-width:0;padding:8px 2px;font-size:20px;line-height:1}
+  .ex-bigctl .ex-mode-b,.ex-bigctl .ex-say{min-width:44px;font-size:18px;padding:4px 8px}
+  .ex-bigctl .ex-end .btn{flex:1 1 auto}
+}

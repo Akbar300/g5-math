@@ -3,7 +3,7 @@
    EXSpeech  narration through the browser's speechSynthesis. Off by default, the choice is remembered (localStorage
              'g5lab:voice'). Speaks only after a tap (the player only calls speak() from a click or a step that a click
              started). Prefers an English voice. If speech is missing or fails, it reports "done" so the captions carry on.
-   EXModal   centered dialog with a dimmed backdrop for screens 700 px and wider (phones keep the inline player).
+   EXModal   centered dialog with a dimmed backdrop on screens 700 px and wider; full screen on phones.
              Close: X, Esc, or a click on the backdrop. Focus stays inside while open and returns to the Watch it button.
              The page behind does not scroll. */
 (function (w) {

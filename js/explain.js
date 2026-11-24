@@ -419,8 +419,8 @@
       `<div class="ex-top"><span class="ex-title"></span><span class="ex-dots" role="tablist" aria-label="Scenes"></span>` +
         (opts.speech ? `<button type="button" class="ex-say" data-k="say" aria-pressed="false"></button>` : '') + `</div>` +
       `<div class="ex-mode" role="group" aria-label="How scenes advance">` +
-        `<button type="button" class="ex-mode-b" data-m="step" title="Each scene plays once, then waits for Next">👣 Step</button>` +
-        `<button type="button" class="ex-mode-b" data-m="auto" title="Plays every scene, with a pause to read each one">⏩ Auto</button>` +
+        `<button type="button" class="ex-mode-b" data-m="step" title="Each scene plays once, then waits for Next" aria-label="Step: wait for Next after each scene">👣<span class="ex-w"> Step</span></button>` +
+        `<button type="button" class="ex-mode-b" data-m="auto" title="Plays every scene, with a pause to read each one" aria-label="Auto: play every scene">⏩<span class="ex-w"> Auto</span></button>` +
       `</div>` +
       `<div class="ex-stage"><svg viewBox="0 0 400 240" role="img" aria-label="Animated explainer" preserveAspectRatio="xMidYMid meet"></svg></div>` +
       `<p class="ex-cap" aria-live="polite"></p>` +
@@ -625,7 +625,7 @@
     let box = null;
     const popts = () => ({ scroll: true, speech: w.EXSpeech || null, big: !!w.EX_POPOUT, tryIt: opts.tryIt, onFinish: opts.onFinish });
     b.addEventListener('click', () => {
-      if (w.EX_POPOUT && w.EXModal && w.EXModal.wide()) {           /* big screens: pop out */
+      if (w.EX_POPOUT && w.EXModal) {           /* pop out: centered on big screens, full screen on phones */
         const spec = build(o); if (!spec) return;
         w.EXModal.open(spec, b, Object.assign(popts(), { scroll: false, tryIt: opts.tryIt ? () => { w.EXModal.close(); opts.tryIt(); } : null }));
         return;
