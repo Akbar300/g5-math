@@ -714,6 +714,25 @@ function paperDivide(dividend, divisor) {
         wrap.appendChild(b);
       });
       body.appendChild(wrap);
+      /* Re-measure once the card is in the page: the first pass ran before the card had a width, so it sized the
+         choices against the whole stage and jammed them into one narrow row inside a column card. */
+      const applyLayout = (L) => {
+        wrap.className = L.cls + (isMS ? ' opts-ms' : '');
+        if (L.cols) wrap.style.setProperty('--opts-cols', String(L.cols)); else wrap.style.removeProperty('--opts-cols');
+        const noLet = isMS || L.cls === 'opts-row' || (L.cls === 'opts-grid' && optionsAreShort);
+        wrap.querySelectorAll('.opt').forEach((el, k) => {
+          const has = el.querySelector('.let');
+          if (noLet && has) has.remove();
+          else if (!noLet && !has) { const sp = document.createElement('span'); sp.className = 'let'; sp.textContent = letters[k]; el.insertBefore(sp, el.firstChild); }
+        });
+      };
+      if (window.ResizeObserver) {
+        let raf = 0;
+        new ResizeObserver(() => {
+          cancelAnimationFrame(raf);
+          raf = requestAnimationFrame(() => { if (box.clientWidth) applyLayout(optsLayout(shown, box)); });
+        }).observe(box);
+      }
       const gradeChoices = () => {
         if (done) return;
         if (selected.size === 0) {

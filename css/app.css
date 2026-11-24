@@ -867,12 +867,14 @@ html[data-theme="dark"] .ix-btn.ghost{background:transparent}
 .set-cap{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;margin:2px 0 10px}
 .set-cap b{font-family:var(--display);font-size:18px}
 .set-cap span{color:var(--muted);font-weight:700;font-size:15px}
-.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));gap:16px;align-items:stretch}
-.qcell{display:flex;min-width:0}
-.qcell.span-all{grid-column:1 / -1}
-.qcell > .q-card{flex:1;border:2px solid var(--line);border-radius:18px;padding:14px 16px;background:var(--btn-face);display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow)}
+/* Masonry columns: each card keeps its own height (no stretched empty cards),
+   and paper cards share a column instead of spanning the whole row. */
+.qgrid{display:block;column-width:440px;column-gap:16px}
+.qcell{display:block;min-width:0;break-inside:avoid;-webkit-column-break-inside:avoid;margin:0 0 16px}
+.qcell.span-all{column-span:none}
+.qcell > .q-card{border:2px solid var(--line);border-radius:18px;padding:14px 16px;background:var(--btn-face);display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow)}
 .qcell > .q-card.is-done{border-color:color-mix(in srgb,var(--teal) 55%,var(--line))}
-.qcell > .q-card > .q-actions{margin-top:auto}
+.qcell > .q-card > .q-actions{margin-top:6px}
 .qcell .q-text{line-height:1.35}
 .set-nav{justify-content:flex-end;margin-top:14px;gap:14px}
 .set-left{font-weight:800;color:var(--muted)}
