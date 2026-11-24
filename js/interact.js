@@ -430,6 +430,7 @@
     const isMul = kind === 'mul';
     const o = Object.assign({ a: isMul ? 246 : 1554, b: isMul ? 35 : 42 }, opts || {});
     let a = o.a, b = o.b, model = null, upto = 0, timer = null;
+    const dp = o.dp || 0;
     const root = h('div', 'viz ix ix-stepper');
     const chips = h('div', 'ix-chips');
     const PH = [['D', 'Divide'], ['M', 'Multiply'], ['S', 'Subtract'], ['B', 'Bring down']];
@@ -462,6 +463,7 @@
     };
     [chips, host, cap, prog, ctl, own, msg].forEach((x) => root.appendChild(x));
     if (isMul) chips.style.display = 'none';
+    if (o.own === false) { own.style.display = 'none'; msg.style.display = 'none'; }
 
     function stop() { if (timer) { clearInterval(timer); timer = null; } bAuto.textContent = '▶ Auto'; }
     function play() {
@@ -475,7 +477,7 @@
       tick(); timer = setInterval(tick, 1400);
     }
     function go(d) { upto = Math.max(0, Math.min(model.steps.length, upto + d)); draw(); }
-    function build() { model = isMul ? V.stackMulModel(a, b) : V.longDivModel(a, b); upto = 0; draw(); }
+    function build() { model = isMul ? V.stackMulModel(a, b) : V.longDivModel(a, b, { dp }); upto = 0; draw(); }
     function draw() {
       host.innerHTML = '';
       host.appendChild(model.render(upto));

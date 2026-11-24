@@ -839,7 +839,8 @@
                           <tr><th>Decimal</th><td>0.625</td><td>0.75</td><td>0.875</td><td>1</td></tr>
                         </tbody>
                       </table>
-                    </div>`
+                    </div>`,
+              remember: 'Eighths stop after three digits. Next card: thirds never stop.'
             },
             {
               t: 'Thirds repeat',
@@ -851,7 +852,7 @@
                       </tbody>
                     </table></div>`
                 + V.numberLine(0, 1, [{ pos: 1 / 3, label: '1/3', color: '#ff5a36' }, { pos: 2 / 3, label: '2/3', color: '#2f80ed' }]),
-              try: () => genEighthSafe(),
+              try: () => genThird(),
               remember: 'Eighths end (0.125, 0.375…). Thirds repeat. Both are still exact fractions.'
             }
           ]

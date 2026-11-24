@@ -578,7 +578,9 @@
   }
 
   /* Long division with the four moves: Divide, Multiply, Subtract, Bring down. */
-  function longDivModel(a, b) {
+  function longDivModel(a, b, opts) {
+    opts = opts || {};
+    const dp = opts.dp || 0; /* digits after the decimal point in the dividend (1000 with dp 3 is 1.000) */
     const D = String(a).split('').map(Number), n = D.length;
     let cur = 0, s0 = n - 1;
     for (let j = 0; j < n; j++) { cur = cur * 10 + D[j]; if (cur >= b) { s0 = j; break; } }
@@ -590,7 +592,8 @@
       const ci = cycles.length;
       cycles.push({ j, val, q, prod, rem, next });
       const fits = q === 0 ? `${b} does not fit in ${val}, so write <b>0</b>.` : `About <b>${q}</b>: ${q} × ${b} = ${prod} fits, and ${q + 1} × ${b} = ${(q + 1) * b} is too big.`;
-      steps.push({ kind: 'D', ci, cap: `<b>Divide:</b> how many ${b}s fit in <b>${val}</b>? ${fits}` });
+      const lead = (ci === 0 && dp && s0 > 0) ? `${D.slice(0, s0).join('')} is smaller than ${b}, so look at the next digit too. ` : '';
+      steps.push({ kind: 'D', ci, cap: `<b>Divide:</b> ${lead}how many ${b}s fit in <b>${val}</b>? ${fits}` });
       steps.push({ kind: 'M', ci, cap: `<b>Multiply:</b> ${q} × ${b} = <b>${prod}</b>. Write it under ${val}.` });
       steps.push({ kind: 'S', ci, cap: `<b>Subtract:</b> ${val} − ${prod} = <b>${rem}</b>. ${rem < b ? rem + ' is smaller than ' + b + ', so the digit was right.' : 'That is too big, so the digit was too small.'}` });
       if (next != null) {
@@ -598,9 +601,18 @@
         val = rem * 10 + next;
       }
     }
-    const Q = cycles.map((c) => c.q).join('').replace(/^0+(?=\d)/, '');
     const last = cycles[cycles.length - 1];
-    steps.push({ kind: 'done', cap: `<b>${a} ÷ ${b} = ${Q}${last.rem ? ' R' + last.rem : ''}.</b> Check: ${Q} × ${b}${last.rem ? ' + ' + last.rem : ''} = ${a} ✓` });
+    if (dp) {
+      const qd = []; for (let c = 0; c < n; c++) qd.push(c < s0 ? '0' : String(cycles[c - s0].q));
+      let qi = qd.slice(0, n - dp).join('').replace(/^0+(?=\d)/, '') || '0';
+      const qf = qd.slice(n - dp).join('');
+      const shown = qi + '.' + qf + (last.rem ? '…' : '');
+      const top = (a / Math.pow(10, dp));
+      steps.push({ kind: 'done', cap: last.rem ? `<b>${top} ÷ ${b} = ${shown}</b> The remainder is ${last.rem} again, so the same digit repeats forever. That is why ${top} ÷ ${b} is a repeating decimal.` : `<b>${top} ÷ ${b} = ${shown}</b> The remainder is 0, so the decimal stops.` });
+    } else {
+      const Q = cycles.map((c) => c.q).join('').replace(/^0+(?=\d)/, '');
+      steps.push({ kind: 'done', cap: `<b>${a} ÷ ${b} = ${Q}${last.rem ? ' R' + last.rem : ''}.</b> Check: ${Q} × ${b}${last.rem ? ' + ' + last.rem : ''} = ${a} ✓` });
+    }
 
     const colW = 44, rowH = 40, dLen = String(b).length, dw = dLen * 24 + 8;
     const bx = 8 + dw + 14, x0 = bx + 12, yQ = 30, yLine = 40, yD = 74;
@@ -627,6 +639,12 @@
         else box(c.j - len + 1, c.j, yD + (now.ci * 2) * rowH - 2 - 30, PH.D, 0.3, 2.5);
       }
       D.forEach((d, i) => digit(cx(i), yD - 2, String(d)));
+      if (dp) {
+        const dx = x0 + (n - dp) * colW;
+        s.appendChild(el('circle', { cx: dx, cy: yD + 2, r: 3.5, fill: 'var(--ink)' }));
+        if (has('D', 0)) s.appendChild(el('circle', { cx: dx, cy: yQ + 2, r: 3.5, fill: 'var(--ink)' }));
+        if (has('D', 0)) for (let c = 0; c < s0; c++) digit(cx(c), yQ, '0');
+      }
       cycles.forEach((c, ci) => {
         const yP = yD + (ci * 2) * rowH + rowH - 2, yR = yP + rowH;
         if (has('D', ci)) {
@@ -658,7 +676,7 @@
       }
       return s;
     }
-    return { steps, render, kinds: PH, intro: `Press <b>Next</b> to divide ${a} ÷ ${b}: Divide, Multiply, Subtract, Bring down.` };
+    return { steps, render, kinds: PH, intro: dp ? `Press <b>Next</b> to divide ${a / Math.pow(10, dp)} by ${b}. We add zeros after the decimal point so we can keep dividing.` : `Press <b>Next</b> to divide ${a} ÷ ${b}: Divide, Multiply, Subtract, Bring down.` };
   }
 
   /* Box (area) model split by place value, with each partial product in its own box. */
