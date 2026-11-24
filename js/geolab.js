@@ -588,11 +588,15 @@ function circleSVG(g,v){
     cells.push('<rect class="cell" x="'+(cx+x*s).toFixed(1)+'" y="'+(cy0+y*s).toFixed(1)+'" width="'+s.toFixed(1)+'" height="'+s.toFixed(1)+'"/>');
     o.push('<g clip-path="url(#'+CPID+')">'+cells.join('')+'</g>');}
   /* area = the space the radius sweeps out: a pie that grows as the radius turns once */
-  if(v.fill)o.push('<circle class="sweep" cx="'+cx+'" cy="'+cy0+'" r="'+(R/2).toFixed(1)+'" pathLength="100" style="stroke-width:'+R.toFixed(1)+'px" transform="rotate(-90 '+cx+' '+cy0+')"/>');
+  if(v.fill)o.push('<circle class="sweep" cx="'+cx+'" cy="'+cy0+'" r="'+(R/2).toFixed(1)+'" pathLength="100" style="stroke-width:'+R.toFixed(1)+'px"/>');
+  if(v.fill){var N=24,DA=90/N,sl=[];for(var k=0;k<N;k++){var a0=-(k+1)*DA*Math.PI/180,a1=-k*DA*Math.PI/180;
+    sl.push('<path d="M'+cx+' '+cy0+' L'+(cx+R*Math.cos(a0)).toFixed(1)+' '+(cy0+R*Math.sin(a0)).toFixed(1)+' A'+R+' '+R+' 0 0 1 '+(cx+R*Math.cos(a1)).toFixed(1)+' '+(cy0+R*Math.sin(a1)).toFixed(1)+' Z" style="fill-opacity:'+(0.62*Math.pow(1-k/N,1.7)).toFixed(3)+'"/>');}
+    /* radar: a glowing tail that fades behind the turning radius (about 90 degrees long) */
+    o.push('<g class="radar" style="transform-origin:'+cx+'px '+cy0+'px">'+sl.join('')+'</g>');}
   o.push('<circle class="edge ring '+(v.outline==='green'?'green':'')+(v.pulse?' pulse':'')+'" cx="'+cx+'" cy="'+cy0+'" r="'+R+'"/>');
-  if(v.trace){o.push('<circle class="trace" pathLength="100" cx="'+cx+'" cy="'+cy0+'" r="'+R+'" transform="rotate(-90 '+cx+' '+cy0+')"/>');
-    /* a pen-dot leads the trace once around, clockwise from the top */
-    o.push('<circle class="pen" r="7" cx="0" cy="0"><animateMotion dur="1.5s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.42 0 0.58 1" path="M'+cx+' '+(cy0-R)+' A'+R+' '+R+' 0 1 1 '+cx+' '+(cy0+R)+' A'+R+' '+R+' 0 1 1 '+cx+' '+(cy0-R)+'"/></circle>');}
+  if(v.trace){o.push('<circle class="trace" pathLength="100" cx="'+cx+'" cy="'+cy0+'" r="'+R+'"/>');
+    /* a pen-dot leads the trace once around, clockwise from 3 o'clock (where the radius points) */
+    o.push('<circle class="pen" r="7" cx="0" cy="0"><animateMotion dur="1.5s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.42 0 0.58 1" path="M'+(cx+R)+' '+cy0+' A'+R+' '+R+' 0 1 1 '+(cx-R)+' '+cy0+' A'+R+' '+R+' 0 1 1 '+(cx+R)+' '+cy0+'"/></circle>');}
   if(v.diam){o.push('<line class="alt" x1="'+(cx-R)+'" y1="'+cy0+'" x2="'+(cx+R)+'" y2="'+cy0+'"/>');
     o.push(textAt(cx,cy0+12,0,1,lbl('d = 2 × r','orange')));}
   o.push('<line class="rad" x1="'+cx+'" y1="'+cy0+'" x2="'+(cx+R)+'" y2="'+cy0+'"/><circle class="dot" cx="'+cx+'" cy="'+cy0+'" r="3.5"/>');

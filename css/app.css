@@ -1413,10 +1413,13 @@ html[data-theme="dark"] .gl-eq .gr,html[data-theme="dark"] .gl-eq .ar,html[data-
 html[data-theme="dark"] .gl svg .pen{filter:drop-shadow(0 0 6px var(--gl-per))}
 .gl svg .sweep{fill:none;stroke:var(--gl-cellon);stroke-dasharray:100;stroke-dashoffset:100;animation:glTrace 2.8s linear forwards}
 .gl svg .sweeparm{transform-box:view-box;stroke:var(--gl-area);stroke-width:4;animation:glSweep 2.8s linear forwards}
-@keyframes glSweep{from{transform:rotate(-90deg)}to{transform:rotate(270deg)}}
+@keyframes glSweep{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.gl svg .radar{transform-box:view-box;animation:glRadar 2.8s linear forwards}
+.gl svg .radar path{fill:var(--gl-area);stroke:none}
+@keyframes glRadar{0%{transform:rotate(0deg);opacity:1}86%{opacity:1}100%{transform:rotate(360deg);opacity:0}}
 @media (prefers-reduced-motion:reduce){
   .gl svg .edge.pulse,.gl-step{animation:none}
-  .gl svg .pen,.gl svg .sweeparm{display:none}
+  .gl svg .pen,.gl svg .sweeparm,.gl svg .radar{display:none}
   .gl svg .sweep{animation:none;stroke-dashoffset:0}
   .gl svg .trace,.gl svg .walk{animation:none;stroke-dashoffset:0}
   .gl svg .lb.walkl{animation:none;fill:var(--gl-per)}
