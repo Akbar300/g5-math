@@ -239,5 +239,5 @@
     start();
   }
 
-  w.StarPilot = { mount };
+  w.StarPilot = { mount, parts: { rocket } };
 })(window);

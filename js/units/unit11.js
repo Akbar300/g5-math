@@ -56,5 +56,22 @@ Adapt.fromV2({
   blurb: 'Plot and read points in Quadrant I. (Grade 6 standard.)', sol: ['6.MG'], dates: ['2027-05-17', '2027-06-16'], color: '#0f766e'
 }, window.V2, { gUnit: null, coreStds: ['6.MG'] });
 
-/* Star Pilot game tab (js/starpilot.js). Core = Quadrant I, Advanced = all four quadrants. */
-UNIT.game = { tab: '🚀 Pilot', mount: function (host, api) { StarPilot.mount(host, api); } };
+/* Pilot tab (js/starpilot.js + js/shapelab.js): Missions, Shape Lab, Free Build.
+   Core = Quadrant I, Advanced = all four quadrants. */
+var PILOT_MODE = 'missions';
+UNIT.game = { tab: '\ud83d\ude80 Pilot', mount: function (host, api) {
+  var modes = [['missions', '\ud83d\udef0\ufe0f Missions'], ['shape', '\ud83d\udcd0 Shape Lab'], ['free', '\ud83d\udee0\ufe0f Free Build']];
+  var bar = document.createElement('div'); bar.className = 'sp-modes'; bar.setAttribute('role', 'tablist');
+  var sub = document.createElement('div');
+  host.appendChild(bar); host.appendChild(sub);
+  function go(m) {
+    PILOT_MODE = m; sub.innerHTML = '';
+    Array.prototype.forEach.call(bar.children, function (b) { b.classList.toggle('on', b.getAttribute('data-m') === m); b.setAttribute('aria-selected', b.getAttribute('data-m') === m); });
+    if (m === 'shape') ShapeLab.guided(sub, api); else if (m === 'free') ShapeLab.free(sub, api); else StarPilot.mount(sub, api);
+  }
+  modes.forEach(function (m) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'ix-btn'; b.setAttribute('data-m', m[0]); b.setAttribute('role', 'tab'); b.textContent = m[1];
+    b.onclick = function () { go(m[0]); }; bar.appendChild(b);
+  });
+  go(PILOT_MODE);
+} };
