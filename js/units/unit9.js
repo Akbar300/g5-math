@@ -1,5 +1,6 @@
 /* Unit 9: Shape & Measure Lab — ported from latest Math Lab V2 lessons + G5 generators */
 /* V2 data: Regular Unit 9, Geometry & Measurement (5.MG.2, 5.MG.3) */
+window.EX_POPOUT = true;   /* Unit 9: Watch it pops out on big screens (js/watchmodal.js) */
 (function(){
 var L = V2L, f = L.fr, mc = L.mc;
 function tri(b, h){ return GV.rtri(b, h, 'cm'); }

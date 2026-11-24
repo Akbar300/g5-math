@@ -32,6 +32,14 @@ All 11 class units and both paper arenas are live. This is a static site: open `
   - **New Practice skills** (both levels): Which box holds more?, Estimate first (box volume, triangle area), Which unit?
   - The 3-part prism item, the perimeter/area/volume matching item and the triangle and angle items already come from the question library (`mg2_3part`, `mg2_pav`, `mg3_*`).
 
+- **Unit 9 Watch it pop-out + voice (`js/watchmodal.js`, opt-in with `window.EX_POPOUT`):**
+  - **Big screens (700 px and up):** Watch it opens in a centered dialog over a dimmed page. It closes with ✕, Esc or a click on the backdrop, keeps focus inside while open, returns focus to the button, and the page behind doesn't scroll.
+  - **Phones:** the player stays inline, at full width.
+  - **Controls:** both get 44 px controls.
+  - **Voice:** 🔇/🔊 button, off by default, the choice remembered in `g5lab:voice`. It uses the browser's speechSynthesis with an English voice. Each step's caption is spoken with ½, ×, = and 3.14 said as words. A step only moves on once its words finish. Pause, Back, Next, Replay and closing stop the voice at once. With no speech support the button is hidden and captions carry the lesson.
+  - **Geometry Lab Watch it:** ends with **🎯 Try it** (closes and puts the cursor in the answer box) plus Watch again, and gives +5 XP the first time each shape is finished per day (`g5lab_u9:watchxp`). Unit 9 Learn cards keep their your-turn quiz.
+  - **The player** (`js/explain.js`) gained opt-in options (`speech`, `big`, `tryIt`, `onFinish`). Units 4 and 5 don't use them and are unchanged.
+
 ## Units
 
 1. Data Detectives (5.PS.1, 5.PS.2)

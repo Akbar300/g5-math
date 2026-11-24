@@ -797,7 +797,25 @@ function renderWhy() {
   if (!o || (S.mode === 'pick' && P.i === 0)) { box.hidden = true; return; }   /* in Pick it, the formula would give the answer away */
   box.hidden = false;
   box.innerHTML = '<div class="gl-whyh"><span>🎬 Why does it work?</span><small>' + WHY_TXT[P.shape] + ', with these numbers</small></div>';
-  box.appendChild(window.EX.watchButton(o, {text: '▶ Watch it'}));
+  var shape = P.shape;
+  box.appendChild(window.EX.watchButton(o, {text: '▶ Watch it', tryIt: tryIt, onFinish: function (end) { watchXP(shape, end); }}));
+}
+/* After a Watch it: back to the problem, cursor in the answer box. */
+function tryIt() {
+  var t = $('ans') || (root && root.querySelector('.gl-pick:not([disabled])')) || $('next');
+  if (!t) return;
+  try { t.scrollIntoView({block: 'center', behavior: 'smooth'}); } catch (e) {}
+  setTimeout(function () { try { t.focus({preventScroll: true}); } catch (e) {} }, 60);
+}
+/* +5 XP the first time a shape's Watch it is finished each day. */
+var WKEY = 'g5lab_u9:watchxp';
+function watchXP(shape, end) {
+  var d = new Date(), day = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(), m = {};
+  try { m = JSON.parse(localStorage.getItem(WKEY) || '{}') || {}; } catch (e) {}
+  if (m[shape] === day) return;
+  m[shape] = day; try { localStorage.setItem(WKEY, JSON.stringify(m)); } catch (e) {}
+  if (API.addXP) API.addXP(5);
+  if (end) end.insertAdjacentHTML('beforeend', '<span class="ex-xp">⭐ +5 XP</span>');
 }
 
 function legend() {

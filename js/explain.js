@@ -416,7 +416,8 @@
     const root = doc.createElement('div');
     root.className = 'ex';
     root.innerHTML =
-      `<div class="ex-top"><span class="ex-title"></span><span class="ex-dots" role="tablist" aria-label="Scenes"></span></div>` +
+      `<div class="ex-top"><span class="ex-title"></span><span class="ex-dots" role="tablist" aria-label="Scenes"></span>` +
+        (opts.speech ? `<button type="button" class="ex-say" data-k="say" aria-pressed="false"></button>` : '') + `</div>` +
       `<div class="ex-mode" role="group" aria-label="How scenes advance">` +
         `<button type="button" class="ex-mode-b" data-m="step" title="Each scene plays once, then waits for Next">👣 Step</button>` +
         `<button type="button" class="ex-mode-b" data-m="auto" title="Plays every scene, with a pause to read each one">⏩ Auto</button>` +
@@ -424,6 +425,7 @@
       `<div class="ex-stage"><svg viewBox="0 0 400 240" role="img" aria-label="Animated explainer" preserveAspectRatio="xMidYMid meet"></svg></div>` +
       `<p class="ex-cap" aria-live="polite"></p>` +
       `<div class="ex-quiz" hidden></div>` +
+      `<div class="ex-end" hidden></div>` +
       `<div class="ex-ctl">` +
         `<button type="button" class="btn ex-b" data-k="back" aria-label="Back">«<span class="ex-w"> Back</span></button>` +
         `<button type="button" class="btn ex-b ex-play" data-k="play" aria-label="Pause">❚❚<span class="ex-w"> Pause</span></button>` +
@@ -431,6 +433,8 @@
         `<button type="button" class="btn ex-b" data-k="replay" aria-label="Replay this scene">↺<span class="ex-w"> Replay</span></button>` +
         `<button type="button" class="btn ex-b ex-speed" data-k="speed" aria-label="Speed"></button>` +
       `</div>`;
+    if (opts.big) root.classList.add('ex-bigctl');
+    if (opts.tryIt) spec = Object.assign({}, spec, { quiz: null });   /* the real problem is the try-it */
     host.appendChild(root);
     const $ = (s) => root.querySelector(s);
     const svg = $('svg'), cap = $('.ex-cap'), dots = $('.ex-dots'), quizEl = $('.ex-quiz');
@@ -443,17 +447,37 @@
       b.addEventListener('click', () => go(i));
       dots.appendChild(b);
     }
-    const st = { i: 0, t: 0, playing: true, speed: readSpeed(), mode: readMode(), last: 0, raf: 0, drawn: -1, ended: false };
+    const st = { i: 0, t: 0, playing: true, speed: readSpeed(), mode: readMode(), last: 0, raf: 0, drawn: -1, ended: false, said: true, finished: false };
+    /* Narration (opts.speech, optional): each scene's words start with its animation; the scene does not
+       move on until both are done. Pause, Back, Next, Replay and closing cancel the speech at once. */
+    const SP = opts.speech || null;
+    function sayOn() { return !!(SP && SP.on()); }
+    function say(i) {
+      st.said = true;
+      if (!sayOn() || isQuiz(i) || !spec.scenes[i]) return;
+      st.said = false;
+      const tok = st.sayTok = (st.sayTok || 0) + 1;
+      SP.speak(spec.scenes[i].say || spec.scenes[i].cap, st.speed, () => { if (tok === st.sayTok) { st.said = true; kick(); } });
+    }
+    function hush() { st.sayTok = (st.sayTok || 0) + 1; st.said = true; if (SP) SP.cancel(); }
+    function paintSay() {
+      const b = root.querySelector('.ex-say'); if (!b) return;
+      const on = sayOn();
+      b.innerHTML = on ? '🔊<span class="ex-w"> Voice on</span>' : '🔇<span class="ex-w"> Voice off</span>';
+      b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.setAttribute('aria-label', on ? 'Turn voice off' : 'Turn voice on');
+      b.hidden = !SP.available();
+    }
 
     function isQuiz(i) { return spec.quiz && i === spec.scenes.length; }
     function dur(i) { return reduced ? 1 : spec.scenes[i].dur * PACE; }
     /* Auto mode: time to read the caption after the animation ends (real ms, not scaled by speed). */
     function hold(i) {
+      if (sayOn()) return 700;                           // the voice already gave reading time
       const words = String(spec.scenes[i].cap || '').replace(/<[^>]+>/g, ' ').trim().split(/\s+/).length;
       return clamp(words * MS_PER_WORD, HOLD_MIN, HOLD_MAX);
     }
     function paintControls() {
-      const fwd = st.ended && !isQuiz(st.i);   // scene finished: Play moves on instead of replaying
+      const fwd = st.ended && !isQuiz(st.i) && st.i < N - 1;   // scene finished: Play moves on instead of replaying
       btnPlay.innerHTML = st.playing ? '❚❚<span class="ex-w"> Pause</span>' : fwd ? '▶<span class="ex-w"> Next</span>' : '▶<span class="ex-w"> Play</span>';
       btnPlay.setAttribute('aria-label', st.playing ? 'Pause' : fwd ? 'Next scene' : 'Play');
       $('[data-k="next"]').classList.toggle('ex-wait', st.ended && !st.playing && st.i < N - 1);
@@ -506,17 +530,29 @@
       });
       quizEl.appendChild(row); quizEl.appendChild(fb);
     }
-    function go(i) {
+    const endEl = $('.ex-end');
+    function showEnd() {
+      if (!opts.tryIt || st.i !== N - 1) return;
+      if (!st.finished) { st.finished = true; if (opts.onFinish) { try { opts.onFinish(endEl); } catch (e) {} } }
+      endEl.hidden = false;
+      if (!endEl.querySelector('.ex-try')) {
+        endEl.insertAdjacentHTML('afterbegin', '<button type="button" class="btn teal ex-try">🎯 Try it</button><button type="button" class="btn ghost ex-again">↺ Watch again</button>');
+        endEl.querySelector('.ex-try').addEventListener('click', () => { hush(); opts.tryIt(); });
+        endEl.querySelector('.ex-again').addEventListener('click', () => go(0));
+      }
+    }
+    function go(i, keepPaused) {
+      hush();
       st.i = clamp(i, 0, N - 1); st.t = 0; st.drawn = -1; st.ended = false; st.wait = 0;
-      quizEl.hidden = true;
+      quizEl.hidden = true; endEl.hidden = true;
       if (isQuiz(st.i)) { st.playing = false; showQuiz(); }
-      else { st.playing = true; frame(); }
+      else { st.playing = !keepPaused; frame(); if (st.playing) say(st.i); }
       paintControls();
       kick();
     }
     function tick(now) {
       st.raf = 0;
-      if (!root.isConnected) return;
+      if (!root.isConnected) { hush(); return; }
       const dt = st.last ? Math.min(64, now - st.last) : 16;
       st.last = now;
       if (st.playing && !isQuiz(st.i)) {
@@ -525,9 +561,11 @@
           frame();
           if (st.t >= dur(st.i)) {
             st.ended = true;
-            if (st.mode === 'step') { st.playing = false; paintControls(); return; }   // wait for Next
+            if (st.i === N - 1) showEnd();
+            if (st.mode === 'step' || st.i === N - 1) { if (st.said) { st.playing = false; paintControls(); return; } }   // wait for Next (after the voice)
           }
-        } else {
+        } else if (st.said) {
+          if (st.mode === 'step' || st.i === N - 1) { st.playing = false; paintControls(); return; }
           st.wait += dt;                                   // Auto: pause to read, then move on
           if (st.wait >= hold(st.i)) { go(st.i + 1); return; }
         }
@@ -540,13 +578,20 @@
       const b = e.target.closest('button'); if (!b || b.disabled) return;
       const k = b.dataset.k;
       if (k === 'play') {
-        if (!st.playing && st.ended) { go(st.i + 1); return; }   // finished scene: go forward, never replay
-        st.playing = !st.playing; paintControls(); kick();
+        if (!st.playing && st.ended) { go(st.i < N - 1 ? st.i + 1 : st.i); return; }   // finished scene: go forward (last scene: play it again)
+        st.playing = !st.playing;
+        if (st.playing) say(st.i); else hush();            // resume restarts this scene's words
+        paintControls(); kick();
       }
       else if (k === 'back') go(st.i - 1);
       else if (k === 'next') go(st.i + 1);
       else if (k === 'replay') go(st.i);
       else if (k === 'speed') { st.speed = SPEEDS[(SPEEDS.indexOf(st.speed) + 1) % SPEEDS.length]; saveSpeed(st.speed); paintControls(); }
+    });
+    const sayBtn = root.querySelector('.ex-say');
+    if (sayBtn) sayBtn.addEventListener('click', () => {
+      SP.set(!SP.on()); paintSay();
+      if (SP.on()) { if (st.playing && !isQuiz(st.i)) say(st.i); } else hush();   // speaking starts from this tap
     });
     root.querySelector('.ex-mode').addEventListener('click', (e) => {
       const b = e.target.closest('.ex-mode-b'); if (!b) return;
@@ -554,11 +599,14 @@
       if (st.mode === 'auto' && st.ended && !st.playing && !isQuiz(st.i)) { st.playing = true; st.wait = 0; kick(); }
       paintControls();
     });
-    doc.addEventListener('visibilitychange', () => { if (doc.hidden && st.playing) { st.playing = false; paintControls(); } });
+    doc.addEventListener('visibilitychange', () => { if (doc.hidden && st.playing) { st.playing = false; hush(); paintControls(); } });
+    root.exStop = () => { st.playing = false; hush(); };
 
     /* Test hook: jump to scene i at time t (ms) and hold there. */
     root.exSeek = (i, t) => { go(i); if (!isQuiz(st.i)) { st.playing = false; st.t = t * PACE; frame(); paintControls(); } };
-    root.exState = () => ({ i: st.i, t: st.t, playing: st.playing, ended: st.ended, mode: st.mode });
+    root.exState = () => ({ i: st.i, t: st.t, playing: st.playing, ended: st.ended, mode: st.mode, said: st.said, n: N, finished: st.finished });
+    root.exGo = (i) => go(i);
+    if (SP) paintSay();
     go(0);
     if (opts.scroll) requestAnimationFrame(() => { try { root.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {} });
     return root;
@@ -575,11 +623,19 @@
     const lab = opts.text || ('▶ Watch: ' + label(o));
     b.innerHTML = lab + (opts.secs !== false ? ' <span class="ex-secs">· about 30 sec</span>' : '');
     let box = null;
+    const popts = () => ({ scroll: true, speech: w.EXSpeech || null, big: !!w.EX_POPOUT, tryIt: opts.tryIt, onFinish: opts.onFinish });
     b.addEventListener('click', () => {
-      if (box) { box.remove(); box = null; b.innerHTML = lab + (opts.secs !== false ? ' <span class="ex-secs">· about 30 sec</span>' : ''); return; }
+      if (w.EX_POPOUT && w.EXModal && w.EXModal.wide()) {           /* big screens: pop out */
+        const spec = build(o); if (!spec) return;
+        w.EXModal.open(spec, b, Object.assign(popts(), { scroll: false, tryIt: opts.tryIt ? () => { w.EXModal.close(); opts.tryIt(); } : null }));
+        return;
+      }
+      if (box) { if (box.firstChild && box.firstChild.exStop) box.firstChild.exStop(); box.remove(); box = null; b.innerHTML = lab + (opts.secs !== false ? ' <span class="ex-secs">· about 30 sec</span>' : ''); return; }
       box = doc.createElement('div');
       wrap.appendChild(box);
-      player(box, build(o), { scroll: true });
+      const o2 = popts();
+      if (opts.tryIt) o2.tryIt = () => { if (box && box.firstChild && box.firstChild.exStop) box.firstChild.exStop(); opts.tryIt(); };
+      player(box, build(o), o2);
       b.textContent = '✕ Close';
     });
     wrap.appendChild(b);
