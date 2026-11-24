@@ -30,3 +30,11 @@ All 11 class units and both paper arenas are live. This is a static site: open `
 9. Shape & Measure Lab (5.MG.2, 5.MG.3)
 10. Data & Chance Lab (5.PS.1–3)
 11. Coordinate Quest (Grade 6 standard)
+
+## Test Lab and review (Nov 24)
+- Test Lab holds all feedback until **Submit test**. Each question has a 🚩 flag; Submit warns once about unanswered or flagged questions. Optional ⏱ timer (off by default, counts up).
+- Results show a by-topic breakdown (Unit 11 has topic labels via `UNIT.topicOf`) and a button to practice the misses.
+- Missed questions go into a per-unit **review queue** (localStorage `g5lab_<unit>:rq`). Practice has a 🔁 Review mode, and "All skills" mixes in due items. A review item returns after 1, 3 and 7 days, and is retired after the last one is right.
+- Unit 11 questions that name coordinates get a **Try it in Shape Lab** button (`window.G5ItemHook`, `window.__slPreset` loads the points into Free Build).
+- Pilot → Tricks has a third tab, **Both directions**: steps = across gap + up/down gap, plus "where does the rover turn?".
+- `V.numberLine` staggers crowded labels and scales to the card width.

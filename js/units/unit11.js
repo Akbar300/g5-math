@@ -75,3 +75,44 @@ UNIT.game = { tab: '\ud83d\ude80 Pilot', mount: function (host, api) {
   });
   go(PILOT_MODE);
 } };
+
+/* Unit 11 helpers for Practice and Test Lab:
+   - topic labels for the Test Lab results breakdown
+   - a "Try it in Shape Lab" button after a question that names coordinate points */
+UNIT.topicOf = function (it) {
+  var t = String((it && it.q) || '').replace(/<[^>]*>/g, ' ').toLowerCase();
+  if (/perimeter/.test(t)) return 'Perimeter';
+  if (/\barea\b/.test(t)) return 'Area';
+  if (/quadrant/.test(t)) return 'Quadrants';
+  if (/distance|how many (steps|units)|how far|how long|length/.test(t)) return 'Distance and steps';
+  if (/table|pattern|rule|each (week|day)/.test(t)) return 'Tables and patterns';
+  if (/axis|ordered pair|plot|point|coordinate|graph/.test(t)) return 'Reading and plotting points';
+  return 'Mixed';
+};
+(function () {
+  var NUM = '([\\u2212-]?\\d+)';
+  var RE = new RegExp('\\(\\s*' + NUM + '\\s*,\\s*' + NUM + '\\s*\\)', 'g');
+  var toN = function (s) { return parseInt(String(s).replace('\u2212', '-'), 10); };
+  window.G5ItemHook = function (item, box) {
+    try {
+      if (box.querySelector('.sl-try')) return;
+      var text = String(item.q || '').replace(/<svg[\s\S]*?<\/svg>/g, ' ').replace(/<[^>]*>/g, ' ');
+      var pts = [], m, seen = {};
+      RE.lastIndex = 0;
+      while ((m = RE.exec(text))) { var k = m[1] + ',' + m[2]; if (!seen[k]) { seen[k] = 1; pts.push({ x: toN(m[1]), y: toN(m[2]) }); } }
+      if (pts.length < 2 || pts.length > 8) return;
+      if (/\?\s*\)/.test(text) && /\(\s*\?/.test(text)) return;
+      var adv = !!document.querySelector('.lvl-toggle button.on[data-l="advanced"]');
+      var n = adv ? 6 : 8, lo = adv ? -6 : 0;
+      for (var i = 0; i < pts.length; i++) if (pts[i].x < lo || pts[i].x > n || pts[i].y < lo || pts[i].y > n) return;
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'btn ghost sl-try';
+      b.textContent = '\ud83d\udcd0 Try it in Shape Lab';
+      b.onclick = function () {
+        window.__slPreset = { pts: pts }; PILOT_MODE = 'free';
+        var t = document.querySelector('#tabs button[data-tab="game"]'); if (t) t.click();
+      };
+      var row = document.createElement('div'); row.className = 'q-sl'; row.appendChild(b);
+      var act = box.querySelector('.q-actions'); if (act) box.insertBefore(row, act); else box.appendChild(row);
+    } catch (e) {}
+  };
+})();

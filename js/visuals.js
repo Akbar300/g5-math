@@ -97,9 +97,18 @@
   }
 
   function numberLine(min, max, marks, { w = 420, h = 80 } = {}) {
-    const L = 24, R = w - 24, Y = 36, s = svg(w, h);
+    const L = 24, R = w - 24, span = max - min, ms = marks || [];
+    /* Labels that would touch each other step up to a higher row, with a thin leader line down to the dot. */
+    const guess = (t) => { const q = parseFracLabel(t); return q.kind === 'text' ? String(t).length * 7.4 + 10 : Math.max(String(q.n).length, String(q.d).length) * 8 + 10; };
+    const items = ms.map((m) => ({ m, x: L + ((m.pos - min) / span) * (R - L), t: m.label || String(m.pos) })).sort((p, q) => p.x - q.x);
+    const ends = []; let rows = 1;
+    items.forEach((it) => {
+      const wd = guess(it.t); let r = 0;
+      while (ends[r] != null && it.x - wd / 2 < ends[r] + 3) r++;
+      ends[r] = it.x + wd / 2; it.r = r; rows = Math.max(rows, r + 1);
+    });
+    const ROW = 28, Y = 36 + (rows - 1) * ROW, H = Math.max(h, Y + 44), s = svg(w, H, { class: 'nl-svg' });
     s.appendChild(el('line', { x1: L, y1: Y, x2: R, y2: Y, stroke: 'var(--ink)', 'stroke-width': '3', 'stroke-linecap': 'round' }));
-    const span = max - min;
     const ticks = [];
     const step = span <= 1 ? 0.1 : span <= 2 ? 0.25 : 1;
     for (let v = min; v <= max + 1e-9; v = +(v + step).toFixed(4)) ticks.push(v);
@@ -110,10 +119,11 @@
         svgLabel(s, x, Y + 22, String(v), { 'font-size': 12, fill: 'var(--muted)' });
       }
     });
-    (marks || []).forEach((m) => {
-      const x = L + ((m.pos - min) / span) * (R - L);
+    items.forEach((it) => {
+      const m = it.m, x = it.x, ly = Y - 20 - it.r * ROW;
+      if (it.r > 0) s.appendChild(el('line', { x1: x, y1: ly + 7, x2: x, y2: Y - 9, stroke: 'var(--muted)', 'stroke-width': '1.5', 'stroke-dasharray': '3 3' }));
       s.appendChild(el('circle', { cx: x, cy: Y, r: 7, fill: themeFill(m.color || '#ff5a36'), stroke: 'var(--ink)', 'stroke-width': '2' }));
-      svgLabel(s, x, 16, m.label || String(m.pos), { 'font-size': 13, fill: 'var(--ink)' });
+      svgLabel(s, x, ly, it.t, { 'font-size': 13, fill: 'var(--ink)' });
     });
     return wrap(s);
   }

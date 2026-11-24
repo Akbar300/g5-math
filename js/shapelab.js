@@ -638,7 +638,13 @@
     B.zone.addEventListener('pointermove', (e) => { if (busy || closed) return; const q = B.snap(e); if (q) B.showHover(q); });
     B.zone.addEventListener('pointerdown', (e) => { e.preventDefault(); if (busy) return; const q = B.snap(e); if (!q) return; B.showHover(q); addPoint(q); });
 
-    drawPick(); render();
+    drawPick();
+    /* Coming from a question ("Try it in Shape Lab"): start with that question's points already placed. */
+    const pre = w.__slPreset; w.__slPreset = null;
+    if (pre && pre.pts && pre.pts.length >= 2 && pre.pts.length <= MAXP && pre.pts.every((q) => q.x >= lo && q.x <= n && q.y >= lo && q.y <= n)) {
+      pts = pre.pts.map((q) => ({ x: q.x, y: q.y })); closed = pts.length >= 3; resetResults(); render(); B.hideHover();
+      note('📍 Your question\'s points are on the grid. Tap <b>Fly the path</b>, or measure the shape.');
+    } else render();
   }
 
   /* =====================================================================
@@ -665,7 +671,7 @@
       s.appendChild(mk('line', { x1: sx(v), y1: Y - 5, x2: sx(v), y2: Y + 5, class: 'sl-ntk' + (v === 0 ? ' z' : '') }));
       s.appendChild(mk('text', { x: sx(v), y: Y + 22, class: 'sl-nt' + (v === a || v === b || v === 0 ? ' on' : ''), 'text-anchor': 'middle' }, [sgn(v)]));
     }
-    s.appendChild(mk('text', { x: W - 4, y: Y - 9, class: 'sl-nt ax', 'text-anchor': 'end' }, [axis + '-numbers']));
+    s.appendChild(mk('text', { x: W - 4, y: 108, class: 'sl-nt ax', 'text-anchor': 'end' }, [axis + '-numbers']));
     for (let i = 0, v = a; i < d; i++, v += dir) {
       const x1 = sx(v), x2 = sx(v + dir), after = cross && (dir > 0 ? v >= 0 : v <= 0);
       const arc = mk('path', { d: `M${x1},${Y} Q${(x1 + x2) / 2},${Y - 30} ${x2},${Y}`, class: 'sl-hop ' + (after ? 'g' : 'b') });
@@ -681,10 +687,10 @@
     }
     return s;
   }
-  function miniGrid(pts, labels, quad, n) {
+  function miniGrid(pts, labels, quad, n, open) {
     const s = V.planeSVG([], { quad, n, size: 260 }), G = s.__geo, fx = s.querySelector('.cp-pts'), g = mk('g');
     s.insertBefore(g, fx);
-    if (pts.length > 1) for (let i = 0; i < pts.length; i++) { if (pts.length === 2 && i === 1) break; const a = pts[i], b = pts[(i + 1) % pts.length]; const l = mk('line', { x1: G.px(a.x), y1: G.py(a.y), x2: G.px(b.x), y2: G.py(b.y), class: 'sl-edge ' + dirOf(a, b) }); g.appendChild(l); }
+    if (pts.length > 1) for (let i = 0; i < pts.length; i++) { if ((pts.length === 2 || open) && i === pts.length - 1) break; const a = pts[i], b = pts[(i + 1) % pts.length]; const l = mk('line', { x1: G.px(a.x), y1: G.py(a.y), x2: G.px(b.x), y2: G.py(b.y), class: 'sl-edge ' + dirOf(a, b) }); g.appendChild(l); }
     pts.forEach((p, i) => { fx.appendChild(mk('circle', { cx: G.px(p.x), cy: G.py(p.y), r: 4.5, class: 'cp-dot' })); fx.appendChild(mk('text', { x: G.px(p.x) + 8, y: G.py(p.y) - 7, class: 'sl-vl' }, [labels[i]])); });
     const d = h('div', 'sl-mini'); d.appendChild(s); return d;
   }
@@ -721,6 +727,29 @@
       if (type === 'fourth') it.ans = c[3];
       return it;
     }
+    /* Both directions: the rover moves across, then up/down. Steps = x-gap + y-gap. */
+    function pboth(kind) {
+      let p, q, tt = 0;
+      do {
+        tt++;
+        p = { x: ri(quad ? lo : 0, n), y: ri(quad ? lo : 0, n) }; q = { x: ri(quad ? lo : 0, n), y: ri(quad ? lo : 0, n) };
+        if (kind === 'pos' && quad) { p = { x: ri(1, n), y: ri(1, n) }; q = { x: ri(1, n), y: ri(1, n) }; }
+      } while (!(Math.abs(p.x - q.x) >= 2 && Math.abs(p.y - q.y) >= 2 && (kind !== 'cross' || p.x * q.x < 0 || p.y * q.y < 0)) && tt < 400);
+      const gx = gap(p.x, q.x), gy = gap(p.y, q.y), R = { x: q.x, y: p.y };
+      return { type: 'both', p, q, R, ex: { d: gx.d + gy.d, gx, gy } };
+    }
+    function pcorner(kind) { const it = pboth(kind); it.type = 'corner'; it.ans = { x: it.q.x, y: it.p.y }; return it; }
+    const bothLearn = () => {
+      const L = [
+        Object.assign(pboth('pos'), { title: '📘 Two moves · across, then up or down', intro: 'A rover can only go <b>across</b> or <b>up/down</b> (no diagonals). Try it your own way first.' }),
+        Object.assign(pboth('pos'), { title: '📘 Left and down count too', intro: 'Steps are always positive. The <b>direction</b> may change, but the count is a gap.' }),
+        Object.assign(pcorner('pos'), { title: '📘 Where does the rover turn?', intro: 'Go across first, then up/down. Which x and which y does the turning point use?' })
+      ];
+      if (adv) L.splice(2, 0, Object.assign(pboth('cross'), { title: '📘 Crossing an axis', intro: 'One of the trips goes past 0. Remember: steps <b>to 0</b> plus steps <b>past 0</b>.' }));
+      return L;
+    };
+    const BOTH_PRACTICE = ['both', 'both', 'corner', 'both', 'both', 'corner', 'both', 'both', 'corner', 'both'];
+    const bothPractice = () => BOTH_PRACTICE.map((t) => { const k = quad ? ['cross', 'cross', 'pos'][ri(0, 2)] : 'pos'; return t === 'both' ? pboth(k) : pcorner(k); });
     const learnItems = () => {
       const L = [
         Object.assign(pline('pos', true), { title: '📘 Trick 1 · What is the same?', intro: 'Two points. Look for the number that <b>matches</b>. Try it your own way first.' }),
@@ -736,9 +765,12 @@
     const PRACTICE = ['steps', 'steps', 'steps', 'side', 'steps', 'perim', 'area', 'steps', 'fourth', 'side'];
     const practiceItems = () => PRACTICE.map((t) => t === 'steps' ? pline(quad ? ['cross', 'cross', 'neg', 'pos'][ri(0, 3)] : 'pos') : rectItem(t));
 
+    const isPt = (it) => it.type === 'fourth' || it.type === 'corner';
     const pairH = (p) => pair(p.x, p.y);
     const chipRow = (it) => it.pts.map((p, k) => `<span class="sl-chip">${NAMES[k]} ${pairH(p)}</span>`).join(' ');
     function qHtml(it) {
+      if (it.type === 'both') return `A rover can only move <b>across</b> or <b>up/down</b> along the grid lines. How many steps from <b>P</b> ${pairH(it.p)} to <b>Q</b> ${pairH(it.q)}?`;
+      if (it.type === 'corner') return `A rover goes from <b>P</b> ${pairH(it.p)} to <b>Q</b> ${pairH(it.q)}: first straight <b>across</b>, then straight <b>up/down</b>. At which point <b>R</b> does it turn?`;
       if (it.type === 'steps') return `How many steps from <b>P</b> ${pairH(it.p)} to <b>Q</b> ${pairH(it.q)}?`;
       if (it.type === 'side') return `A rectangle's corners, in order, are below. How long is side <b>${it.lab}</b>?`;
       if (it.type === 'perim') return 'A rectangle\'s corners, in order, are below. Find its <b>perimeter</b>.';
@@ -746,12 +778,24 @@
       return 'Three corners of a rectangle are below. Find corner <b>D</b>.';
     }
     function hintOf(it) {
+      if (it.type === 'both') return 'Split it into two trips: how far <b>across</b> (the x numbers) and how far <b>up or down</b> (the y numbers)? Then add.';
+      if (it.type === 'corner') return 'Across keeps the <b>y</b> of P. Then going up/down keeps the <b>x</b> of Q. So R takes x from one point and y from the other.';
       if (it.type === 'steps') return 'Which number is the <b>same</b> in both points? Ignore it, and count steps between the <b>other</b> numbers.';
       if (it.type === 'side') return 'Neighbors share an x or a y. Ignore the shared number and find the gap between the other two.';
       if (it.type === 'fourth') return 'The missing corner uses the x that shows up <b>once</b> and the y that shows up <b>once</b>.';
       return 'Length = gap between the two different x\'s. Width = gap between the two different y\'s.';
     }
     function trickHtml(it, box) {
+      if (it.type === 'both') {
+        const e = it.ex;
+        box.appendChild(h('div', '', `<b>Trip 1 · across</b> (x changes): ${sgn(it.p.x)} to ${sgn(it.q.x)}<br>${e.gx.how}<br><b>Trip 2 · up/down</b> (y changes): ${sgn(it.p.y)} to ${sgn(it.q.y)}<br>${e.gy.how}<br>Total = ${e.gx.d} + ${e.gy.d} = <b>${e.d}</b> steps`));
+        box.appendChild(nline(it.p.x, it.q.x, 'x')); box.appendChild(nline(it.p.y, it.q.y, 'y'));
+        return [[it.p, it.R, it.q], ['P', 'R', 'Q'], true];
+      }
+      if (it.type === 'corner') {
+        box.appendChild(h('div', '', `Across first: you stay on the same <b>y</b> as P, so y = <b>${sgn(it.p.y)}</b>.<br>Then up/down: you stay on the same <b>x</b> as Q, so x = <b>${sgn(it.q.x)}</b>.<br>Turning point R = ${pairH(it.R)}.<br><i>Either order takes the same number of steps: ${it.ex.gx.d} + ${it.ex.gy.d} = ${it.ex.d}.</i>`));
+        return [[it.p, it.R, it.q], ['P', 'R', 'Q'], true];
+      }
       if (it.type === 'steps') { box.appendChild(h('div', '', it.ex.html)); box.appendChild(nline(it.ex.a, it.ex.b, it.ex.ax)); return [[it.p, it.q], ['P', 'Q']]; }
       if (it.type === 'side') {
         const e = stepsExplain(it.P, it.Q);
@@ -768,13 +812,14 @@
       return [it.pts, ['A', 'B', 'C', 'D']];
     }
 
-    function run(items, learn) {
+    function run(items, learn, ctx) {
+      const bk = bestKey + (ctx === 'both' ? 'b' : '');
       let i = 0, stars = 0, streak = 0;
       area.innerHTML = '';
       const hud = h('div', 'sp-hud'), card = h('div', 'sl-trcard'); area.appendChild(hud); area.appendChild(card);
       const drawHud = () => {
         hud.innerHTML = learn ? `<span>Trick ${Math.min(i + 1, items.length)} / ${items.length}</span>`
-          : `<span>Question ${Math.min(i + 1, items.length)} / ${items.length}</span><span class="sp-stars">⭐ ${stars}</span>${streak > 1 ? `<span>🔥 ${streak} in a row</span>` : ''}${best[bestKey] != null ? `<span>Best ${best[bestKey]} / ${items.length}</span>` : ''}`;
+          : `<span>Question ${Math.min(i + 1, items.length)} / ${items.length}</span><span class="sp-stars">⭐ ${stars}</span>${streak > 1 ? `<span>🔥 ${streak} in a row</span>` : ''}${best[bk] != null ? `<span>Best ${best[bk]} / ${items.length}</span>` : ''}`;
       };
       function show() {
         const it = items[i]; let tries = 0, done = false, fx = 0, fy = 0; drawHud(); card.innerHTML = '';
@@ -783,14 +828,14 @@
         if (it.pts) card.appendChild(h('div', 'sl-chips', it.type === 'fourth' ? it.pts.slice(0, 3).map((p, k) => `<span class="sl-chip">${NAMES[k]} ${pairH(p)}</span>`).join(' ') : chipRow(it)));
         const inRow = h('div', 'sl-ansrow'), fb = h('div', 'ix-fb'), trick = h('div', 'sl-trick ph', '<div class="k">✨ The trick</div><div>Give it a try first. The trick shows up here.</div>'), nav = h('div', 'ix-ctr');
         let inp = null, inY = null;
-        if (it.type === 'fourth') {
+        if (isPt(it)) {
           const mkStep = (lab, get, set, color) => {
             const w1 = h('div', 'sp-step'), v = h('span', 'ix-val', sgn(get())); v.style.color = color;
             w1.appendChild(h('span', 'ix-lab', `<span style="color:${color}">${lab}</span>`));
             w1.appendChild(btn('−', () => { set(Math.max(lo, get() - 1)); v.textContent = sgn(get()); })); w1.appendChild(v); w1.appendChild(btn('+', () => { set(Math.min(n, get() + 1)); v.textContent = sgn(get()); }));
             inRow.appendChild(w1);
           };
-          mkStep('D x', () => fx, (v) => { fx = v; }, 'var(--cp-x)'); mkStep('D y', () => fy, (v) => { fy = v; }, 'var(--cp-y)');
+          const PL = it.type === 'corner' ? 'R' : 'D'; mkStep(PL + ' x', () => fx, (v) => { fx = v; }, 'var(--cp-x)'); mkStep(PL + ' y', () => fy, (v) => { fy = v; }, 'var(--cp-y)');
         } else {
           inp = h('input', 'sl-in'); inp.type = 'number'; inp.step = 'any'; inp.setAttribute('inputmode', 'numeric'); inp.setAttribute('aria-label', 'Your answer');
           inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') check(); });
@@ -803,7 +848,7 @@
           trick.classList.remove('ph'); trick.innerHTML = ''; trick.appendChild(h('div', 'k', '✨ The trick'));
           const g = trickHtml(it, trick);
           const gridBox = h('div', 'sl-gridbox');
-          trick.appendChild(btn('Show it on the grid 🗺️', function () { if (gridBox.firstChild) { gridBox.innerHTML = ''; this.textContent = 'Show it on the grid 🗺️'; } else { gridBox.appendChild(miniGrid(g[0], g[1], quad, n)); this.textContent = 'Hide the grid'; } }, 'ghost'));
+          trick.appendChild(btn('Show it on the grid 🗺️', function () { if (gridBox.firstChild) { gridBox.innerHTML = ''; this.textContent = 'Show it on the grid 🗺️'; } else { gridBox.appendChild(miniGrid(g[0], g[1], quad, n, g[2])); this.textContent = 'Hide the grid'; } }, 'ghost'));
           trick.appendChild(gridBox);
           nav.innerHTML = '';
           nav.appendChild(btn(i + 1 >= items.length ? (learn ? 'Go to practice 🏋️' : 'Finish round') : 'Next →', () => { i++; if (i >= items.length) finish(); else show(); }, 'go'));
@@ -812,10 +857,10 @@
         function check() {
           if (done) return;
           let ok, shown;
-          if (it.type === 'fourth') { ok = fx === it.ans.x && fy === it.ans.y; }
+          if (isPt(it)) { ok = fx === it.ans.x && fy === it.ans.y; }
           else {
             const v = parseFloat(inp.value); if (isNaN(v)) { fb.className = 'ix-fb no'; fb.innerHTML = 'Type a number first.'; return; }
-            const right = it.type === 'steps' ? it.ex.d : it.ans; ok = v === right;
+            const right = (it.type === 'steps' || it.type === 'both') ? it.ex.d : it.ans; ok = v === right;
           }
           tries++;
           if (ok) {
@@ -833,22 +878,22 @@
         see(m);
       }
       function finish() {
-        if (learn) { setTab('practice'); return; }
+        if (learn) { if (ctx === 'both') run(bothPractice(), false, 'both'); else setTab('practice'); return; }
         if (api.addXP) api.addXP(5);
-        if (best[bestKey] == null || stars > best[bestKey]) { best[bestKey] = stars; keep(best); }
+        if (best[bk] == null || stars > best[bk]) { best[bk] = stars; keep(best); }
         card.innerHTML = ''; drawHud();
         const msg = stars === items.length ? 'Flawless! Every answer on the first try.' : stars >= items.length - 2 ? 'Sharp! Just a bump or two.' : 'Round saved. The tricks get easier every time.';
         const m = h('div', 'sp-mission'); m.innerHTML = `<div class="k">🏁 Round complete (+5 XP)</div><div class="t">⭐ ${stars} / ${items.length} on the first try</div><div class="ix-note">${msg}</div>`;
         card.appendChild(m);
-        const row = h('div', 'ix-ctr'); row.appendChild(btn('Practice again 🏋️', () => run(practiceItems(), false), 'go')); row.appendChild(btn('Review the tricks 📘', () => setTab('learn'), 'ghost')); card.appendChild(row);
+        const row = h('div', 'ix-ctr'); row.appendChild(btn('Practice again 🏋️', () => (ctx === 'both' ? run(bothPractice(), false, 'both') : run(practiceItems(), false)), 'go')); row.appendChild(btn('Review the tricks 📘', () => setTab(ctx === 'both' ? 'both' : 'learn'), 'ghost')); card.appendChild(row);
       }
       show();
     }
     function setTab(m) {
       Array.prototype.forEach.call(bar.children, (b) => b.classList.toggle('on', b.getAttribute('data-m') === m));
-      if (m === 'learn') run(learnItems(), true); else run(practiceItems(), false);
+      if (m === 'learn') run(learnItems(), true); else if (m === 'both') run(bothLearn(), true, 'both'); else run(practiceItems(), false);
     }
-    [['learn', '📘 Learn the tricks'], ['practice', '🏋️ Practice']].forEach((m) => { const b = btn(m[1], () => setTab(m[0])); b.setAttribute('data-m', m[0]); bar.appendChild(b); });
+    [['learn', '📘 Learn the tricks'], ['practice', '🏋️ Practice'], ['both', '↗ Both directions']].forEach((m) => { const b = btn(m[1], () => setTab(m[0])); b.setAttribute('data-m', m[0]); bar.appendChild(b); });
     setTab('learn');
   }
 

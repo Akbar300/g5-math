@@ -629,6 +629,7 @@ function paperDivide(dividend, divisor) {
       formatFractionsIn(fb);
       if (item.why) why.classList.add('show');
       if (!ok) offerWatch();
+      if (w.G5ItemHook) w.G5ItemHook(item, box);
       if (opts.onDone) opts.onDone(ok, tries, correct);
       offerAdvance(lastOk);
     };
@@ -643,8 +644,18 @@ function paperDivide(dividend, divisor) {
       fb.innerHTML = correct ? '✅ Correct' : '❌ Not quite' + (note ? ' — ' + note : '');
       formatFractionsIn(fb);
       if (item.why) why.classList.add('show');
+      const fl = box.querySelector('.q-flag'); if (fl) fl.disabled = true;
+      if (w.G5ItemHook) w.G5ItemHook(item, box);
       return correct;
     };
+    if (opts.exam) {
+      const fl = document.createElement('button'); fl.type = 'button'; fl.className = 'q-flag'; fl.setAttribute('aria-pressed', 'false'); fl.textContent = '🚩 Flag for review';
+      fl.addEventListener('click', () => {
+        ex.flagged = !ex.flagged; box.classList.toggle('flagged', ex.flagged);
+        fl.setAttribute('aria-pressed', ex.flagged ? 'true' : 'false'); fl.textContent = ex.flagged ? '🚩 Flagged' : '🚩 Flag for review';
+      });
+      meta.appendChild(fl);
+    }
 
     if (item.type === 'mc' || item.type === 'ms') {
       const ch = item.ch.slice();
@@ -1283,6 +1294,32 @@ function paperDivide(dividend, divisor) {
       open(first < 0 ? 0 : first);
     }
 
+    /* ---- Review queue: missed Test Lab questions come back in Practice after 1, 3 and 7 days ---- */
+    const RQK = key + ':rq', RQ_STEPS = [1, 3, 7];
+    let RQ = store(RQK) || [];
+    const rqSave = () => store(RQK, RQ);
+    const dayN = () => { const d = new Date(); return Math.floor((d.getTime() - d.getTimezoneOffset() * 60000) / 864e5); };
+    const rqLevel = () => RQ.filter((e) => e.lvl === M.lvl);
+    const rqDue = () => rqLevel().filter((e) => e.due <= dayN());
+    const rqAdd = (it) => {
+      let bad = false, copy = null;
+      try { copy = JSON.parse(JSON.stringify(it, (k, v) => { if (typeof v === 'function') { bad = true; return undefined; } return v; })); } catch (e) { bad = true; }
+      if (bad || !copy) return;
+      const k = itemKey(copy);
+      const hit = RQ.find((e) => e.k === k && e.lvl === M.lvl);
+      if (hit) { hit.step = 0; hit.due = dayN(); }
+      else RQ.push({ k, lvl: M.lvl, it: copy, step: 0, due: dayN() });
+      if (RQ.length > 60) RQ = RQ.slice(RQ.length - 60);
+      rqSave();
+    };
+    const rqResolve = (k, ok) => {
+      const e = RQ.find((x) => x.k === k && x.lvl === M.lvl); if (!e) return;
+      if (ok) { e.step++; if (e.step > RQ_STEPS.length) RQ = RQ.filter((x) => x !== e); else e.due = dayN() + RQ_STEPS[e.step - 1]; }
+      else { e.step = 0; e.due = dayN() + 1; }
+      rqSave();
+    };
+    let goReview = false;
+
     function showPractice() {
       const T = track();
       const skills = T.skills || [];
@@ -1295,10 +1332,11 @@ function paperDivide(dividend, divisor) {
           <span class="stat" id="stStreak">streak 0</span>
         </div>
         <div id="pHost" class="stage-host"></div>`;
-      let skill = 'all', n = 5, solved = 0, streak = 0, qi = 0, cur = null, lastSkill = null;
+      let skill = 'all', n = 5, nChoice = 5, solved = 0, streak = 0, qi = 0, cur = null, lastSkill = null, revSeen = new Set();
       const skillSeg = stage.querySelector('#skillSeg');
       function startFresh() {
-        qi = 0; solved = 0; streak = 0; lastSkill = null; cur = null;
+        qi = 0; solved = 0; streak = 0; lastSkill = null; cur = null; revSeen = new Set();
+        n = skill === '__rev' ? Math.max(1, Math.min(nChoice || 99, rqLevel().length)) : nChoice;
         const solEl = stage.querySelector('#stSolved');
         const stEl = stage.querySelector('#stStreak');
         if (solEl) solEl.textContent = '0 solved';
@@ -1308,6 +1346,13 @@ function paperDivide(dividend, divisor) {
       const allBtn = document.createElement('button'); allBtn.className = 'on'; allBtn.textContent = 'All skills';
       allBtn.onclick = () => { skill = 'all'; [...skillSeg.children].forEach((x) => x.classList.remove('on')); allBtn.classList.add('on'); startFresh(); };
       skillSeg.appendChild(allBtn);
+      let revBtn = null;
+      if (rqLevel().length) {
+        revBtn = document.createElement('button'); revBtn.textContent = '🔁 Review (' + rqLevel().length + ')';
+        revBtn.title = 'Questions you missed before. They come back after 1, 3 and 7 days.';
+        revBtn.onclick = () => { skill = '__rev'; [...skillSeg.children].forEach((x) => x.classList.remove('on')); revBtn.classList.add('on'); startFresh(); };
+        skillSeg.appendChild(revBtn);
+      }
       skills.forEach((s) => {
         const b = document.createElement('button'); b.textContent = s.name;
         b.onclick = () => { skill = s.id; [...skillSeg.children].forEach((x) => x.classList.remove('on')); b.classList.add('on'); startFresh(); };
@@ -1316,7 +1361,7 @@ function paperDivide(dividend, divisor) {
       const nSeg = stage.querySelector('#nSeg');
       [5, 10, 20, 0].forEach((k) => {
         const b = document.createElement('button'); b.textContent = k ? String(k) : '∞'; if (k === 5) b.classList.add('on');
-        b.onclick = () => { n = k; [...nSeg.children].forEach((x) => x.classList.remove('on')); b.classList.add('on'); startFresh(); };
+        b.onclick = () => { nChoice = k; n = k; [...nSeg.children].forEach((x) => x.classList.remove('on')); b.classList.add('on'); startFresh(); };
         nSeg.appendChild(b);
       });
       const host = stage.querySelector('#pHost');
@@ -1333,7 +1378,17 @@ function paperDivide(dividend, divisor) {
         rec.n++; if (ok) { rec.c++; const t = U.today(); if (rec.d.indexOf(t) < 0) rec.d.push(t); M.xp += 5; }
         save(); setXP();
       }
+      function revPick() {
+        const pool = (skill === '__rev' ? rqLevel() : rqDue()).filter((e) => !revSeen.has(e.k));
+        if (!pool.length) return null;
+        pool.sort((a, b) => a.due - b.due || a.step - b.step);
+        const e = pool[0]; revSeen.add(e.k);
+        const it = JSON.parse(JSON.stringify(e.it)); it.__rq = e.k; it.skill = '__rev';
+        return { s: { id: '__rev', name: '🔁 Review' }, it };
+      }
       function makeItem() {
+        if (skill === '__rev') { const r = revPick(); if (r) return r; }
+        else if (skill === 'all' && rqDue().length && Math.random() < 0.3) { const r = revPick(); if (r) return r; }
         let s = pickSkill();
         if (skill === 'all' && skills.length > 1 && lastSkill && s.id === lastSkill) s = pickSkill();
         lastSkill = s.id;
@@ -1341,8 +1396,8 @@ function paperDivide(dividend, divisor) {
         if (it) it.skill = s.id;
         return { s, it };
       }
-      const onScore = (s) => (ok) => {
-        credit(s.id, ok);
+      const onScore = (s, it) => (ok) => {
+        if (s.id === '__rev') rqResolve(it && it.__rq, ok); else credit(s.id, ok);
         if (ok) { solved++; streak++; }
         else { streak = 0; }
         stage.querySelector('#stSolved').textContent = solved + ' solved';
@@ -1379,7 +1434,7 @@ function paperDivide(dividend, divisor) {
           grid.appendChild(cell);
           const { s, it } = makeItem();
           if (!it) { cell.innerHTML = '<div class="remember">Could not build a question for this skill.</div>'; left--; continue; }
-          const score = onScore(s);
+          const score = onScore(s, it);
           renderItem(cell, it, {
             label: 'Q' + (qi + j + 1) + ' · ' + s.name,
             noScroll: true,
@@ -1409,12 +1464,12 @@ function paperDivide(dividend, divisor) {
         renderItem(holder, it, {
           sticky: true,
           nextLabel: n && qi + 1 >= n ? 'Finish round' : 'Next',
-          onDone: onScore(s),
+          onDone: onScore(s, it),
           onNext: () => { qi++; keepPlace(host, next); }
         });
       }
       function next() { if (isWide()) nextSet(); else nextOne(); }
-      next();
+      if (goReview && revBtn) { goReview = false; revBtn.click(); } else next();
     }
 
     function showTest() {
@@ -1424,8 +1479,20 @@ function paperDivide(dividend, divisor) {
       const wide = isWide(), N = items.length;
       stage.innerHTML = `<h2>Test Lab · ${M.lvl === 'advanced' ? 'Advanced' : 'Core'}</h2>
         <p class="lede">SOL-style formats, like the real test: answer every question, then press <b>Submit test</b>. You'll see what was right and why only after you finish. ${wide ? 'All questions are on the page — answer them in any order.' : 'One question at a time — you can go back to change an answer.'}</p>
+        <label class="tm-tog"><input type="checkbox" id="tmOn"${M.timer ? ' checked' : ''}> ⏱ Show a timer <span>(optional, counts up, no pressure)</span></label>
+        <div class="tm-pill" id="tmPill" hidden></div>
         <div id="tHost" class="stage-host"></div>`;
       const host = stage.querySelector('#tHost');
+      const t0 = Date.now(); let tEnd = 0;
+      const tmPill = stage.querySelector('#tmPill'), tmOn = stage.querySelector('#tmOn');
+      const fmtT = (ms) => { const sec = Math.floor(ms / 1000); return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); };
+      const tmPaint = () => {
+        tmPill.hidden = !M.timer;
+        if (M.timer) tmPill.textContent = '⏱ ' + fmtT((tEnd || Date.now()) - t0) + ' · a calm pace is about ' + Math.max(1, Math.round(N * 1.5)) + ' min in all';
+      };
+      tmOn.onchange = () => { M.timer = tmOn.checked; save(); tmPaint(); };
+      const tmIv = setInterval(() => { if (!document.body.contains(tmPill) || tEnd) { clearInterval(tmIv); return; } tmPaint(); }, 1000);
+      tmPaint();
       const grid = document.createElement('div'); grid.className = wide ? 'qgrid' : 'qpager';
       host.appendChild(grid);
       const cells = [], boxes = [];
@@ -1440,41 +1507,47 @@ function paperDivide(dividend, divisor) {
       const dots = document.createElement('div'); dots.className = 'q-dots';
       if (!wide) host.insertBefore(dots, grid);
       host.appendChild(nav);
-      let cur = 0, submitted = false, warned = false;
+      let cur = 0, submitted = false, warned = false, flagCur = -1;
       const isAns = (b) => !b.__exam || !b.__exam.answered || b.__exam.answered();
       const answeredCount = () => boxes.filter(isAns).length;
       const mkBtn = (label, cls, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn ' + (cls || ''); b.textContent = label; bindTap(b, fn); return b; };
+      const flaggedList = () => boxes.map((b, k) => (b.__exam && b.__exam.flagged ? k : -1)).filter((k) => k >= 0);
       function paint() {
         if (submitted) return;
-        const n = answeredCount();
-        status.textContent = wide ? (n + ' of ' + N + ' answered') : ('Question ' + (cur + 1) + ' of ' + N + ' · ' + n + ' answered');
+        const n = answeredCount(), fl = flaggedList();
+        status.textContent = (wide ? (n + ' of ' + N + ' answered') : ('Question ' + (cur + 1) + ' of ' + N + ' · ' + n + ' answered')) + (fl.length ? ' · 🚩 ' + fl.length : '');
         if (!wide) {
           cells.forEach((c, k) => { c.style.display = k === cur ? '' : 'none'; });
           dots.innerHTML = '';
           boxes.forEach((b, k) => {
             const d = document.createElement('button'); d.type = 'button';
-            d.className = 'q-dot' + (isAns(b) ? ' on' : '') + (k === cur ? ' cur' : '');
-            d.textContent = String(k + 1); d.setAttribute('aria-label', 'Go to question ' + (k + 1));
+            d.className = 'q-dot' + (isAns(b) ? ' on' : '') + (k === cur ? ' cur' : '') + (b.__exam && b.__exam.flagged ? ' flag' : '');
+            d.textContent = k + 1; d.setAttribute('aria-label', 'Go to question ' + (k + 1));
             bindTap(d, () => { cur = k; warned = false; paint(); });
             dots.appendChild(d);
           });
-          nav.innerHTML = '';
-          const back = mkBtn('Back', 'ghost', () => { if (cur > 0) { cur--; paint(); } }); back.disabled = cur === 0;
-          nav.appendChild(back); nav.appendChild(status);
-          if (cur < N - 1) nav.appendChild(mkBtn('Next', '', () => { cur++; paint(); }));
-          if (cur === N - 1 || warned) nav.appendChild(mkBtn('Submit test', 'teal', submit));
         }
+        nav.innerHTML = '';
+        if (!wide) { const back = mkBtn('Back', 'ghost', () => { if (cur > 0) { cur--; paint(); } }); back.disabled = cur === 0; nav.appendChild(back); }
+        nav.appendChild(status);
+        if (fl.length) nav.appendChild(mkBtn('🚩 Next flagged', 'ghost', () => {
+          const after = fl.find((k) => k > (wide ? flagCur : cur)); const k = after != null ? after : fl[0]; flagCur = k;
+          if (wide) { try { cells[k].scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {} } else { cur = k; paint(); }
+        }));
+        if (!wide && cur < N - 1) nav.appendChild(mkBtn('Next', '', () => { cur++; paint(); }));
+        if (wide || cur === N - 1 || warned) nav.appendChild(mkBtn('Submit test', 'teal', submit));
       }
       function submit() {
         if (submitted) return;
-        const left = N - answeredCount();
-        if (left && !warned) {
+        const left = N - answeredCount(), fls = flaggedList().length;
+        if ((left || fls) && !warned) {
           warned = true;
-          status.textContent = left + ' unanswered — press Submit test again to finish anyway.';
-          if (!wide) { const first = boxes.findIndex((b) => !isAns(b)); if (first >= 0) { cur = first; paint(); status.textContent = left + ' unanswered — press Submit test again to finish anyway.'; } }
+          const msg = [left ? left + ' unanswered' : '', fls ? fls + ' flagged for review' : ''].filter(Boolean).join(' · ') + ' — press Submit test again to finish anyway.';
+          status.textContent = msg;
+          if (!wide) { let first = boxes.findIndex((b) => !isAns(b)); if (first < 0) first = flaggedList()[0]; if (first >= 0) { cur = first; paint(); status.textContent = msg; } }
           return;
         }
-        submitted = true;
+        submitted = true; tEnd = Date.now(); tmPaint();
         let right = 0; const missed = [];
         boxes.forEach((b, k) => { const g = b.__exam && b.__exam.grade ? b.__exam.grade() : false; if (g) right++; else missed.push(k + 1); });
         cells.forEach((c) => { c.style.display = ''; });
@@ -1484,18 +1557,38 @@ function paperDivide(dividend, divisor) {
         const box = document.createElement('div'); box.className = 'test-done';
         const pct = N ? Math.round(100 * right / N) : 0;
         box.innerHTML = `<div class="remember">🧪 Test complete: <b>${right} / ${N}</b> correct (${pct}%). ${right >= Math.ceil(N * 0.8) ? 'Strong work.' : 'Read the explanations below, review the lessons, then try a fresh pack.'}</div>`;
+        const timeNote = M.timer ? ' Time: ' + fmtT(tEnd - t0) + '.' : '';
+        if (timeNote) box.firstChild.insertAdjacentHTML('beforeend', timeNote);
+        /* Results by topic */
+        const topicOf = (it) => { try { if (typeof UNIT.topicOf === 'function') return UNIT.topicOf(it) || 'Mixed'; } catch (e) {} return it.topic || null; };
+        const tally = {}; items.forEach((it, k) => { const t = topicOf(it); if (!t) return; const r = tally[t] || (tally[t] = { n: 0, c: 0 }); r.n++; if (!missed.includes(k + 1)) r.c++; });
+        const tnames = Object.keys(tally);
+        if (tnames.length >= 2) {
+          const tb = document.createElement('div'); tb.className = 'topic-res';
+          tb.innerHTML = '<div class="tr-h">By topic</div>' + tnames.sort((a, b) => (tally[a].c / tally[a].n) - (tally[b].c / tally[b].n)).map((t) => {
+            const r = tally[t], pc = Math.round(100 * r.c / r.n);
+            return '<div class="tr-row' + (r.c < r.n ? ' weak' : '') + '"><span class="tr-n">' + t + '</span><span class="tr-bar"><i style="width:' + pc + '%"></i></span><span class="tr-s">' + r.c + '/' + r.n + '</span></div>';
+          }).join('');
+          box.appendChild(tb);
+        }
+        const fl = boxes.map((b, k) => (b.__exam && b.__exam.flagged ? k + 1 : 0)).filter(Boolean);
+        if (fl.length) { const fn = document.createElement('div'); fn.className = 'ix-note'; fn.textContent = '🚩 You flagged ' + fl.map((q) => 'Q' + q).join(', ') + ' (' + fl.filter((q) => !missed.includes(q)).length + ' of them turned out right).'; box.appendChild(fn); }
+        /* Missed questions go into the review queue for Practice (back after 1, 3 and 7 days). */
+        missed.forEach((q) => rqAdd(items[q - 1]));
         if (missed.length) {
           const row = document.createElement('div'); row.className = 'row-btns exam-missed';
           const lab = document.createElement('span'); lab.className = 'set-left'; lab.textContent = 'Review the ones to learn from:'; row.appendChild(lab);
           missed.forEach((q) => row.appendChild(mkBtn('Q' + q, 'ghost', () => { try { cells[q - 1].scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) {} })));
           box.appendChild(row);
         }
-        box.appendChild(mkBtn('New checkpoint', '', () => showTest()));
+        const acts = document.createElement('div'); acts.className = 'row-btns';
+        if (missed.length && rqLevel().length) acts.appendChild(mkBtn('🔁 Practice the ones I missed', 'teal', () => { goReview = true; show('practice'); }));
+        acts.appendChild(mkBtn('New checkpoint', '', () => showTest()));
+        box.appendChild(acts);
         host.insertBefore(box, host.firstChild);
         M.xp += right * 4; save(); setXP();
         try { stage.scrollIntoView({ block: 'start' }); w.scrollTo(0, 0); } catch (e) {}
       }
-      if (wide) { nav.appendChild(status); nav.appendChild(mkBtn('Submit test', 'teal', submit)); }
       const refresh = () => setTimeout(() => { if (!submitted) { warned = false; paint(); } }, 0);
       ['click', 'input', 'pointerup', 'keyup'].forEach((ev) => host.addEventListener(ev, (e) => { const path = e.composedPath ? e.composedPath() : []; if (path.some((x) => x.classList && (x.classList.contains('exam-nav') || x.classList.contains('q-dots')))) return; refresh(); }));
       paint();
