@@ -1313,6 +1313,13 @@ html[data-theme="dark"] .gl-chips .chip.gl-adv.on{color:#1b1440}
 /* layout */
 .gl-wrap{display:flex;flex-direction:column;gap:10px;min-width:0}
 .gl-side{display:contents}
+.gl-left{display:contents}
+.gl-why{order:10;display:flex;flex-direction:column;gap:8px;background:var(--btn-face);border:2px solid var(--line);border-radius:16px;padding:10px 12px}
+.gl-why[hidden]{display:none}
+.gl-whyh{display:flex;flex-direction:column;gap:2px}
+.gl-whyh span{font-family:var(--display);font-weight:700;font-size:18px}
+.gl-whyh small{color:var(--muted);font-weight:700}
+.gl-why .ex-watch{text-align:left}
 .gl-mission{order:1}.gl-formula{order:2}.gl-stepnum{order:3}.gl-eq{order:4}.gl-board{order:5}.gl-answer{order:6}.gl .fb{order:7}.gl-steps{order:8}.gl-next{order:9}
 .gl-board{background:var(--gl-bg);border:2px solid var(--line);border-radius:18px;padding:6px;display:flex;align-items:center;justify-content:center;min-height:200px;min-width:0}
 .gl-board svg{display:block;width:100%;max-width:620px;height:auto;max-height:46vh;overflow:visible}
@@ -1346,7 +1353,8 @@ html[data-theme="dark"] .gl-chips .chip.gl-adv.on{color:#1b1440}
 @media (min-width:900px){
   .gl-wrap{display:grid;grid-template-columns:minmax(330px,1fr) minmax(0,1.25fr);gap:18px;align-items:start}
   .gl-side{display:flex;flex-direction:column;gap:10px;min-width:0}
-  .gl-board{position:sticky;top:12px;padding:10px;min-height:300px}
+  .gl-left{display:flex;flex-direction:column;gap:12px;min-width:0;order:5}
+  .gl-board{padding:10px;min-height:300px}
   .gl-board svg{max-height:calc(100dvh - 300px)}
 }
 @media (min-width:1200px){.gl-wrap{grid-template-columns:minmax(360px,1fr) minmax(0,1.4fr)}}
@@ -1448,3 +1456,6 @@ html[data-theme="dark"]{--gv-green:#8ae03a;--gv-ct:#1f4a5f;--gv-cl:#143546;--gv-
 .gv-perdot{fill:var(--gv-green)}
 .gv-area{fill:color-mix(in srgb,var(--blue) 30%,transparent);stroke:var(--blue);stroke-width:2.5}
 .gv-areagrid{stroke:color-mix(in srgb,var(--blue) 70%,transparent);stroke-width:1}
+.gv-perline{stroke:var(--gv-green);stroke-width:5;stroke-linecap:round}
+.gv-alt2{stroke:var(--teal);stroke-width:3.5;stroke-linecap:round}
+.gv-big.g{fill:var(--gv-green)}

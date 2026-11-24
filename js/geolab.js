@@ -5,14 +5,16 @@
    volume stacks cube layers.
    Color code (theme-aware, css/app.css "Geometry Lab"): given = teal, perimeter = green,
    area = blue, volume = violet, unknown = orange.
-   Core: rectangle, square, right triangle, polygon, L-shape, box, cube (5.MG.2, 5.MG.3).
-   Advanced adds circle, any triangle and parallelogram (FCPS Advanced Unit 9).
+   Every shape at every level (Unit 9 teaches them together): rectangle, square, right triangle, polygon,
+   L-shape, box, cube, circle, any triangle, parallelogram; Mix picks one. Pick it tells a story about the
+   chosen shape. Learn and Missions show a "Why does it work?" card that plays the matching explainer
+   (js/explainers/geometry.js) with the shape's own numbers.
    Saved on this device in localStorage g5lab_u9:geo. A Practice/Test question can open the lab on a
    matching shape through window.__glPreset = {shape, mode}. */
 var GeoLab = (function () {
 "use strict";
 var KEY = 'g5lab_u9:geo';
-var S = {mode: 'learn', shape: 'rect', aap: false, solved: 0, clean: 0};
+var S = {mode: 'learn', shape: 'rect', aap: true, solved: 0, clean: 0};   /* Unit 9 shows every shape together */
 try { var SV = JSON.parse(localStorage.getItem(KEY) || '{}') || {};
   if (['learn', 'mission', 'pick'].indexOf(SV.mode) >= 0) S.mode = SV.mode;
   if (SV.shape) S.shape = SV.shape; S.solved = +SV.solved || 0; S.clean = +SV.clean || 0; } catch (e) {}
@@ -412,23 +414,108 @@ var PICK=[
   {m:'Volume',t:function(a,b,c){return 'How many 1-foot cubes fill a storage box '+a+' feet long, '+b+' feet wide and '+c+' feet tall?';}}
 ];
 var CLUE={Perimeter:'Yes! Going around the edge means '+gr('perimeter')+'.',Area:'Yes! Covering a flat surface means '+ar('area')+'.',Volume:'Yes! Filling a 3-D space means '+vi('volume')+'.'};
-function gPick(){
-  var sc=pick(PICK),choice=ask({type:'choice',label:'Which do you need?',ans:sc.m,options:['Perimeter','Area','Volume'],
-    hints:[{bar:'Clue words',text:'Look for the clue word. "Around" or "edge" means perimeter. "Cover" means area. "Fill" means volume.'}],
-    wrongs:[['Perimeter','Perimeter is the distance around the edge. Is this about going around?'],['Area','Area covers a flat surface. Is this about covering?'],['Volume','Volume fills a 3-D space. Is this about filling?']],
-    done:{msg:CLUE[sc.m]}});
-  if(sc.m==='Volume'){
-    var l=rand(2,6),w=rand(2,4),h=rand(2,4);
-    var gv={type:'iso',aria:'Box',l:l,w:w,h:h,labels:{l:lbl(l+' ft'),w:lbl(w+' ft'),h:lbl(h+' ft')}};
-    return {geo:gv,mission:sc.t(l,w,h),known:'Which measurement fits: '+gr('perimeter')+', '+ar('area')+' or '+vi('volume')+'?',asks:[choice,askVol(l,w,h,'feet')]};
-  }
-  var L=rand(4,12),W=rand(2,L-1);
-  var g={type:'poly',aria:'Rectangle',pts:[[0,0],[L,0],[L,W],[0,W]],sides:[L,W,L,W],labels:[null,lbl(W+' ft'),lbl(L+' ft'),null],gridOK:true};
-  return {geo:g,mission:sc.t(L,W),known:'Which measurement fits: '+gr('perimeter')+', '+ar('area')+' or '+vi('volume')+'?',
-    asks:[choice,sc.m==='Perimeter'?askPerimRect(L,W,'feet','W'):askAreaRect(L,W,'feet','W')]};
-}
-
 var GEN={rect:gRect,square:gSquare,rtri:gRtri,poly:gPoly,lshape:gL,box:gBox,cube:gCube,circle:gCircle,tri:gTri,para:gPara};
+
+/* ---------- Pick it: story problems for the chosen shape ---------- */
+/* numbers of a generated shape, read back from its drawing */
+function dims(shape, g) {
+  var sd = g.sides || [], al = g.alt ? g.alt.to[1] - g.alt.from[1] : 0;
+  switch (shape) {
+    case 'rect': return {l: sd[0], w: sd[1]};
+    case 'square': return {s: sd[0]};
+    case 'rtri': return {b: sd[1], h: sd[0], c: sd[2]};
+    case 'tri': return {b: sd[1], h: al, a: g.alt.from[0], s1: sd[2], s2: sd[0]};
+    case 'poly': return {sides: sd.slice(), reg: sd.every(function (x) { return x === sd[0]; }), n: sd.length};
+    case 'lshape': return {a: sd[0], ch: sd[1], cw: sd[2], r: sd[3], W: sd[4], H: sd[5]};
+    case 'para': return {b: sd[0], s: sd[1], h: al, o: g.alt.from[0]};
+    case 'circle': return {r: g.r};
+    case 'box': return {l: g.l, w: g.w, h: g.h};
+    case 'cube': return {s: g.l};
+  }
+  return {};
+}
+/* the explainer that shows why this shape's formula works, with its own numbers */
+function whyFor(shape, g) {
+  var d = dims(shape, g);
+  switch (shape) {
+    case 'rect': return {id: 'rect-pa', l: d.l, w: d.w};
+    case 'square': return {id: 'rect-pa', l: d.s, w: d.s};
+    case 'rtri': return {id: 'tri-area', b: d.b, h: d.h};
+    case 'tri': return {id: 'tri-area', b: d.b, h: d.h, a: d.a, any: true};
+    case 'poly': return d.reg ? {id: 'poly-perim', n: d.n, s: d.sides[0]} : {id: 'poly-perim', sides: d.sides};
+    case 'lshape': return {id: 'lshape', W: d.W, H: d.H, cw: d.cw, ch: d.ch};
+    case 'para': return {id: 'para-area', b: d.b, h: d.h, o: d.o};
+    case 'circle': return {id: 'circle', r: d.r};
+    case 'box': return {id: 'volume', l: d.l, w: d.w, h: d.h};
+    case 'cube': return {id: 'volume', l: d.s, w: d.s, h: d.s};
+  }
+  return null;
+}
+var NAMES = [['Maya', 'she'], ['Leo', 'he'], ['Ava', 'she'], ['Sam', 'he'], ['Ms. Patel', 'she'], ['Omar', 'he'], ['Zoe', 'she'], ['Mr. Kim', 'he']];
+var FLAT_P = [['puts a fence around', 'garden', 'How many feet of fence does {he} need?'], ['glues ribbon around the edge of', 'poster', 'How many feet of ribbon does {he} need?'],
+  ['puts border trim around', 'bulletin board', 'How many feet of trim does {he} need?'], ['walks once around the edge of', 'park', 'How many feet does {he} walk?']];
+var FLAT_A = [['needs carpet to cover', 'floor', 'How many square feet of carpet does {he} need?'], ['spreads grass seed over', 'yard', 'How many square feet does the seed cover?'],
+  ['lays square tiles over', 'patio', 'How many square feet of tile does {he} need?'], ['paints', 'wall', 'How many square feet will the paint cover?']];
+var CIRC_P = [['puts a fence around', 'garden', 'How many feet of fence does {he} need? Use π ≈ 3.14.'], ['sews trim around the edge of', 'rug', 'How many feet of trim does {he} need? Use π ≈ 3.14.']];
+var CIRC_A = [['spreads mulch over', 'garden', 'How many square feet does the mulch cover? Use π ≈ 3.14.'], ['buys a cover for', 'pool', 'How many square feet does the cover need? Use π ≈ 3.14.']];
+var BOX_P = [['puts tape all the way around the top edge of', 'How many feet of tape does {he} need?']];
+var BOX_A = [['puts a mat on the bottom of', 'How many square feet of mat does {he} need?'], ['paints the bottom of', 'How many square feet does {he} paint?']];
+var BOX_V = [['fills', 'How many cubic feet of sand does {he} need?', ' with sand'], ['packs 1-foot cubes into', 'How many cubes fill it?', '']];
+function fill(t, who) { return t.replace(/\{he\}/g, who[1]); }
+
+function gPick(shape) {
+  var g = GEN[shape]('learn'), d = dims(shape, g.geo), who = pick(NAMES), geo = g.geo;
+  if (shape === 'poly' && !d.reg && Math.random() < 0.6) { for (var tries = 0; tries < 20 && !d.reg; tries++) { g = GEN.poly('learn'); geo = g.geo; d = dims('poly', geo); } }
+  var M = {};   /* measure -> {ans, bar, hint, sent} */
+  var iso3 = shape === 'box' || shape === 'cube';
+  var L0 = iso3 ? (shape === 'cube' ? d.s : d.l) : 0, W0 = iso3 ? (shape === 'cube' ? d.s : d.w) : 0, H0 = iso3 ? (shape === 'cube' ? d.s : d.h) : 0;
+  var desc;
+  if (shape === 'rect') { desc = function (n) { return 'a rectangular ' + n + ' ' + d.l + ' feet long and ' + d.w + ' feet wide'; };
+    M.Perimeter = {ans: 2 * (d.l + d.w), bar: 'P = 2 × (' + d.l + ' + ' + d.w + ')', hint: 'Going around: add all 4 sides, or 2 × (l + w).'};
+    M.Area = {ans: d.l * d.w, bar: 'A = ' + d.l + ' × ' + d.w, hint: 'Covering: rows × squares in a row, l × w.'}; }
+  else if (shape === 'square') { desc = function (n) { return 'a square ' + n + ' ' + d.s + ' feet on each side'; };
+    M.Perimeter = {ans: 4 * d.s, bar: 'P = 4 × ' + d.s, hint: 'Going around: 4 equal sides, 4 × s.'};
+    M.Area = {ans: d.s * d.s, bar: 'A = ' + d.s + ' × ' + d.s, hint: 'Covering: s × s.'}; }
+  else if (shape === 'rtri') { desc = function (n) { return 'a triangle-shaped ' + n + ' with sides of ' + d.h + ', ' + d.b + ' and ' + d.c + ' feet. The ' + d.b + '-foot and ' + d.h + '-foot sides meet in a square corner'; };
+    M.Perimeter = {ans: d.b + d.h + d.c, bar: 'P = ' + d.h + ' + ' + d.b + ' + ' + d.c, hint: 'Going around: add all 3 sides.'};
+    M.Area = {ans: d.b * d.h / 2, bar: 'A = ½ × ' + d.b + ' × ' + d.h, hint: 'Covering: a right triangle is half a rectangle, ½ × b × h. Use the two sides at the square corner.'}; }
+  else if (shape === 'tri') { desc = function (n) { return 'a triangle-shaped ' + n + ' with sides of ' + d.s1 + ', ' + d.b + ' and ' + d.s2 + ' feet. Its height from the ' + d.b + '-foot base is ' + d.h + ' feet'; };
+    M.Perimeter = {ans: d.s1 + d.b + d.s2, bar: 'P = ' + d.s1 + ' + ' + d.b + ' + ' + d.s2, hint: 'Going around: add the 3 sides. The height is inside the shape, so it is not part of the edge.'};
+    M.Area = {ans: d.b * d.h / 2, bar: 'A = ½ × ' + d.b + ' × ' + d.h, hint: 'Covering: ½ × base × height. Use the straight-up height, not a slanted side.'}; }
+  else if (shape === 'para') { desc = function (n) { return 'a ' + n + ' shaped like a parallelogram. Its base is ' + d.b + ' feet, its slanted sides are ' + d.s + ' feet, and its height is ' + d.h + ' feet'; };
+    M.Perimeter = {ans: 2 * (d.b + d.s), bar: 'P = 2 × (' + d.b + ' + ' + d.s + ')', hint: 'Going around: the edges are the base and the slanted side, twice each.'};
+    M.Area = {ans: d.b * d.h, bar: 'A = ' + d.b + ' × ' + d.h, hint: 'Covering: base × straight-up height (cut and slide makes a rectangle).'}; }
+  else if (shape === 'lshape') { desc = function (n) { return 'an L-shaped ' + n + '. The picture shows its sides in feet'; };
+    M.Perimeter = {ans: 2 * (d.W + d.H), bar: 'P = add all 6 sides', hint: 'Going around: add all 6 sides (shortcut: 2 × (' + d.W + ' + ' + d.H + ')).'};
+    M.Area = {ans: d.a * d.ch + d.W * d.r, bar: 'A = ' + d.a + ' × ' + d.ch + ' + ' + d.W + ' × ' + d.r, hint: 'Covering: split the L into two rectangles and add.'}; }
+  else if (shape === 'circle') { desc = function (n) { return 'a round ' + n + ' with a radius of ' + d.r + ' feet'; };
+    M.Perimeter = {ans: r2(3.14 * 2 * d.r), bar: 'C = 3.14 × ' + (2 * d.r), hint: 'Going around a circle: circumference, C = π × d. The diameter is 2 × ' + d.r + ' = ' + (2 * d.r) + '.', dec: true, lab: 'C ='};
+    M.Area = {ans: r2(3.14 * d.r * d.r), bar: 'A = 3.14 × ' + d.r + ' × ' + d.r, hint: 'Covering a circle: A = π × r × r.', dec: true}; }
+  else if (shape === 'poly') { var nm = {5: 'pentagon', 6: 'hexagon', 8: 'octagon'}[d.n] || 'polygon', T = rand(4, 15);
+    desc = d.reg ? function (n) { return 'a ' + n + ' shaped like a regular ' + nm + ', with ' + d.n + ' equal sides of ' + d.sides[0] + ' feet'; } : function (n) { return 'a ' + n + ' shaped like a ' + nm + '. The picture shows its sides in feet'; };
+    M.Perimeter = {ans: d.sides.reduce(function (a, b) { return a + b; }, 0), bar: d.reg ? 'P = ' + d.n + ' × ' + d.sides[0] : 'P = ' + d.sides.join(' + '), hint: 'Going around: add every side.'};
+    if (d.reg) M.Area = {ans: d.n * T, bar: 'A = ' + d.n + ' × ' + T, hint: 'Covering: the ' + nm + ' is made of ' + d.n + ' equal triangles of ' + T + ' square feet each.', extra: ' It is made of ' + d.n + ' equal triangles, each covering ' + T + ' square feet.'}; }
+  else { desc = shape === 'cube' ? function () { return 'a cube-shaped box ' + d.s + ' feet on each edge'; } : function () { return 'a box ' + d.l + ' feet long, ' + d.w + ' feet wide and ' + d.h + ' feet tall'; };
+    M.Perimeter = {ans: 2 * (L0 + W0), bar: 'P = 2 × (' + L0 + ' + ' + W0 + ')', hint: 'Going around the top edge: it is a ' + L0 + ' by ' + W0 + ' rectangle, so 2 × (l + w).'};
+    M.Area = {ans: L0 * W0, bar: 'B = ' + L0 + ' × ' + W0, hint: 'Covering the bottom: the base area, l × w.'};
+    M.Volume = {ans: L0 * W0 * H0, bar: 'V = ' + L0 + ' × ' + W0 + ' × ' + H0, hint: 'Filling: one layer is ' + L0 + ' × ' + W0 + ' = ' + L0 * W0 + ' cubes, times ' + H0 + ' layers.'}; }
+  var keys = Object.keys(M), m = pick(keys), it = M[m], sent;
+  if (iso3) { var tp = pick(m === 'Perimeter' ? BOX_P : m === 'Area' ? BOX_A : BOX_V); sent = who[0] + ' ' + tp[0] + ' ' + desc() + (tp[2] || '') + '. ' + fill(tp[1], who); }
+  else { var tpl = pick(shape === 'circle' ? (m === 'Perimeter' ? CIRC_P : CIRC_A) : (m === 'Perimeter' ? FLAT_P : FLAT_A)); sent = who[0] + ' ' + tpl[0] + ' ' + desc(tpl[1]) + '.' + (it.extra || '') + ' ' + fill(tpl[2], who); }
+  var choice = ask({type: 'choice', label: 'Which do you need?', ans: m, options: ['Perimeter', 'Area', 'Volume'],
+    hints: [{bar: 'Clue words', text: 'Look for the clue. "Around" or "edge" means perimeter. "Cover" means area. "Fill" means volume.'}],
+    wrongs: [['Perimeter', 'Perimeter is the distance around the edge. Is this about going around?'], ['Area', 'Area covers a flat surface. Is this about covering?'], ['Volume', iso3 ? 'Volume fills a 3-D space. Is this about filling?' : 'Volume is for 3-D shapes you can fill. This shape is flat.']],
+    done: {msg: CLUE[m]}});
+  var X = {Perimeter: {lab: 'P =', u: 'feet', keep: iso3 ? {} : {outline: 'green'}, flash: iso3 ? null : {trace: true}, name: 'perimeter'},
+    Area: {lab: 'A =', u: 'square feet', keep: iso3 ? {layerHl: 0} : {fill: true}, name: 'area'},
+    Volume: {lab: 'V =', u: 'cubic feet', keep: {fill: true, solid: false}, name: 'volume'}}[m];
+  var wr = keys.filter(function (k) { return k !== m; }).map(function (k) { return [M[k].ans, 'That is the ' + k.toLowerCase() + '. The story asks about ' + (m === 'Perimeter' ? 'going around' : m === 'Area' ? 'covering' : 'filling') + '.']; });
+  var col = m === 'Perimeter' ? gr : m === 'Area' ? ar : vi;
+  var calc = ask({label: it.lab || X.lab, ans: it.ans, unit: X.u, dec: !!it.dec, mission: 'Now find the ' + col(m.toLowerCase()) + '.', bar: col(it.bar.split(' = ')[0]) + ' = ' + it.bar.split(' = ').slice(1).join(' = '),
+    hints: [{bar: it.bar, text: it.hint}], wrongs: wr,
+    done: {msg: 'Correct! ' + it.bar + ' = ' + nf(it.ans) + ' ' + X.u, bar: col(it.bar.split(' = ')[0]) + ' = ' + it.bar.split(' = ').slice(1).join(' = ') + ' = ' + col(nf(it.ans)), keep: X.keep, flash: X.flash}});
+  return {geo: geo, mission: sent, known: 'Which measurement fits: ' + gr('perimeter') + ', ' + ar('area') + ' or ' + vi('volume') + '?', asks: [choice, calc]};
+}
 
 /* ---------- drawing ---------- */
 function inside(pt,pts){var c=false;for(var i=0,j=pts.length-1;i<pts.length;j=i++){var xi=pts[i][0],yi=pts[i][1],xj=pts[j][0],yj=pts[j][1];
@@ -538,10 +625,10 @@ function newProblem() {
   var shape = S.shape, av = available();
   if (!av.some(function (s) { return s.id === shape; }) && shape !== 'mix') shape = S.shape = 'rect';
   if (shape === 'mix') shape = pick(av).id;
-  var p = S.mode === 'pick' ? gPick() : GEN[shape](S.mode);
-  p.shape = S.mode === 'pick' ? 'pick' : shape; p.i = 0; p.hintN = 0; p.usedHint = false; p.steps = []; p.fb = null; p.locked = false; p.fin = false;
+  var p = S.mode === 'pick' ? gPick(shape) : GEN[shape](S.mode);
+  p.shape = shape; p.i = 0; p.hintN = 0; p.usedHint = false; p.steps = []; p.fb = null; p.locked = false; p.fin = false;
   p.base = merge(BASE, p.base); p.vis = merge(p.base); p.bar = p.known || p.asks[0].bar || '';
-  P = p; renderAll();
+  P = p; renderAll(); renderWhy();
 }
 function isRight(a, raw) {
   if (a.type === 'choice') return raw === a.ans;
@@ -576,7 +663,7 @@ function submit(raw) {
 function advance() {
   P.i++; P.hintN = 0; P.locked = false; P.vis = merge(P.base);
   var a = P.asks[P.i]; if (a.bar) P.bar = a.bar; if (a.mission) P.mission = a.mission; P.fb = null;
-  renderStage(); renderAnswer(); focusInput();
+  renderStage(); renderAnswer(); focusInput(); if (S.mode === 'pick' && P.i === 1) renderWhy();
 }
 function hint() {
   if (!P || P.locked || P.fin) return;
@@ -597,15 +684,15 @@ var MODES = [['learn', '📖 Learn'], ['mission', '🎯 Missions'], ['pick', '�
 var MODE_TIP = {
   learn: 'The formulas are shown. Solve each step and watch the shape light up.',
   mission: 'Something is missing. Use what you know to find the unknown, then keep going.',
-  pick: 'Read the story. Is it about going around, covering, or filling? Then solve it.'
+  pick: 'A story about this shape. Is it about going around, covering, or filling? Pick, then solve it. Mix picks a shape for you.'
 };
 function renderChrome() {
   Array.prototype.forEach.call($('modes').children, function (b) {
     var on = b.getAttribute('data-mode') === S.mode; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
   $('tip').textContent = MODE_TIP[S.mode];
-  var ch = $('shapes'); ch.hidden = S.mode === 'pick';
+  var ch = $('shapes');
   ch.innerHTML = SHAPES.filter(function (s) { return !s.aap || S.aap; }).map(function (s) {
-    return '<button type="button" class="chip' + (s.aap ? ' gl-adv' : '') + (S.shape === s.id ? ' on' : '') + '" data-shape="' + s.id + '" aria-pressed="' + (S.shape === s.id) + '">' + s.name + '</button>'; }).join('');
+    return '<button type="button" class="chip' + (S.shape === s.id ? ' on' : '') + '" data-shape="' + s.id + '" aria-pressed="' + (S.shape === s.id) + '">' + s.name + '</button>'; }).join('');
   $('solved').textContent = S.solved; $('clean').textContent = S.clean;
 }
 function renderStage() {
@@ -644,6 +731,17 @@ function renderAnswer() {
   renderStage();
 }
 function renderAll() { renderChrome(); renderAnswer(); }
+/* "Why does it work?" — the matching explainer, built from this shape's numbers */
+var WHY_TXT = {rect: 'Why P = 2 × (l + w) and A = l × w', square: 'Why P = 4 × s and A = s × s', rtri: 'Why a triangle is ½ × b × h', tri: 'Why any triangle is ½ × b × h',
+  poly: 'Why perimeter = add the sides', lshape: 'Split or subtract: L-shape area', para: 'Why a parallelogram is b × h', circle: 'Why C = π × d', box: 'Why V = l × w × h', cube: 'Why V = s × s × s'};
+function renderWhy() {
+  var box = $('why'); if (!box) return; box.innerHTML = '';
+  var o = window.EX && whyFor(P.shape, P.geo);
+  if (!o || (S.mode === 'pick' && P.i === 0)) { box.hidden = true; return; }   /* in Pick it, the formula would give the answer away */
+  box.hidden = false;
+  box.innerHTML = '<div class="gl-whyh"><span>🎬 Why does it work?</span><small>' + WHY_TXT[P.shape] + ', with these numbers</small></div>';
+  box.appendChild(window.EX.watchButton(o, {text: '▶ Watch it'}));
+}
 
 function legend() {
   return '<span class="gl-key cy">given</span><span class="gl-key gr">perimeter</span><span class="gl-key ar">area</span><span class="gl-key vi">volume</span><span class="gl-key un">unknown</span>';
@@ -652,12 +750,11 @@ function legend() {
 /* ---------- mount ---------- */
 function mount(host, api) {
   API = api || {}; token++;
-  S.aap = API.lvl === 'advanced';
   var pre = window.__glPreset; window.__glPreset = null;
   if (pre) { if (pre.mode) S.mode = pre.mode; if (pre.shape) S.shape = pre.shape; }
   root = document.createElement('div'); root.className = 'gl';
   root.innerHTML =
-    '<div class="gl-head"><h2>📐 Geometry Lab <span class="gl-lvl">' + (S.aap ? 'Advanced' : 'Core') + '</span></h2>' +
+    '<div class="gl-head"><h2>📐 Geometry Lab</h2>' +
     '<div class="gl-legend" aria-label="Color code">' + legend() + '</div></div>' +
     '<div class="gl-top"><div class="seg" id="gl-modes" role="tablist" aria-label="Mode">' +
       MODES.map(function (m) { return '<button type="button" role="tab" data-mode="' + m[0] + '">' + m[1] + '</button>'; }).join('') + '</div>' +
@@ -665,7 +762,7 @@ function mount(host, api) {
     '<p class="lede gl-tip" id="gl-tip"></p>' +
     '<div class="gl-chips" id="gl-shapes" aria-label="Shape"></div>' +
     '<div class="gl-wrap">' +
-      '<div class="gl-board" id="gl-board"></div>' +
+      '<div class="gl-left"><div class="gl-board" id="gl-board"></div><div class="gl-why" id="gl-why" hidden></div></div>' +
       '<div class="gl-side">' +
         '<div class="gl-mission" id="gl-mission" aria-live="polite"></div>' +
         '<div class="gl-formula" id="gl-formula" hidden></div>' +
@@ -677,8 +774,7 @@ function mount(host, api) {
         '<button type="button" class="btn teal gl-next" id="gl-next" hidden>Next mission →</button>' +
       '</div>' +
     '</div>' +
-    '<p class="gl-foot">Grade 5 SOL (5.MG.2, 5.MG.3): perimeter, area of rectangles, squares and right triangles, and volume of rectangular prisms. ' +
-      (S.aap ? 'Advanced adds circles (π ≈ 3.14), any triangle and parallelograms.' : 'Switch to Advanced for circles, any triangle and parallelograms.') + '</p>';
+    '<p class="gl-foot">Every shape in one place: the Grade 5 SOL shapes (5.MG.2, 5.MG.3: rectangles, squares, right triangles, boxes) plus polygons, L-shapes, any triangle, parallelograms and circles (π ≈ 3.14).</p>';
   host.appendChild(root);
 
   $('modes').addEventListener('click', function (e) { var b = e.target.closest('[data-mode]'); if (!b) return; S.mode = b.getAttribute('data-mode'); persist(); newProblem(); });

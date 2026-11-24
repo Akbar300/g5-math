@@ -48,5 +48,9 @@ EX.register('my-id', {
 | `tri-area` | geometry.js | why A = ½ × b × h: rectangle, cut corner to corner, turn one half onto the other, any triangle (opt. `any`), rule, trap |
 | `para-area` | geometry.js | why A = b × h: height not slant, cut and slide into a rectangle, rule, slanted-side trap |
 | `volume` | geometry.js | why V = l × w × h: one row, bottom layer, stack the layers, rule, add-the-edges trap |
+| `rect-pa` | geometry.js | rectangle or square: walk around and add (perimeter), fill rows of squares (area), compare units |
+| `lshape` | geometry.js | L-shape: split into two rectangles and add, or whole minus the missing corner; perimeter shortcut 2 × (W + H) |
+| `circle` | geometry.js | roll a circle one turn, measure the line with diameters (3 and a bit = π), C = π × d, radius trap |
+| `poly-perim` | geometry.js | walk a polygon adding sides; regular: n × s; count-the-sides trap |
 
 Ideas queued: estimate with rounded decimals (5.CE.3a), sale price (percent off, then subtract), place the decimal point in a product.

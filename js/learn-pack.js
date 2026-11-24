@@ -1274,6 +1274,10 @@
 
   };
 
+  /* Unit 9 teaches every shape in one path: circles and parallelograms moved out of u9B1. */
+  pack.u9L5 = pack.u9B1;
+  pack.u9L2['Parallelogram = rectangle in disguise'] = pack.u9B1['Parallelogram = rectangle in disguise'];
+
   w.G5Learn = {
     forCard: function (lesson, card) {
       const id = (lesson && lesson.id) || '';
