@@ -105,6 +105,8 @@ async function runCase({ url, label, theme, viewport, level }) {
       rootDisplay: r && r.display,
       rootVis: r && r.visibility,
       shellDisplay: s && s.display,
+      /* a hidden parent (body > #app) hides the shell without changing its own computed display */
+      shellRendered: !!(shell && shell.getClientRects().length),
       bodyBg: b && b.backgroundColor,
       bodyColor: b && b.color,
       rootColor: r && r.color,
@@ -115,7 +117,7 @@ async function runCase({ url, label, theme, viewport, level }) {
     };
   });
   if (vis.rootDisplay === 'none' || vis.rootVis === 'hidden') issues.push({ label, kind: 'print-root-hidden', vis });
-  if (vis.shellDisplay && vis.shellDisplay !== 'none') issues.push({ label, kind: 'shell-visible-in-print', vis });
+  if (vis.shellRendered) issues.push({ label, kind: 'shell-visible-in-print', vis });
   if (vis.height < 200) issues.push({ label, kind: 'print-root-short', vis });
 
   const pdfPath = path.join(OUT, `${label}.pdf`);
