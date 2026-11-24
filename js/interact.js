@@ -422,5 +422,201 @@
     return root;
   }
 
-  w.IX = { hundredGrid, fractionBar, overlapGrid, stack, decText, coordPlane, pair, sgn, svgPoint, moveWords };
+
+  /* ---------------- Step-through paper work: multiplication and long division ----------------
+     kind 'mul' (a × b, top to bottom) or 'div' (a ÷ b with Divide, Multiply, Subtract, Bring down).
+     Back / Next / Auto / Reset, plus "try your own numbers". */
+  function stepper(kind, opts) {
+    const isMul = kind === 'mul';
+    const o = Object.assign({ a: isMul ? 246 : 1554, b: isMul ? 35 : 42 }, opts || {});
+    let a = o.a, b = o.b, model = null, upto = 0, timer = null;
+    const root = h('div', 'viz ix ix-stepper');
+    const chips = h('div', 'ix-chips');
+    const PH = [['D', 'Divide'], ['M', 'Multiply'], ['S', 'Subtract'], ['B', 'Bring down']];
+    const chipEls = {};
+    if (!isMul) PH.forEach(([k, name]) => { const c = h('span', 'ix-chip ix-chip-' + k, `<b>${k}</b> ${name}`); chipEls[k] = c; chips.appendChild(c); });
+    const host = h('div', 'ix-svg');
+    const cap = h('div', 'ix-read ix-cap');
+    const prog = h('div', 'ix-prog');
+    const ctl = h('div', 'ix-ctr ix-stepctl');
+    const bBack = btn('◀ Back', () => { stop(); go(-1); }, 'ghost');
+    const bNext = btn('Next ▶', () => { stop(); go(1); }, 'go');
+    const bAuto = btn('▶ Auto', () => { timer ? stop() : play(); }, '');
+    const bReset = btn('↺ Reset', () => { stop(); upto = 0; draw(); }, 'ghost');
+    [bBack, bNext, bAuto, bReset].forEach((x) => ctl.appendChild(x));
+    const own = h('form', 'ix-own');
+    own.setAttribute('novalidate', '');
+    const mk = (val, min, max, label) => { const i = h('input', 'ix-num'); i.type = 'number'; i.inputMode = 'numeric'; i.step = '1'; i.min = String(min); i.max = String(max); i.value = String(val); i.setAttribute('aria-label', label); return i; };
+    const inA = isMul ? mk(a, 10, 999, 'first number') : mk(a, 10, 9999, 'dividend');
+    const inB = isMul ? mk(b, 10, 999, 'second number') : mk(b, 2, 99, 'divisor');
+    const goBtn = btn('Go', () => {}, 'go'); goBtn.type = 'submit';
+    own.appendChild(h('span', 'ix-lab', 'Try your own'));
+    own.appendChild(inA); own.appendChild(h('span', 'ix-op', isMul ? '×' : '÷')); own.appendChild(inB); own.appendChild(goBtn);
+    const msg = h('div', 'ix-tip', '');
+    own.onsubmit = (e) => {
+      e.preventDefault();
+      const x = Math.floor(+inA.value), y = Math.floor(+inB.value);
+      const ok = isMul ? (x >= 10 && x <= 999 && y >= 10 && y <= 999) : (x >= 10 && x <= 9999 && y >= 2 && y <= 99);
+      if (!ok) { msg.textContent = isMul ? 'Use whole numbers from 10 to 999.' : 'Use a dividend from 10 to 9999 and a divisor from 2 to 99.'; return; }
+      msg.textContent = ''; stop(); a = x; b = y; build();
+    };
+    [chips, host, cap, prog, ctl, own, msg].forEach((x) => root.appendChild(x));
+    if (isMul) chips.style.display = 'none';
+
+    function stop() { if (timer) { clearInterval(timer); timer = null; } bAuto.textContent = '▶ Auto'; }
+    function play() {
+      if (upto >= model.steps.length) upto = 0;
+      bAuto.textContent = '⏸ Pause';
+      const tick = () => {
+        if (!document.body.contains(root) || upto >= model.steps.length) { stop(); return; }
+        upto++; draw();
+        if (upto >= model.steps.length) stop();
+      };
+      tick(); timer = setInterval(tick, 1400);
+    }
+    function go(d) { upto = Math.max(0, Math.min(model.steps.length, upto + d)); draw(); }
+    function build() { model = isMul ? V.stackMulModel(a, b) : V.longDivModel(a, b); upto = 0; draw(); }
+    function draw() {
+      host.innerHTML = '';
+      host.appendChild(model.render(upto));
+      const st = upto > 0 ? model.steps[upto - 1] : null;
+      cap.innerHTML = st ? st.cap : model.intro;
+      prog.textContent = upto === 0 ? `${model.steps.length} steps` : `Step ${upto} of ${model.steps.length}`;
+      Object.keys(chipEls).forEach((k) => chipEls[k].classList.toggle('on', !!st && st.kind === k));
+      bBack.disabled = upto === 0;
+      bNext.disabled = upto >= model.steps.length;
+    }
+    build();
+    return root;
+  }
+
+
+  /* ---------------- Pattern builder: pick a start, a rule and a jump; see the hops; find any term ---------------- */
+  function patternBuilder(opts) {
+    const o = Object.assign({ start: 3, jump: 4, kind: 'add' }, opts || {});
+    let start = o.start, jump = o.jump, kind = o.kind;
+    const root = h('div', 'viz ix ix-pb');
+    const kinds = [['add', 'Add'], ['sub', 'Subtract'], ['mul', 'Multiply']];
+    const kindBtns = {};
+    const seg = h('div', 'ix-ctr');
+    kinds.forEach(([k, name]) => { const b = btn(name, () => { kind = k; if (k === 'mul') { jump = Math.min(jump, 3); if (jump < 2) jump = 2; start = Math.min(start, 6); } if (k === 'sub') start = Math.max(start, 30); fix(); draw(); }); kindBtns[k] = b; seg.appendChild(b); });
+    const stepRow = (label, get, set, lo, hi) => {
+      const row = h('div', 'ix-ctr ix-step');
+      const val = h('span', 'ix-stepval', '');
+      row.appendChild(h('span', 'ix-lab', label));
+      row.appendChild(btn('−', () => { set(Math.max(lo(), get() - 1)); fix(); draw(); }));
+      row.appendChild(val);
+      row.appendChild(btn('+', () => { set(Math.min(hi(), get() + 1)); fix(); draw(); }));
+      return { row, val };
+    };
+    const sRow = stepRow('Start', () => start, (v) => { start = v; }, () => 1, () => (kind === 'mul' ? 9 : 60));
+    const jRow = stepRow('Jump', () => jump, (v) => { jump = v; }, () => (kind === 'mul' ? 2 : 1), () => (kind === 'mul' ? 5 : 15));
+    const hopHost = h('div', 'ix-svg');
+    const read = h('div', 'ix-read ix-cap');
+    const ask = h('form', 'ix-own');
+    ask.setAttribute('novalidate', '');
+    const inN = h('input', 'ix-num'); inN.type = 'number'; inN.inputMode = 'numeric'; inN.min = '1'; inN.max = '30'; inN.value = '7'; inN.setAttribute('aria-label', 'term number');
+    const ans = h('div', 'ix-askans', '');
+    ask.appendChild(h('span', 'ix-lab', 'Find term number')); ask.appendChild(inN); ask.appendChild(btn('Find it', () => {}, 'go')); ask.lastChild.type = 'submit';
+    ask.onsubmit = (e) => { e.preventDefault(); draw(); };
+    [seg, sRow.row, jRow.row, hopHost, read, ask, ans].forEach((x) => root.appendChild(x));
+    const ord = (n) => n + (n % 100 >= 11 && n % 100 <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th'));
+    function term(i) { return kind === 'add' ? start + jump * i : kind === 'sub' ? start - jump * i : start * Math.pow(jump, i); }
+    function fix() { if (kind === 'sub') { start = Math.max(start, jump * 5); } }
+    function draw() {
+      Object.keys(kindBtns).forEach((k) => kindBtns[k].classList.toggle('on', k === kind));
+      sRow.val.textContent = start; jRow.val.textContent = jump;
+      const N = (w.innerWidth || 1000) < 600 ? 4 : 5, t = []; for (let i = 0; i < N; i++) t.push(String(term(i)));
+      t.push('…');
+      const sym = kind === 'add' ? '+' : kind === 'sub' ? '−' : '×';
+      hopHost.innerHTML = '';
+      hopHost.appendChild(V.hopsSvg(t, { rule: sym + ' ' + jump, labels: ['1st', '2nd', '3rd', '4th', '5th', ''].slice(0, N).concat(['']) }));
+      const rule = kind === 'add' ? `Each term <b>adds ${jump}</b>.` : kind === 'sub' ? `Each term <b>subtracts ${jump}</b>.` : `Each term is <b>multiplied by ${jump}</b>.`;
+      read.innerHTML = rule + (kind === 'mul' ? ' Doubling or tripling makes numbers grow fast.' : ' Check every jump, not just the first one.');
+      const n = Math.max(1, Math.min(30, Math.floor(+inN.value) || 1));
+      const v = term(n - 1);
+      let how;
+      if (kind === 'add') how = `${start} + ${jump} × ${n - 1} = <b>${v}</b>`;
+      else if (kind === 'sub') how = `${start} − ${jump} × ${n - 1} = <b>${v}</b>`;
+      else how = n === 1 ? `<b>${start}</b>` : `${start} × ${Array(Math.min(n - 1, 6)).fill(jump).join(' × ')}${n - 1 > 6 ? ' × …' : ''} = <b>${v}</b>`;
+      ans.innerHTML = `The <b>${ord(n)}</b> term: ${how}` + (kind !== 'mul' ? `<div class="ix-note">Start + jump × (n − 1): the first term has zero jumps, so use n − 1.</div>` : '');
+    }
+    fix(); draw();
+    return root;
+  }
+
+  /* ---------------- Mystery function machine ---------------- */
+  function machine(opts) {
+    const o = Object.assign({}, opts || {});
+    let rule = null, log = [], solved = false;
+    const root = h('div', 'viz ix ix-mach');
+    const stage = h('div', 'ix-mstage');
+    const inBox = h('div', 'ix-mbox', '<span class="ix-ml">IN</span><b class="ix-mv">?</b>');
+    const core = h('div', 'ix-mcore', '<span class="ix-gear">⚙️</span><span class="ix-rule">RULE ?</span>');
+    const outBox = h('div', 'ix-mbox', '<span class="ix-ml">OUT</span><b class="ix-mv">?</b>');
+    [inBox, h('div', 'ix-marrow', '→'), core, h('div', 'ix-marrow', '→'), outBox].forEach((x) => stage.appendChild(x));
+    const chips = h('div', 'ix-ctr ix-mchips');
+    const form = h('form', 'ix-own'); form.setAttribute('novalidate', '');
+    const inp = h('input', 'ix-num'); inp.type = 'number'; inp.inputMode = 'numeric'; inp.setAttribute('aria-label', 'number to put in');
+    const runB = btn('Run', () => {}, 'go'); runB.type = 'submit';
+    form.appendChild(h('span', 'ix-lab', 'Put in')); form.appendChild(inp); form.appendChild(runB);
+    const table = h('div', 'ix-mlog');
+    const guess = h('div', 'ix-game');
+    const fb = h('div', 'ix-fb', '');
+    const bar = h('div', 'ix-ctr ix-mbar');
+    const bNew = btn('New machine', () => fresh(), 'ghost');
+    const bShow = btn('Show the rule', () => { solved = true; paintRule(true); }, 'ghost');
+    bar.appendChild(bNew); bar.appendChild(bShow);
+    [stage, chips, form, table, guess, fb, bar].forEach((x) => root.appendChild(x));
+    const fnOf = (r) => (x) => (r.op === '+' ? x + r.d : r.op === '−' ? x - r.d : x * r.d);
+    const label = (r) => r.op + ' ' + r.d;
+    function fresh() {
+      const op = o.op || pick(['+', '×', '−', '+', '×']);
+      rule = op === '×' ? { op, d: pick([2, 3, 4, 5, 6]) } : op === '+' ? { op, d: pick([2, 3, 4, 5, 6, 7, 8, 9]) } : { op, d: pick([2, 3, 4, 5, 6]) };
+      if (o.rule) rule = o.rule;
+      log = []; solved = false; fb.className = 'ix-fb'; fb.textContent = '';
+      chips.innerHTML = '';
+      (rule.op === '−' ? [8, 10, 12, 15, 20, 25] : [1, 2, 3, 5, 7, 10]).forEach((n) => chips.appendChild(btn(String(n), () => run(n), 'ghost')));
+      inBox.querySelector('.ix-mv').textContent = '?'; outBox.querySelector('.ix-mv').textContent = '?';
+      paintRule(false); paintLog(); paintGuess();
+    }
+    const pick = (a) => a[Math.floor(Math.random() * a.length)];
+    function paintRule(show) { core.querySelector('.ix-rule').textContent = show ? 'RULE ' + label(rule) : 'RULE ?'; core.classList.toggle('on', !!show); }
+    function run(n) {
+      n = Math.floor(+n);
+      if (!isFinite(n) || n < 0 || n > 999) { fb.className = 'ix-fb no'; fb.textContent = 'Type a whole number from 0 to 999.'; return; }
+      const out = fnOf(rule)(n);
+      if (out < 0) { fb.className = 'ix-fb no'; fb.textContent = 'That would go below zero. Try a bigger number.'; return; }
+      fb.className = 'ix-fb'; fb.textContent = '';
+      core.classList.remove('spin'); void core.offsetWidth; core.classList.add('spin');
+      inBox.querySelector('.ix-mv').textContent = n; outBox.querySelector('.ix-mv').textContent = out;
+      if (!log.some((p) => p[0] === n)) log.push([n, out]);
+      paintLog(); paintGuess();
+    }
+    function paintLog() {
+      if (!log.length) { table.innerHTML = '<div class="ix-tip">Tap a number or type one, then press Run. Run at least 2 numbers.</div>'; return; }
+      const rows = log.slice(-6);
+      table.innerHTML = '<table class="g5t"><tr><th>In</th>' + rows.map((p) => `<td>${p[0]}</td>`).join('') + '</tr><tr><th>Out</th>' + rows.map((p) => `<td>${p[1]}</td>`).join('') + '</tr></table>';
+    }
+    function paintGuess() {
+      guess.innerHTML = '';
+      if (log.length < 2 || solved) return;
+      const right = label(rule), opts = new Set([right]);
+      const d = rule.d;
+      [['+', d], ['×', d], ['−', d], ['+', d + 1], ['×', d + 1], ['+', d * 2], ['×', Math.max(2, d - 1)]].forEach(([op, k]) => { if (opts.size < 4 && !(op === rule.op && k === d)) opts.add(op + ' ' + k); });
+      const list = [...opts].sort(() => Math.random() - 0.5);
+      guess.appendChild(h('div', 'ix-q', 'What is the rule? Check it on <b>every</b> pair.'));
+      const row = h('div', 'ix-ctr');
+      list.forEach((t) => row.appendChild(btn(t, () => {
+        if (t === right) { solved = true; paintRule(true); fb.className = 'ix-fb ok'; fb.textContent = 'Yes! Rule ' + right + '. It works on every pair in the table.'; guess.innerHTML = ''; }
+        else { fb.className = 'ix-fb no'; fb.textContent = 'Not quite. Test ' + t + ' on each pair: does it give the same output every time?'; }
+      }, 'ghost')));
+      guess.appendChild(row);
+    }
+    form.onsubmit = (e) => { e.preventDefault(); run(inp.value); inp.value = ''; };
+    fresh();
+    return root;
+  }
+
+  w.IX = { patternBuilder, machine, stepper, hundredGrid, fractionBar, overlapGrid, stack, decText, coordPlane, pair, sgn, svgPoint, moveWords };
 })(window);

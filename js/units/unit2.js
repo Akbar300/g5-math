@@ -51,6 +51,10 @@ var lessons = [
  ]},
  {id:'u2L3', name:'Patterns & machines', icon:'📈', cards:[
   {t:'Find the rule, test it twice', h:'<p>3, 7, 11, 15, … Each term adds 4. Check every jump, not just the first one.</p><p>The SOL also asks for terms further on: the 7th term is 3 + 4 × 6 = 27.</p>', key:'Term number n: start + jump × (n − 1).'},
+  {t:'Pattern families', h:'<p>A pattern grows or shrinks by one rule. The rule is <b>add</b>, <b>subtract</b>, <b>multiply</b> or <b>divide</b>.</p>'},
+  {t:'Function machines', h:'<p>A function machine follows <b>one rule</b> for every number you put in. Put numbers in, watch what comes out, and crack the rule.</p>'},
+  {t:'Fractions and decimals in patterns', h:'<p>Patterns can use fractions and decimals too. With like denominators, only the numerators change. With decimals, line up the decimal points.</p>'},
+  {t:'Patterns in stories', h:'<p>A pattern story gives a <b>start</b> and a <b>change each time</b>. Read carefully: the start is before the first jump.</p>'},
   {t:'Missing input', h:L.tbl(['In','2','5','?'], [['Out','8','20','36']]) + '<p>Rule: × 4. To find a missing INPUT, undo the rule: 36 ÷ 4 = <b>9</b>.</p>', trap:'Applying the rule forward to the output (36 × 4) when the INPUT is missing.', tr:gens.io.f()}
  ]},
  {id:'u2L4', name:'Variables & equations', icon:'🔤', cards:[
@@ -91,6 +95,10 @@ var bridge = {
   ]},{id:'u2B2', name:'Inequalities', icon:'📊', cards:[
     {t:'More than one answer', h:'<p><b>x &gt; 3</b> means "x is greater than 3". 4, 5, 10, 3.5 all work, but 3 does not.</p>' + L.tbl(['Symbol','Read it','Circle on graph'], [['&gt;','greater than','open ○'],['&lt;','less than','open ○'],['≥','greater than or equal','closed ●'],['≤','less than or equal','closed ●']])},
     {t:'Test the values', h:'<p>Plug each number in. Is the statement true?</p>', tr:bg.ineq.f()}
+  ]},{id:'u2B3', name:'Two-step rules & jump ahead', icon:'🚀', cards:[
+    {t:'Two-step machines', h:'<p>Some machines do <b>two things</b>: multiply n first, then add or subtract. <b>2n − 1</b> with n = 3 is 6 − 1 = 5.</p><div class="big">The number in front of n is the jump.</div>', trap:'Doing the add or subtract first. In 2n + 1, multiply n by 2 first, then add 1.'},
+    {t:'Jump ahead with n', h:'<p>To find the <b>10th</b> or <b>20th</b> number, do not list them all. Put the term number in for n.</p><div class="big">3n − 1: the 10th term is 3 × 10 − 1 = 29</div>', trap:'Using n = 9 or 11 by mistake. The 10th term uses n = 10.'},
+    {t:'Patterns that grow faster', h:'<p>Some patterns have <b>growing jumps</b> (1, 2, 4, 7, 11, …: +1, +2, +3, +4) or double each time (1, 2, 4, 8, …). The squares (1, 4, 9, 16, …) grow faster still.</p>'}
   ]}],
   gens:bg, repIds:['gcf','lcm','ineq'],
   next:'Stay in the Advanced (Go Further) path of this unit for more practice.'

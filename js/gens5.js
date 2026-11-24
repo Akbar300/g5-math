@@ -691,6 +691,38 @@ S('pfa1_inout',{std:'5.PFA.1',cat:'PFA',unit:[2],name:'Function machine: missing
   const rule=`${op==='+'?'Add':op==='−'?'Subtract':op==='×'?'Multiply by':'Divide by'} ${fx(d)}`;
   return num(Q(`The rule is <b>${rule}</b>. What number goes in place of the <b>?</b>`,V.ioTable('Input','Output',showIn,showOut)),fx(missIn?ins[miss]:outs[miss]),{why:missIn?`Work backward: undo "${rule}" on ${fx(outs[miss])} to get ${fx(ins[miss])}.`:`${fx(ins[miss])} → ${rule.toLowerCase()} → ${fx(outs[miss])}.`});
 });
+S('pfa1_story',{std:'5.PFA.1',cat:'PFA',unit:[2],name:'Patterns in stories'},H=>{
+  const n=ri(H?8:5,H?12:8),t=pick(['jar','garden','book']);
+  if(t==='jar'){const s0=ri(3,15),d=H?pick([2.5,4.5,3.25,6.5]):ri(2,9),v=rnd(s0+d*n);
+    return num(`A savings jar starts with ${money(s0)}. Each week ${money(d)} is added. How much is in the jar after <b>${n}</b> weeks?`,money(v),{acc:[fx(v),v.toFixed(2),money(v)],why:`The start is ${money(s0)}, then ${n} jumps of ${money(d)}: ${money(s0)} + ${n} × ${money(d)} = ${money(v)}.`});}
+  if(t==='garden'){const s0=ri(5,12),d=ri(2,6),v=s0+d*(n-1);
+    return num(`A garden has ${s0} flowers in row 1. Each row has ${d} more flowers than the row before. How many flowers are in <b>row ${n}</b>?`,v,{why:`Row 1 is the start, so row ${n} has ${n-1} jumps: ${s0} + ${d} × ${n-1} = ${v}.`});}
+  const P=ri(15,30)*10,d=ri(8,25),days=ri(4,8),v=P-d*days;
+  return num(`A book has ${P} pages. ${nm()} reads ${d} pages each day. How many pages are left after <b>${days}</b> days?`,v,{why:`${d} × ${days} = ${d*days} pages read. ${P} − ${d*days} = ${v}.`});
+});
+S('pfa1_crack',{std:'5.PFA.1',cat:'PFA',unit:[2],name:'Crack the machine (table → rule)'},H=>{
+  const op=pick(['+','−','×','÷']);const d=op==='+'||op==='−'?ri(3,H?30:12):ri(2,H?12:9);
+  const f=x=>op==='+'?x+d:op==='−'?x-d:op==='×'?x*d:x/d;
+  const base=op==='÷'?[1,2,3,4,5,6,7,8].map(x=>x*d):op==='−'?[1,2,3,4,5,6,7,8].map(x=>x+d+1):[1,2,3,4,5,6,7,8,9,10];
+  const ins=sample(base,4).sort((a,b)=>a-b),outs=ins.map(f);
+  const nm2=(o,k)=>`${o==='+'?'Add':o==='−'?'Subtract':o==='×'?'Multiply by':'Divide by'} ${k}`;
+  const alts=['+','−','×','÷'].filter(o=>o!==op).map(o=>nm2(o,d)).concat([nm2(op,d+1),nm2(op,d+2)]);
+  return mc(Q('Which rule does this function machine follow?',V.ioTable('Input','Output',ins.map(String),outs.map(String))),{h:nm2(op,d)},alts.map(h=>({h})),{why:`Test the rule on every pair: ${ins[0]} → ${outs[0]} and ${ins[3]} → ${outs[3]} both fit "${nm2(op,d).toLowerCase()}".`});
+});
+/* ---- patterns enrichment (Advanced): two-step rules, jump ahead, growing jumps ---- */
+S('pfa1_two',{std:'5.PFA.1',cat:'PFA',unit:[2],name:'Two-step machine (enrichment)',enrich:1},H=>{
+  const a=ri(2,5),b=pick([-1,1,2,-2,3]),n=ri(3,9),out=a*n+b;if(out<1)return null;
+  return num(`A machine multiplies by ${a}, then ${b<0?'subtracts':'adds'} ${Math.abs(b)}. What comes out when <b>${n}</b> goes in?`,out,{why:`${n} × ${a} = ${a*n}. Then ${a*n} ${b<0?'−':'+'} ${Math.abs(b)} = ${out}.`});
+});
+S('pfa1_jump',{std:'5.PFA.1',cat:'PFA',unit:[2],name:'Jump ahead with n (enrichment)',enrich:1},H=>{
+  const a=ri(2,6),b=pick([-1,1,2,-2,3]),n=pick([10,12,15,20,25]),out=a*n+b;
+  return num(`A pattern follows the rule <b>${a}n ${b<0?'−':'+'} ${Math.abs(b)}</b>, where n is the term number. What is term number <b>${n}</b>?`,out,{why:`Replace n with ${n}: ${a} × ${n} ${b<0?'−':'+'} ${Math.abs(b)} = ${out}.`});
+});
+S('pfa1_grow',{std:'5.PFA.1',cat:'PFA',unit:[2],name:'Growing jumps (enrichment)',enrich:1},H=>{
+  const s0=ri(1,6),j=ri(1,3),t=[s0];for(let i=0;i<6;i++)t.push(t[i]+j+i);
+  const shown=t.slice(0,5);
+  return num(`Look at how much the pattern grows each step.<br><b>${shown.join(', ')}, …</b><br>What is the next number?`,t[5],{why:`The jumps are +${j}, +${j+1}, +${j+2}, +${j+3}: they grow by 1 each time. The next jump is +${j+4}, so ${t[4]} + ${j+4} = ${t[5]}.`});
+});
 /* ---- PFA.2 variables & equations ---- */
 const jsOf=s=>s.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-').replace(/(\d)\s*([a-z])/g,'$1*$2');
 function eqHolds(eq,v,val){const [L,R]=eq.split('=');const f=x=>Function(v,`return (${jsOf(x)})`)(val);return Math.abs(f(L)-f(R))<1e-9;}

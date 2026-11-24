@@ -475,65 +475,190 @@
     return wrap(s);
   }
 
-  /* Column multiplication, top to bottom, with the carries, the placeholder zeros and the added total. */
-  function stackMul(a, b) {
+  /* Column multiplication, top to bottom. stackMulModel(a, b) returns { steps, intro, render(upto) } so a widget can
+     reveal one digit at a time; stackMul(a, b) draws the finished work. */
+  function stackMulModel(a, b) {
     const A = String(a), B = String(b), prod = String(a * b);
-    const ad = A.split('').reverse().map(Number);
-    const bd = B.split('').reverse().map(Number);
-    const rows = bd.map((d, k) => {
-      const carries = {}; let c = 0;
-      ad.forEach((x, i) => { const t = x * d + c; c = Math.floor(t / 10); if (c > 0 && i + 1 < ad.length) carries[i + 1] = c; });
-      return { d, k, str: String(a * d), carries };
-    });
-    const R = rows.length;
-    const L = Math.max(prod.length, A.length + 1, ...rows.map((r) => r.str.length + r.k));
-    const colW = 44, padL = 34, annoW = 128;
-    const W = padL + L * colW + 10 + annoW;
-    const cx = (c) => padL + (L - 1 - c) * colW + colW / 2;
-    const tints = ['#0fb39c', '#2f80ed', '#6c4ee0'].map(themeFill);
-    const carryH = 22, numH = 42, rowH = 42, barGap = 6;
-    const yCarry0 = 6;
-    const yA = yCarry0 + R * carryH;
-    const yB = yA + numH;
-    const yBar1 = yB + numH + barGap - 2;
-    const yP0 = yBar1 + barGap;
-    const yBar2 = yP0 + R * rowH + barGap - 2;
-    const yTot = yBar2 + barGap;
-    const H = yTot + numH + 8;
-    const s = svg(W, H);
-    s.setAttribute('width', '100%'); s.removeAttribute('height'); s.setAttribute('style', 'width:100%;max-width:470px');
-    const digit = (x, y, ch, o) => s.appendChild(el('text', Object.assign({ x, y, 'text-anchor': 'middle', 'font-family': 'var(--mono)', 'font-size': '28', 'font-weight': '800', fill: 'var(--ink)' }, o || {}), [ch]));
-    /* carries (one small line per row, same colour as that row) */
-    rows.forEach((r, k) => {
-      const y = yCarry0 + (R - 1 - k) * carryH;
-      Object.keys(r.carries).forEach((c) => {
-        const x = cx(+c);
-        s.appendChild(el('rect', { x: x - 11, y: y + 2, width: 22, height: 18, rx: 9, fill: tints[k % 3], 'fill-opacity': '0.35', stroke: tints[k % 3], 'stroke-width': '1.5' }));
-        digit(x, y + 16, String(r.carries[c]), { 'font-size': '14' });
+    const ad = A.split('').reverse().map(Number), bd = B.split('').reverse().map(Number);
+    const R = bd.length, nA = ad.length;
+    const WHERE = ['ones', 'tens', 'hundreds', 'thousands'];
+    const rowVals = bd.map((d, k) => a * d * Math.pow(10, k));
+    const steps = [];
+    bd.forEach((d, k) => {
+      if (k > 0) {
+        steps.push({
+          kind: 'pad', row: k, cur: { bi: k },
+          writes: Array.from({ length: k }, (_, z) => ({ row: k, col: z, ch: '0', pad: true })),
+          cap: `Now the <b>${WHERE[k]} digit</b>, ${d}. Put ${k === 1 ? 'a <b>0</b>' : '<b>' + k + ' zeros</b>'} first to hold the lower places. This row is ${A} × ${d}${'0'.repeat(k)}.`
+        });
+      }
+      let c = 0;
+      ad.forEach((x, i) => {
+        const t = x * d + c, last = i === nA - 1, carryIn = c;
+        c = Math.floor(t / 10);
+        const writes = last ? String(t).split('').reverse().map((ch, z) => ({ row: k, col: k + i + z, ch })) : [{ row: k, col: k + i, ch: String(t % 10) }];
+        let cap = `<b>${x} × ${d} = ${x * d}</b>` + (carryIn ? ` + ${carryIn} carried = <b>${t}</b>` : '');
+        cap += last ? `. Write <b>${t}</b>.` : `. Write <b>${t % 10}</b>${c ? ' and carry <b>' + c + '</b>' : ''}.`;
+        steps.push({ kind: 'mul', row: k, writes, carry: (!last && c > 0) ? { row: k, col: i + 1, val: c } : null, useCarry: carryIn ? { row: k, col: i } : null, cur: { ai: i, bi: k }, cap });
       });
     });
-    ad.forEach((d, i) => digit(cx(i), yA + 32, String(d)));
-    bd.forEach((d, i) => digit(cx(i), yB + 32, String(d)));
-    s.appendChild(el('text', { x: padL - 10, y: yB + 32, 'text-anchor': 'middle', 'font-size': '26', 'font-weight': '800', fill: 'var(--ink)' }, ['×']));
-    const bar = (y) => s.appendChild(el('line', { x1: padL - 6, x2: padL + L * colW, y1: y, y2: y, stroke: 'var(--ink)', 'stroke-width': '3.5', 'stroke-linecap': 'round' }));
-    bar(yBar1);
-    rows.forEach((r, k) => {
-      const y = yP0 + k * rowH;
-      s.appendChild(el('rect', { x: padL - 2, y: y + 2, width: L * colW + 4, height: rowH - 4, rx: 10, fill: tints[k % 3], 'fill-opacity': '0.18' }));
-      for (let z = 0; z < r.k; z++) {
-        s.appendChild(el('rect', { x: cx(z) - 17, y: y + 6, width: 34, height: rowH - 12, rx: 8, fill: 'none', stroke: 'var(--viz-coral)', 'stroke-width': '2.5', 'stroke-dasharray': '5 4' }));
-        digit(cx(z), y + 31, '0', { fill: 'var(--viz-coral)' });
+    steps.push({ kind: 'add', total: true, cap: `Add the ${R === 1 ? '' : R + ' '}rows: <b>${rowVals.join(' + ')} = ${a * b}</b>.` });
+    const L = Math.max(prod.length, nA + 1, ...bd.map((d, k) => String(a * d).length + k));
+    const colW = 44, padL = 34, annoW = 128;
+    const W = padL + L * colW + 10 + annoW;
+    const tints = ['#0fb39c', '#2f80ed', '#6c4ee0'].map(themeFill);
+    const carryH = 22, numH = 42, rowH = 42, barGap = 6;
+    const yA = 6 + R * carryH, yB = yA + numH, yBar1 = yB + numH + barGap - 2, yP0 = yBar1 + barGap;
+    const yBar2 = yP0 + R * rowH + barGap - 2, yTot = yBar2 + barGap, H = yTot + numH + 8;
+    const cx = (c) => padL + (L - 1 - c) * colW + colW / 2;
+
+    function render(upto) {
+      const done = steps.slice(0, upto), now = upto > 0 ? steps[upto - 1] : null;
+      const cells = {}, carries = [], started = {};
+      let total = false;
+      done.forEach((st) => {
+        (st.writes || []).forEach((w) => { cells[w.row + ':' + w.col] = w; });
+        if (st.carry) carries.push(st.carry);
+        if (st.row != null) started[st.row] = true;
+        if (st.total) total = true;
+      });
+      const newCells = {};
+      if (now) (now.writes || []).forEach((w) => { newCells[w.row + ':' + w.col] = true; });
+      const s = svg(W, H);
+      s.setAttribute('width', '100%'); s.removeAttribute('height'); s.setAttribute('style', 'width:100%;max-width:470px');
+      const digit = (x, y, ch, o) => s.appendChild(el('text', Object.assign({ x, y, 'text-anchor': 'middle', 'font-family': 'var(--mono)', 'font-size': '28', 'font-weight': '800', fill: 'var(--ink)' }, o || {}), [ch]));
+      const ring = (x, y, w, h) => s.appendChild(el('rect', { x, y, width: w, height: h, rx: 9, fill: 'none', stroke: 'var(--viz-gold)', 'stroke-width': '3.5' }));
+      carries.forEach((c) => {
+        const x = cx(c.col), y = 6 + (R - 1 - c.row) * carryH;
+        s.appendChild(el('rect', { x: x - 11, y: y + 2, width: 22, height: 18, rx: 9, fill: tints[c.row % 3], 'fill-opacity': '0.35', stroke: tints[c.row % 3], 'stroke-width': '1.5' }));
+        digit(x, y + 16, String(c.val), { 'font-size': '14' });
+      });
+      if (now && now.useCarry) {
+        const u = now.useCarry, x = cx(u.col), y = 6 + (R - 1 - u.row) * carryH;
+        ring(x - 14, y, 28, 22);
       }
-      r.str.split('').reverse().forEach((ch, i) => digit(cx(r.k + i), y + 31, ch));
-      const an = `${A} × ${r.d}${'0'.repeat(r.k)}`;
-      s.appendChild(el('text', { x: padL + L * colW + 12, y: y + 20, 'font-size': '15', 'font-weight': '800', fill: 'var(--ink)' }, ['← ' + an]));
-      if (r.k > 0 && k === 1) s.appendChild(el('text', { x: padL + L * colW + 12, y: y + 36, 'font-size': '11.5', 'font-weight': '800', fill: 'var(--viz-coral)' }, ['0 holds the ones place']));
-    });
-    s.appendChild(el('text', { x: padL - 10, y: yP0 + (R - 1) * rowH + 31, 'text-anchor': 'middle', 'font-size': '26', 'font-weight': '800', fill: 'var(--ink)' }, ['+']));
-    bar(yBar2);
-    s.appendChild(el('rect', { x: padL - 2, y: yTot + 2, width: L * colW + 4, height: numH - 2, rx: 10, fill: themeFill('#ffc43d'), 'fill-opacity': '0.4', stroke: 'var(--ink)', 'stroke-width': '2.5' }));
-    prod.split('').reverse().forEach((ch, i) => digit(cx(i), yTot + 33, ch));
-    return wrap(s);
+      ad.forEach((d, i) => digit(cx(i), yA + 32, String(d)));
+      bd.forEach((d, i) => digit(cx(i), yB + 32, String(d)));
+      s.appendChild(el('text', { x: padL - 10, y: yB + 32, 'text-anchor': 'middle', 'font-size': '26', 'font-weight': '800', fill: 'var(--ink)' }, ['×']));
+      if (now && now.cur) {
+        if (now.cur.ai != null) ring(cx(now.cur.ai) - 19, yA + 4, 38, 38);
+        if (now.cur.bi != null) ring(cx(now.cur.bi) - 19, yB + 4, 38, 38);
+      }
+      const bar = (y) => s.appendChild(el('line', { x1: padL - 6, x2: padL + L * colW, y1: y, y2: y, stroke: 'var(--ink)', 'stroke-width': '3.5', 'stroke-linecap': 'round' }));
+      bar(yBar1);
+      for (let k = 0; k < R; k++) {
+        const y = yP0 + k * rowH;
+        s.appendChild(el('rect', { x: padL - 2, y: y + 2, width: L * colW + 4, height: rowH - 4, rx: 10, fill: tints[k % 3], 'fill-opacity': started[k] ? '0.2' : '0.06' }));
+        Object.keys(cells).forEach((key) => {
+          const w = cells[key];
+          if (w.row !== k) return;
+          if (w.pad) {
+            s.appendChild(el('rect', { x: cx(w.col) - 17, y: y + 6, width: 34, height: rowH - 12, rx: 8, fill: 'none', stroke: 'var(--viz-coral)', 'stroke-width': '2.5', 'stroke-dasharray': '5 4' }));
+            digit(cx(w.col), y + 31, '0', { fill: 'var(--viz-coral)' });
+          } else digit(cx(w.col), y + 31, w.ch);
+          if (newCells[key]) ring(cx(w.col) - 19, y + 3, 38, rowH - 6);
+        });
+        if (started[k]) {
+          const an = `${A} × ${bd[k]}${'0'.repeat(k)}`;
+          s.appendChild(el('text', { x: padL + L * colW + 12, y: y + 20, 'font-size': '15', 'font-weight': '800', fill: 'var(--ink)' }, ['← ' + an]));
+          if (k === 1) s.appendChild(el('text', { x: padL + L * colW + 12, y: y + 36, 'font-size': '11.5', 'font-weight': '800', fill: 'var(--viz-coral)' }, ['0 holds the ones place']));
+        }
+      }
+      if (R > 1) s.appendChild(el('text', { x: padL - 10, y: yP0 + (R - 1) * rowH + 31, 'text-anchor': 'middle', 'font-size': '26', 'font-weight': '800', fill: 'var(--ink)' }, ['+']));
+      bar(yBar2);
+      s.appendChild(el('rect', { x: padL - 2, y: yTot + 2, width: L * colW + 4, height: numH - 2, rx: 10, fill: themeFill('#ffc43d'), 'fill-opacity': total ? '0.4' : '0.08', stroke: 'var(--ink)', 'stroke-width': '2.5' }));
+      if (total) prod.split('').reverse().forEach((ch, i) => digit(cx(i), yTot + 33, ch));
+      return s;
+    }
+    return { steps, render, intro: `Press <b>Next</b> to multiply ${A} × ${B} one digit at a time.` };
+  }
+  function stackMul(a, b) {
+    const m = stackMulModel(a, b);
+    return wrap(m.render(m.steps.length));
+  }
+
+  /* Long division with the four moves: Divide, Multiply, Subtract, Bring down. */
+  function longDivModel(a, b) {
+    const D = String(a).split('').map(Number), n = D.length;
+    let cur = 0, s0 = n - 1;
+    for (let j = 0; j < n; j++) { cur = cur * 10 + D[j]; if (cur >= b) { s0 = j; break; } }
+    const cycles = [], steps = [];
+    let val = 0;
+    for (let j = 0; j <= s0; j++) val = val * 10 + D[j];
+    for (let j = s0; j < n; j++) {
+      const q = Math.floor(val / b), prod = q * b, rem = val - prod, next = j < n - 1 ? D[j + 1] : null;
+      const ci = cycles.length;
+      cycles.push({ j, val, q, prod, rem, next });
+      const fits = q === 0 ? `${b} does not fit in ${val}, so write <b>0</b>.` : `About <b>${q}</b>: ${q} × ${b} = ${prod} fits, and ${q + 1} × ${b} = ${(q + 1) * b} is too big.`;
+      steps.push({ kind: 'D', ci, cap: `<b>Divide:</b> how many ${b}s fit in <b>${val}</b>? ${fits}` });
+      steps.push({ kind: 'M', ci, cap: `<b>Multiply:</b> ${q} × ${b} = <b>${prod}</b>. Write it under ${val}.` });
+      steps.push({ kind: 'S', ci, cap: `<b>Subtract:</b> ${val} − ${prod} = <b>${rem}</b>. ${rem < b ? rem + ' is smaller than ' + b + ', so the digit was right.' : 'That is too big, so the digit was too small.'}` });
+      if (next != null) {
+        steps.push({ kind: 'B', ci, cap: `<b>Bring down</b> the next digit, ${next}. The new number is <b>${rem * 10 + next}</b>.` });
+        val = rem * 10 + next;
+      }
+    }
+    const Q = cycles.map((c) => c.q).join('').replace(/^0+(?=\d)/, '');
+    const last = cycles[cycles.length - 1];
+    steps.push({ kind: 'done', cap: `<b>${a} ÷ ${b} = ${Q}${last.rem ? ' R' + last.rem : ''}.</b> Check: ${Q} × ${b}${last.rem ? ' + ' + last.rem : ''} = ${a} ✓` });
+
+    const colW = 44, rowH = 40, dLen = String(b).length, dw = dLen * 24 + 8;
+    const bx = 8 + dw + 14, x0 = bx + 12, yQ = 30, yLine = 40, yD = 74;
+    const rows = cycles.length * 2;
+    const W = x0 + n * colW + 14, H = yD + rows * rowH + 22;
+    const cx = (c) => x0 + c * colW + colW / 2;
+    const PH = { D: '#ffc43d', M: '#0fb39c', S: '#2f80ed', B: '#ff5a36' };
+
+    function render(upto) {
+      const done = steps.slice(0, upto), now = upto > 0 ? steps[upto - 1] : null;
+      const has = (kind, ci) => done.some((st) => st.kind === kind && st.ci === ci);
+      const s = svg(W, H);
+      s.setAttribute('width', '100%'); s.removeAttribute('height'); s.setAttribute('style', 'width:100%;max-width:420px');
+      const digit = (x, y, ch, o) => s.appendChild(el('text', Object.assign({ x, y, 'text-anchor': 'middle', 'font-family': 'var(--mono)', 'font-size': '28', 'font-weight': '800', fill: 'var(--ink)' }, o || {}), [ch]));
+      const box = (c0, c1, y, color, fillOp, w) => s.appendChild(el('rect', { x: x0 + c0 * colW + 2, y, width: (c1 - c0 + 1) * colW - 4, height: 36, rx: 9, fill: color ? themeFill(color) : 'none', 'fill-opacity': fillOp || 0, stroke: color ? themeFill(color) : 'none', 'stroke-width': w || 0 }));
+      /* divisor and bracket */
+      digit(8 + dw / 2, yD - 2, String(b), { 'font-size': '28' });
+      s.appendChild(el('path', { d: `M ${bx - 1} ${yD + 10} Q ${bx + 13} ${(yLine + yD) / 2 + 2} ${bx - 1} ${yLine}`, fill: 'none', stroke: 'var(--ink)', 'stroke-width': '3.5', 'stroke-linecap': 'round' }));
+      s.appendChild(el('line', { x1: bx - 1, x2: x0 + n * colW, y1: yLine, y2: yLine, stroke: 'var(--ink)', 'stroke-width': '3.5', 'stroke-linecap': 'round' }));
+      /* highlight the number being divided */
+      if (now && (now.kind === 'D' || now.kind === 'M')) {
+        const c = cycles[now.ci], len = String(c.val).length;
+        if (now.ci === 0) box(c.j - len + 1, c.j, yD - 30, PH.D, 0.3, 2.5);
+        else box(c.j - len + 1, c.j, yD + (now.ci * 2) * rowH - 2 - 30, PH.D, 0.3, 2.5);
+      }
+      D.forEach((d, i) => digit(cx(i), yD - 2, String(d)));
+      cycles.forEach((c, ci) => {
+        const yP = yD + (ci * 2) * rowH + rowH - 2, yR = yP + rowH;
+        if (has('D', ci)) {
+          if (now && now.kind === 'D' && now.ci === ci) box(c.j, c.j, yQ - 28, PH.D, 0.35, 3);
+          digit(cx(c.j), yQ, String(c.q));
+        }
+        if (has('M', ci)) {
+          const ps = String(c.prod);
+          box(c.j - ps.length + 1, c.j, yP - 30, PH.M, now && now.kind === 'M' && now.ci === ci ? 0.35 : 0.14, 0);
+          ps.split('').forEach((ch, k) => digit(cx(c.j - ps.length + 1 + k), yP, ch));
+          s.appendChild(el('text', { x: x0 + (c.j - ps.length) * colW + 8, y: yP - 2, 'text-anchor': 'end', 'font-size': '24', 'font-weight': '800', fill: 'var(--ink)' }, ['−']));
+        }
+        if (has('S', ci)) {
+          const rs = String(c.rem), ps = String(c.prod), w = Math.max(rs.length, ps.length);
+          s.appendChild(el('line', { x1: x0 + (c.j - w + 1) * colW + 4, x2: x0 + (c.j + 1) * colW - 4, y1: yP + 8, y2: yP + 8, stroke: 'var(--ink)', 'stroke-width': '3', 'stroke-linecap': 'round' }));
+          box(c.j - rs.length + 1, c.j, yR - 30, PH.S, now && now.kind === 'S' && now.ci === ci ? 0.35 : 0.14, 0);
+          rs.split('').forEach((ch, k) => digit(cx(c.j - rs.length + 1 + k), yR, ch));
+        }
+        if (c.next != null && has('B', ci)) {
+          const hot = now && now.kind === 'B' && now.ci === ci;
+          box(c.j + 1, c.j + 1, yD - 32, PH.B, hot ? 0.35 : 0, hot ? 3 : 0);
+          digit(cx(c.j + 1), yR, String(c.next), { fill: 'var(--viz-coral)' });
+          if (hot) s.appendChild(el('path', { d: `M ${cx(c.j + 1)} ${yD + 6} V ${yR - 34}`, stroke: themeFill(PH.B), 'stroke-width': '3', 'stroke-dasharray': '4 4', fill: 'none' }));
+        }
+      });
+      if (now && now.kind === 'done') {
+        const q0 = cycles[0].j;
+        box(q0, n - 1, yQ - 28, PH.D, 0.3, 3);
+      }
+      return s;
+    }
+    return { steps, render, kinds: PH, intro: `Press <b>Next</b> to divide ${a} ÷ ${b}: Divide, Multiply, Subtract, Bring down.` };
   }
 
   /* Box (area) model split by place value, with each partial product in its own box. */
@@ -602,9 +727,72 @@
     return wrapEl.outerHTML;
   }
 
+
+  /* ---------- Unit 2 pattern visuals ---------- */
+  /* Terms as tiles with hop arrows between them. terms: strings (a/b becomes a stacked fraction, "?" is the unknown).
+     o.rule = label on every hop (or an array, one per hop); o.labels = text under each tile; o.hl = tile to highlight. */
+  function hopsSvg(terms, o) {
+    o = o || {};
+    const n = terms.length, tw = 62, th = 48, gap = 38, padX = 8, top = 56;
+    const W = padX * 2 + n * tw + (n - 1) * gap, H = top + th + (o.labels ? 26 : 10);
+    const s = svg(W, H);
+    s.setAttribute('width', '100%'); s.removeAttribute('height'); s.setAttribute('style', 'width:100%;max-width:' + Math.min(560, W * 1.15) + 'px');
+    terms.forEach((t, i) => {
+      const x = padX + i * (tw + gap), q = String(t) === '?';
+      const hl = o.hl === i;
+      s.appendChild(el('rect', { x, y: top, width: tw, height: th, rx: 11, fill: q ? '#fff3c4' : (hl ? '#ffe08a' : '#eef4ff'), stroke: 'var(--ink)', 'stroke-width': hl ? '3.5' : '2.5', 'stroke-dasharray': q ? '6 4' : '' }));
+      if (/^-?\d+\s*\/\s*\d+$/.test(String(t)) || /^\d+\s+\d+\s*\/\s*\d+$/.test(String(t))) svgLabel(s, x + tw / 2, top + th / 2 + 6, String(t), { 'font-size': 20, fill: INK_ON_LIGHT });
+      else s.appendChild(el('text', { x: x + tw / 2, y: top + th / 2 + 8, 'text-anchor': 'middle', 'font-size': String(String(t).length > 5 ? 17 : 24), 'font-weight': '800', fill: INK_ON_LIGHT }, [String(t)]));
+      if (o.labels) s.appendChild(el('text', { x: x + tw / 2, y: H - 6, 'text-anchor': 'middle', 'font-size': '12.5', 'font-weight': '800', fill: 'var(--muted)' }, [o.labels[i] || '']));
+      if (i < n - 1) {
+        const x1 = x + tw / 2, x2 = x + tw + gap + tw / 2, mid = (x1 + x2) / 2, y0 = top - 4;
+        s.appendChild(el('path', { d: `M ${x1} ${y0} Q ${mid} ${y0 - 46} ${x2 - 4} ${y0 - 2}`, fill: 'none', stroke: themeFill('#ff5a36'), 'stroke-width': '3', 'stroke-linecap': 'round' }));
+        s.appendChild(el('path', { d: `M ${x2 - 13} ${y0 - 12} L ${x2 - 3} ${y0 - 1} L ${x2 - 16} ${y0 + 2}`, fill: 'none', stroke: themeFill('#ff5a36'), 'stroke-width': '3', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+        const rl = Array.isArray(o.rule) ? o.rule[i] : o.rule;
+        if (rl) {
+          if (/\d\s*\/\s*\d/.test(String(rl))) svgLabel(s, mid, y0 - 22, String(rl), { 'font-size': 15, fill: 'var(--ink)' });
+          else s.appendChild(el('text', { x: mid, y: y0 - 26, 'text-anchor': 'middle', 'font-size': '17', 'font-weight': '800', fill: 'var(--ink)' }, [rl]));
+        }
+      }
+    });
+    return s;
+  }
+  function hops(terms, o) {
+    const d = document.createElement('div');
+    d.className = 'viz hops-wrap';
+    d.appendChild(hopsSvg(terms, o));
+    return d.outerHTML;
+  }
+
+  /* Input/output table as a picture (separate from the question-text helper inside gens5). */
+  function ioTable(hin, hout, ins, outs) {
+    const cell = (x) => '<td>' + x + '</td>';
+    return '<div class="viz viz-free" style="display:flex;justify-content:center;overflow-x:auto"><table class="g5t g5io"><tr><th>' + hin + '</th>' + ins.map(cell).join('') + '</tr><tr><th>' + hout + '</th>' + outs.map(cell).join('') + '</tr></table></div>';
+  }
+
+  /* Gallery of common pattern families: each row = a rule name and a run of tiles. */
+  function patternGallery(rows) {
+    const root = document.createElement('div');
+    root.className = 'viz viz-free pg-gallery';
+    rows.forEach((r) => {
+      const row = document.createElement('div'); row.className = 'pg-row' + (r.star ? ' star' : '');
+      const tag = document.createElement('div'); tag.className = 'pg-tag';
+      tag.innerHTML = `<b>${r.name}</b><span>${r.rule}</span>`;
+      row.appendChild(tag);
+      const run = document.createElement('div'); run.className = 'pg-run';
+      r.terms.forEach((t, i) => {
+        if (i > 0) { const op = document.createElement('span'); op.className = 'pg-op'; op.textContent = Array.isArray(r.hops) ? r.hops[i - 1] : r.hops; run.appendChild(op); }
+        const tl = document.createElement('span'); tl.className = 'pg-tile' + (String(t) === '?' ? ' q' : ''); tl.innerHTML = String(t); run.appendChild(tl);
+      });
+      row.appendChild(run);
+      root.appendChild(row);
+    });
+    return root.outerHTML;
+  }
+
   w.V = {
     themeFill, hundredGrid, fractionBar, numberLine, placeValue, linePlot, stemLeaf, pie, barGraph, plane, planeSVG, planeGeo, guidePath, angle,
-    areaRect, metricLadder, cycleSteps, roundRows, stackMul, areaModel, squaresGallery,
+    areaRect, metricLadder, cycleSteps, roundRows, hopsSvg, hops, patternGallery, ioTable, stackMul, stackMulModel, longDivModel, areaModel, squaresGallery,
     fr(n, d) { return `<span class="frac"><span class="n">${n}</span><span class="d">${d}</span></span>`; },
     mixed(w, n, d) { return `<span class="mix">${w}${this.fr(n, d)}</span>`; }
   };

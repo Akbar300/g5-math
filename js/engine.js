@@ -1065,6 +1065,46 @@ function paperDivide(dividend, divisor) {
     return { sec, bd };
   }
 
+  /* Wide screens: the idea + pictures stay on the left, the try-its on the right. The worked example, trap and
+     stretch go wherever they make the two columns closest in height. The default is worked example left, trap and
+     stretch right. */
+  function balanceLesson(body) {
+    if (!body || !document.body.contains(body)) return;
+    const main = body.querySelector(':scope > .lesson-main'), side = body.querySelector(':scope > .lesson-side');
+    if (!main || !side || !(w.matchMedia && w.matchMedia('(min-width: 1100px)').matches)) return;
+    const work = body.querySelector('.ls-work'), pair = body.querySelector('.ls-pair');
+    if (!work && !pair) return;
+    const GAP = 14, hw = work ? work.offsetHeight : 0, hp = pair ? pair.offsetHeight : 0;
+    const inMain = (el) => !!el && el.parentNode === main;
+    let L = main.offsetHeight, R = side.offsetHeight;
+    if (work) { if (inMain(work)) L -= hw + GAP; else R -= hw + GAP; }
+    if (pair) { if (inMain(pair)) L -= hp + GAP; else R -= hp + GAP; }
+    const add = (base, h) => base + (h ? (base > 0 ? GAP : 0) + h : 0);
+    /* [work to the left?, pair to the left?] in order of preference when two layouts tie */
+    const opts = [[1, 0], [0, 0], [1, 1], [0, 1]];
+    let best = null;
+    opts.forEach(([wl, pl]) => {
+      let l = Math.max(0, L), r = Math.max(0, R);
+      if (work) { if (wl) l = add(l, hw); else r = add(r, hw); }
+      if (pair) { if (pl) l = add(l, hp); else r = add(r, hp); }
+      const d = Math.abs(l - r);
+      if (!best || d < best.d - 40) best = { d, wl, pl };
+    });
+    if (work) (best.wl ? main : side).appendChild(work);
+    if (pair) (best.pl ? main : side).appendChild(pair);
+  }
+  function balanceSoon(body) {
+    const go = () => balanceLesson(body);
+    requestAnimationFrame(go);
+    setTimeout(go, 350);
+    let t = 0;
+    const onResize = () => {
+      if (!document.body.contains(body)) { window.removeEventListener('resize', onResize); return; }
+      clearTimeout(t); t = setTimeout(go, 200);
+    };
+    window.addEventListener('resize', onResize);
+  }
+
   function playLesson(host, lesson, onDone, ctx) {
     ctx = ctx || {};
     const skills = (ctx.skills || []).filter((s) => s && typeof s.gen === 'function');
@@ -1124,7 +1164,7 @@ function paperDivide(dividend, divisor) {
         const s3 = section('ls-work', '✏️', 'Worked example');
         if (c.steps && c.steps.length) s3.bd.innerHTML = '<ol class="steps">' + c.steps.map((x) => '<li>' + x + '</li>').join('') + '</ol>';
         if (c.example) { const ex = document.createElement('div'); ex.innerHTML = c.example; s3.bd.appendChild(ex); }
-        place(s3.sec);
+        main.appendChild(s3.sec);
       }
       if (c.trap || c.aap || c.stretch) {
         const pair = document.createElement('div');
@@ -1184,6 +1224,7 @@ function paperDivide(dividend, divisor) {
         body.appendChild(side);
       }
       card.appendChild(body);
+      if (hasTries) balanceSoon(body);
       const nav = document.createElement('div'); nav.className = 'row-btns lesson-nav';
       if (i > 0) {
         const back = document.createElement('button'); back.className = 'btn ghost'; back.textContent = 'Back';

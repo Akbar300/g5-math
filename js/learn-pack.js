@@ -175,23 +175,103 @@
     },
     u2L3: {
       'Find the rule, test it twice': {
-        viz: () => V.numberLine(0, 28, [{ pos: 3, label: '1st' }, { pos: 7, label: '2nd' }, { pos: 11, label: '3rd' }, { pos: 27, label: '7th' }]),
-        steps: ['3, 7, 11, 15, … Check every jump: each adds 4.', 'The nth term is start + jump × (n − 1).', 'The 7th term is 3 + 4 × 6 = 27.'],
+        viz: () => (w.IX ? w.IX.patternBuilder({ start: 3, jump: 4, kind: 'add' }) : V.hops(['3', '7', '11', '15', '?'], { rule: '+ 4' })),
+        steps: ['3, 7, 11, 15, … Check every jump: each one adds 4.', 'The nth term is start + jump × (n − 1). The first term has no jump yet.', 'The 7th term is 3 + 4 × 6 = 27.'],
         trap: 'Do not check only the first jump. A rule has to work on every step.',
-        aap: 'AAP: a geometric pattern 2, 6, 18, 54, … multiplies by 3. The 6th term is 2 × 3⁵ = 486.',
+        aap: 'Stretch: a multiply pattern 2, 6, 18, 54, … times 3 each step. The 6th term is 2 × 3⁵ = 486. Growing-jump patterns (1, 2, 4, 7, 11, …) add one more each time.',
         tries: [
           () => num('The pattern 5, 12, 19, 26, … continues. What is the 6th term?', 40, '+7 each time: 5 + 7 × 5 = 40.'),
-          () => mc('What is the rule for 3, 6, 12, 24, …?', '× 3', [['+ 3', 'The jumps get bigger: +3, +6, +12.'], ['+ 6', 'That only fits one jump.'], ['× 2 then + 0', 'Each term is three times the one before.']], 'Each term multiplies the one before by 3.')
+          () => mc('What is the rule for 3, 6, 12, 24, …?', '× 2', [['+ 3', 'The jumps get bigger: +3, +6, +12.'], ['+ 6', 'That only fits one jump.'], ['× 3', '3 × 3 = 9, not 6.']], 'Each term is two times the one before: 3 × 2 = 6, 6 × 2 = 12.')
+        ]
+      },
+      'Pattern families': {
+        viz: () => V.patternGallery([
+          { name: 'Add', rule: '+ 4', hops: '+4', terms: [3, 7, 11, 15, 19] },
+          { name: 'Subtract', rule: '− 5', hops: '−5', terms: [40, 35, 30, 25, 20] },
+          { name: 'Multiply', rule: '× 2', hops: '×2', terms: [3, 6, 12, 24, 48] },
+          { name: 'Divide', rule: '÷ 2', hops: '÷2', terms: [96, 48, 24, 12, 6] },
+          { name: 'Growing jumps', rule: 'jumps grow', hops: ['+1', '+2', '+3', '+4'], terms: [1, 2, 4, 7, 11], star: 1 },
+          { name: 'Squares', rule: 'n × n', hops: ['+3', '+5', '+7', '+9'], terms: [1, 4, 9, 16, 25], star: 1 }
+        ]),
+        steps: ['Add or subtract: the jump is the same size every step (+4, −5).', 'Multiply or divide: the jumps change size, but the multiplier stays the same (× 2, ÷ 2).', 'Check the first two jumps. If the differences are not equal, try multiplying or dividing.'],
+        trap: '2, 4, 8, 16 is not "add 2 each time". The jumps are +2, +4, +8, so look for × 2.',
+        aap: 'Stretch ★: growing jumps (1, 2, 4, 7, 11, …) add one more each step. Squares (1, 4, 9, 16, 25, …) add the next odd number.',
+        tries: [
+          () => mc('What is the rule for 96, 48, 24, 12, …?', 'Divide by 2', [['Subtract 48', 'The jump is 48, then 24, then 12: not the same each time.'], ['Subtract 24', 'That only fits one jump.'], ['Divide by 4', '96 ÷ 4 = 24, not 48.']], '96 ÷ 2 = 48, 48 ÷ 2 = 24, and so on.'),
+          () => num('What comes next? 45, 38, 31, 24, …', 17, 'Subtract 7 each time: 24 − 7 = 17.')
+        ]
+      },
+      'Function machines': {
+        viz: () => (w.IX ? w.IX.machine() : V.ioTable('In', 'Out', ['2', '4', '5'], ['6', '12', '15'])),
+        steps: ['A machine follows one rule for every number you put in.', 'Run at least two numbers and write each pair: in → out.', 'Test your guess on every pair. A rule must work for all of them.'],
+        trap: 'Checking the rule on only one pair. × 2 and + 4 both turn 4 into 8, but only one of them turns 5 into 10.',
+        aap: 'Stretch: two-step machines. Multiply by 3, then add 1: 4 goes in, 4 × 3 = 12, then 12 + 1 = 13 comes out.',
+        tries: [
+          () => num('A machine adds 6. What comes out when 9 goes in?', 15, '9 + 6 = 15.'),
+          () => mc('A machine turns 3 into 12 and 5 into 20. What is the rule?', 'Multiply by 4', [['Add 9', '3 + 9 = 12, but 5 + 9 = 14, not 20.'], ['Multiply by 3', '3 × 3 = 9, not 12.'], ['Add 4', '3 + 4 = 7, not 12.']], '3 × 4 = 12 and 5 × 4 = 20.')
+        ]
+      },
+      'Fractions and decimals in patterns': {
+        viz: () => (w.IX ? w.IX.stack(V.hops(['1/8', '3/8', '5/8', '7/8', '?'], { rule: '+ 2/8' }), V.hops(['2.35', '2.50', '2.65', '2.80', '?'], { rule: '+ 0.15' })) : V.hops(['1/8', '3/8', '5/8', '7/8', '?'], { rule: '+ 2/8' })),
+        steps: ['Like denominators: add or subtract only the numerators. 1/8 + 2/8 = 3/8.', 'Decimals: line up the decimal points. 2.35 + 0.15 = 2.50.', 'Find the jump from the first two terms, then check it on the next one.'],
+        trap: 'Adding the denominators too (1/8 + 2/8 = 3/16). The denominator stays 8.',
+        aap: 'Stretch: a decreasing mixed-number pattern 3, 2¾, 2½, … subtracts ¼ each time. Keep each answer in simplest form.',
+        tries: [
+          () => num('What comes next? 2.35, 2.50, 2.65, 2.80, …', 2.95, 'Add 0.15 each time: 2.80 + 0.15 = 2.95.'),
+          () => mc('What comes next? ' + fr(3, 12) + ', ' + fr(5, 12) + ', ' + fr(7, 12) + ', ' + fr(9, 12) + ', …', fr(11, 12), [[fr(10, 12), 'The jump is 2 twelfths, not 1.'], [fr(9, 24), 'The denominator stays 12.'], [fr(13, 12), 'That skips a term. Add only one jump of 2 twelfths.']], 'Add ' + fr(2, 12) + ' each time: ' + fr(9, 12) + ' + ' + fr(2, 12) + ' = ' + fr(11, 12) + '.')
+        ]
+      },
+      'Patterns in stories': {
+        viz: () => V.hops(['$5', '$8', '$11', '$14', '?'], { rule: '+ $3', labels: ['start', 'week 1', 'week 2', 'week 3', 'week 4'] }),
+        steps: ['A jar starts with $5 and $3 is added each week.', 'After 1 week: 5 + 3 = 8. After 4 weeks: 5 + 3 × 4 = 17.', 'Count the jumps, not the terms. If row 1 is the start, row n has n − 1 jumps.'],
+        trap: 'Counting the start as a week. After 4 weeks there are 4 jumps. But if row 1 is the first term, row 6 has only 5 jumps.',
+        aap: 'Stretch: a decreasing story. Maya has $60 and spends $7.50 each week. After 4 weeks: 60 − 7.50 × 4 = $30.',
+        tries: [
+          () => num('A garden has 8 flowers in row 1. Each row has 4 more flowers than the row before. How many flowers are in row 6?', 28, 'Row 1 is the start, so row 6 has 5 jumps: 8 + 4 × 5 = 28.'),
+          () => num('Maya has $60. She spends $7.50 every week. How many dollars does she have after 4 weeks?', 30, '$7.50 × 4 = $30. $60 − $30 = $30.')
         ]
       },
       'Missing input': {
-        viz: () => V.barGraph(['In 2', 'In 5', 'In ?'], [8, 20, 36], { title: 'Output of a × 4 machine', color: '#0fb39c' }),
+        viz: () => V.ioTable('In', 'Out', ['2', '5', '?'], ['8', '20', '36']),
         steps: ['The outputs 8, 20, 36 came from a × 4 rule.', 'To find a missing input, undo the rule.', '36 ÷ 4 = 9.'],
         trap: 'If the input is missing, do not apply the rule forward to the output (36 × 4). Undo it.',
-        aap: 'AAP: a machine does × 3, then + 1. If the output is 16, undo: 16 − 1 = 15, 15 ÷ 3 = 5.',
+        aap: 'Stretch: a machine does × 3, then + 1. If the output is 16, undo it in reverse order: 16 − 1 = 15, then 15 ÷ 3 = 5.',
         tries: [
           () => num('A machine multiplies by 4. The output is 36. What was the input?', 9, 'Undo the rule: 36 ÷ 4 = 9.'),
           () => num('A machine adds 7. The output is 20. What was the input?', 13, 'Undo: 20 − 7 = 13.')
+        ]
+      }
+    },
+    u2B3: {
+      'Two-step machines': {
+        viz: () => (w.IX ? w.IX.stack(V.ioTable('n', '3n + 1', ['1', '2', '3', '4', '5'], ['4', '7', '10', '13', '16']), V.hops(['4', '7', '10', '13', '16'], { rule: '+ 3', labels: ['n = 1', 'n = 2', 'n = 3', 'n = 4', 'n = 5'] })) : V.ioTable('n', '3n + 1', ['1', '2', '3', '4', '5'], ['4', '7', '10', '13', '16'])),
+        steps: ['Multiply n first, then add or subtract: 3n + 1 with n = 2 is 3 × 2 + 1 = 7.', 'The outputs jump by 3, the number in front of n: 4, 7, 10, 13, …', 'Cheat code: 2n gives the evens, and 2n − 1 and 2n + 1 give the odds.'],
+        trap: 'Doing the add or subtract first. In 2n + 1, multiply n by 2 first, then add 1.',
+        tries: [
+          () => num('A machine follows 3n + 1. What comes out when n = 6?', 19, '3 × 6 = 18, then 18 + 1 = 19.'),
+          () => mc('Which rule makes 3, 5, 7, 9 when n = 1, 2, 3, 4?', '2n + 1', [['2n − 1', 'That gives 1, 3, 5, 7.'], ['3n', 'That gives 3, 6, 9, 12.'], ['n + 2', 'That gives 3, 4, 5, 6.']], 'The jump is 2, and n = 1 gives 3: 2 × 1 + 1 = 3.')
+        ]
+      },
+      'Jump ahead with n': {
+        viz: () => V.hops(['2', '5', '8', '…', '29'], { rule: ['+3', '+3', '+3', '+3'], labels: ['1st', '2nd', '3rd', '…', '10th'] }),
+        steps: ['Rule 3n − 1. The 1st term is 3 × 1 − 1 = 2, the 2nd is 5, the 3rd is 8.', 'Do not list ten terms. Put 10 in for n: 3 × 10 − 1 = 29.', 'Check with the jump: 2 + 3 × 9 = 29 too.'],
+        trap: 'Using n = 9 or 11. The 10th term uses n = 10.',
+        tries: [
+          () => num('The rule is 4n + 2. What is term number 10?', 42, '4 × 10 + 2 = 42.'),
+          () => num('The rule is 5n − 3. What is the 20th term?', 97, '5 × 20 − 3 = 97.')
+        ]
+      },
+      'Patterns that grow faster': {
+        viz: () => V.patternGallery([
+          { name: 'Growing jumps', rule: 'jumps grow', hops: ['+1', '+2', '+3', '+4'], terms: [1, 2, 4, 7, 11] },
+          { name: 'Doubling', rule: '× 2', hops: '×2', terms: [1, 2, 4, 8, 16] },
+          { name: 'Squares', rule: 'n × n', hops: ['+3', '+5', '+7', '+9'], terms: [1, 4, 9, 16, 25] }
+        ]),
+        steps: ['Write the jumps between terms. If the jumps are all the same, it is add or subtract.', 'If the jumps grow by the same amount (+1, +2, +3, …), the next jump is one bigger.', 'Doubling multiplies each time. Squares add the next odd number.'],
+        trap: 'Assuming every pattern adds the same number. Check the jumps first.',
+        tries: [
+          () => num('What comes next? 1, 2, 4, 7, 11, …', 16, 'The jumps are +1, +2, +3, +4, so the next jump is +5: 11 + 5 = 16.'),
+          () => num('What comes next? 1, 4, 9, 16, 25, …', 36, 'These are squares: 6 × 6 = 36.')
         ]
       }
     },
@@ -287,7 +367,7 @@
     },
     u3L2: {
       'Multiply top to bottom': {
-        viz: () => V.stackMul(246, 35),
+        viz: () => (w.IX ? w.IX.stepper('mul', { a: 246, b: 35 }) : V.stackMul(246, 35)),
         steps: ['Estimate first: 250 × 35 is about 8,750.', 'Ones digit: 246 × 5 = 1,230. Carry as you go (the small circles).', 'Tens digit: write a 0 in the ones place first, then 246 × 3 = 738, so the row reads 7,380.', 'Add the two rows: 1,230 + 7,380 = 8,610. It is close to the estimate ✓.'],
         trap: 'Forgetting the placeholder zero on the tens row. 246 × 3 tens = 7,380, not 738.',
         aap: 'Stretch: 482 × 316 has three rows. The tens row has one placeholder zero and the hundreds row has two. Estimate first: 500 × 300 = 150,000.',
@@ -307,7 +387,7 @@
         ]
       },
       'Try one': {
-        viz: () => V.stackMul(318, 24),
+        viz: () => (w.IX ? w.IX.stepper('mul', { a: 318, b: 24 }) : V.stackMul(318, 24)),
         steps: ['Estimate: 300 × 25 = 7,500.', 'Ones digit: 318 × 4 = 1,272.', 'Tens digit: write a 0 first, then 318 × 2 = 636, so the row reads 6,360.', 'Add: 1,272 + 6,360 = 7,632. Close to 7,500 ✓.'],
         trap: 'Adding the factors (318 + 24) is not multiplication.',
         aap: 'Stretch: 36 × 25. Use × 100 ÷ 4: 36 × 100 = 3,600, then 3,600 ÷ 4 = 900.',
@@ -319,8 +399,8 @@
     },
     u3L3: {
       'Estimate each digit of the quotient': {
-        viz: () => V.cycleSteps(['How many 23s', 'in 156?', 'Try 6']),
-        steps: ['Look at the first digits of the dividend and the divisor.', 'Ask: how many 23s fit in 156? About 6, because 23 × 6 = 138.', 'Write that digit, subtract, and bring down the next digit.'],
+        viz: () => (w.IX ? w.IX.stepper('div', { a: 1554, b: 42 }) : V.cycleSteps(['Divide', 'Multiply', 'Subtract', 'Bring down'])),
+        steps: ['42 does not fit in 1 or in 15, so start with the first three digits: 155.', 'Divide: about 3 (think 40 into 150). Multiply: 3 × 42 = 126. Subtract: 155 − 126 = 29. Bring down the 4 to make 294.', 'Divide: about 7 (40 into 290). Multiply: 7 × 42 = 294. Subtract: 0. Nothing is left to bring down.', 'The answer is 37. Check: 37 × 42 = 1554 ✓.'],
         trap: 'A too-big estimate (7 × 23 = 161, which is larger than 156) means you drop the digit by 1 and try again.',
         aap: 'AAP: 748 ÷ 32. 32 × 20 = 640, 32 × 23 = 736, so the quotient is 23 with a small remainder.',
         tries: [
@@ -329,8 +409,8 @@
         ]
       },
       'Try one': {
-        viz: () => V.cycleSteps(['Divide', 'Multiply', 'Subtract', 'Bring down']),
-        steps: ['Use the same four steps in every column.', 'If a 0 appears in the quotient, still bring the next digit down.', 'Check by multiplying the quotient by the divisor and adding any remainder.'],
+        viz: () => (w.IX ? w.IX.stepper('div', { a: 1932, b: 23 }) : V.cycleSteps(['Divide', 'Multiply', 'Subtract', 'Bring down'])),
+        steps: ['19 is too small for 23, so start with 193. Divide: 9 × 23 = 207 is too big, so use 8. Multiply: 8 × 23 = 184. Subtract: 9.', 'Bring down the 2 to make 92. Divide: 92 ÷ 23 = 4. Multiply: 4 × 23 = 92. Subtract: 0.', 'If a 0 shows up in the quotient, still bring the next digit down. Check by multiplying: 84 × 23 = 1932 ✓.'],
         trap: 'Skipping a 0 in the quotient shifts every later digit one place left.',
         aap: 'AAP: 1001 ÷ 7 = 143. Watch the middle 0 in the work, even though the quotient here has no 0.',
         tries: [
@@ -395,7 +475,7 @@
     },
     u3B1: {
       'Three digits by three digits': {
-        viz: () => V.stackMul(482, 316),
+        viz: () => (w.IX ? w.IX.stepper('mul', { a: 482, b: 316 }) : V.stackMul(482, 316)),
         steps: ['Estimate first: 500 × 300 = 150,000.', 'Ones: 482 × 6 = 2,892. Tens: write one 0, then 482 × 1 = 482, so 4,820. Hundreds: write two 0s, then 482 × 3 = 1,446, so 144,600.', 'Add the three rows: 2,892 + 4,820 + 144,600 = 152,312. Close to the estimate ✓.'],
         trap: 'A hundreds row needs two placeholder zeros. Writing 1,446 instead of 144,600 makes the answer 100 times too small.',
         tries: [
