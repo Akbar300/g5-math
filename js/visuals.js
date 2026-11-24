@@ -77,6 +77,31 @@
     const size = +(attrs['font-size'] || 12);
     const weight = attrs['font-weight'] || '800';
     if (parsed.kind === 'text') {
+      /* A label like "1/2 = 2/4 = 0.5": plain text with stacked fractions in place of each a/b. */
+      const parts = parsed.t.split(/(-?\d+\s*\/\s*\d+)/).filter((q) => q !== '');
+      if (parts.length > 1 && parts.some((q) => /^-?\d+\s*\/\s*\d+$/.test(q))) {
+        const fsz = Math.max(9, size - 1), g = el('g', { fill, 'font-weight': weight, 'font-size': String(size) });
+        const segs = parts.map((q) => {
+          const m = q.match(/^(-?\d+)\s*\/\s*(\d+)$/);
+          if (m) return { f: true, n: m[1], d: m[2], w: Math.max(m[1].length, m[2].length) * fsz * 0.62 + 8 };
+          const tt = q.trim(); return { f: false, t: tt, w: tt.length * size * 0.6 + (tt.length < q.length ? 8 : 0) };
+        });
+        const total = segs.reduce((a, q) => a + q.w, 0);
+        let cx = +x - total / 2;
+        segs.forEach((q) => {
+          if (q.f) {
+            const mid = cx + q.w / 2, bw = q.w - 6;
+            g.appendChild(el('text', { x: mid, y: +y - fsz * 0.55, 'text-anchor': 'middle', 'font-size': String(fsz) }, [q.n]));
+            g.appendChild(el('line', { x1: mid - bw / 2, y1: y, x2: mid + bw / 2, y2: y, stroke: fill, 'stroke-width': '1.6', 'stroke-linecap': 'round' }));
+            g.appendChild(el('text', { x: mid, y: +y + fsz * 0.95, 'text-anchor': 'middle', 'font-size': String(fsz) }, [q.d]));
+          } else {
+            g.appendChild(el('text', { x: cx + (/^\s/.test(parts[segs.indexOf(q)]) ? 4 : 0), y: +y + size * 0.3, 'text-anchor': 'start' }, [q.t]));
+          }
+          cx += q.w;
+        });
+        parent.appendChild(g);
+        return;
+      }
       parent.appendChild(el('text', { x, y, 'text-anchor': attrs['text-anchor'] || 'middle', 'font-size': String(size), 'font-weight': weight, fill }, [parsed.t]));
       return;
     }
@@ -99,7 +124,7 @@
   function numberLine(min, max, marks, { w = 420, h = 80 } = {}) {
     const L = 24, R = w - 24, span = max - min, ms = marks || [];
     /* Labels that would touch each other step up to a higher row, with a thin leader line down to the dot. */
-    const guess = (t) => { const q = parseFracLabel(t); return q.kind === 'text' ? String(t).length * 7.4 + 10 : Math.max(String(q.n).length, String(q.d).length) * 8 + 10; };
+    const guess = (t) => { const q = parseFracLabel(t); return q.kind === 'text' ? String(t).replace(/(-?\d+)\s*\/\s*(\d+)/g, (m0, a, b) => 'x'.repeat(Math.max(a.length, b.length))).length * 7.4 + 10 : Math.max(String(q.n).length, String(q.d).length) * 8 + 10; };
     const items = ms.map((m) => ({ m, x: L + ((m.pos - min) / span) * (R - L), t: m.label || String(m.pos) })).sort((p, q) => p.x - q.x);
     const ends = []; let rows = 1;
     items.forEach((it) => {

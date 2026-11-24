@@ -687,8 +687,8 @@
     }
     return s;
   }
-  function miniGrid(pts, labels, quad, n, open) {
-    const s = V.planeSVG([], { quad, n, size: 260 }), G = s.__geo, fx = s.querySelector('.cp-pts'), g = mk('g');
+  function miniGrid(pts, labels, quad, n, open, size) {
+    const s = V.planeSVG([], { quad, n, size: size || 260 }), G = s.__geo, fx = s.querySelector('.cp-pts'), g = mk('g');
     s.insertBefore(g, fx);
     if (pts.length > 1) for (let i = 0; i < pts.length; i++) { if ((pts.length === 2 || open) && i === pts.length - 1) break; const a = pts[i], b = pts[(i + 1) % pts.length]; const l = mk('line', { x1: G.px(a.x), y1: G.py(a.y), x2: G.px(b.x), y2: G.py(b.y), class: 'sl-edge ' + dirOf(a, b) }); g.appendChild(l); }
     pts.forEach((p, i) => { fx.appendChild(mk('circle', { cx: G.px(p.x), cy: G.py(p.y), r: 4.5, class: 'cp-dot' })); fx.appendChild(mk('text', { x: G.px(p.x) + 8, y: G.py(p.y) - 7, class: 'sl-vl' }, [labels[i]])); });
@@ -788,8 +788,12 @@
     function trickHtml(it, box) {
       if (it.type === 'both') {
         const e = it.ex;
-        box.appendChild(h('div', '', `<b>Trip 1 · across</b> (x changes): ${sgn(it.p.x)} to ${sgn(it.q.x)}<br>${e.gx.how}<br><b>Trip 2 · up/down</b> (y changes): ${sgn(it.p.y)} to ${sgn(it.q.y)}<br>${e.gy.how}<br>Total = ${e.gx.d} + ${e.gy.d} = <b>${e.d}</b> steps`));
-        box.appendChild(nline(it.p.x, it.q.x, 'x')); box.appendChild(nline(it.p.y, it.q.y, 'y'));
+        box.appendChild(h('div', '', `<b>Trip 1 · across</b> (only x changes): ${sgn(it.p.x)} to ${sgn(it.q.x)}<br>${e.gx.how}`));
+        box.appendChild(nline(it.p.x, it.q.x, 'x'));
+        box.appendChild(h('div', 'sl-land', `📍 After trip 1 the rover is at <b>R ${pairH(it.R)}</b>. It used ${e.gx.d} step${e.gx.d === 1 ? '' : 's'}, and y did not change.`));
+        box.appendChild(h('div', '', `<b>Trip 2 · up/down</b> (only y changes), starting from R: ${sgn(it.p.y)} to ${sgn(it.q.y)}<br>${e.gy.how}`));
+        box.appendChild(nline(it.p.y, it.q.y, 'y'));
+        box.appendChild(h('div', 'sl-land', `🏁 It arrives at <b>Q ${pairH(it.q)}</b>.<br>Total = ${e.gx.d} + ${e.gy.d} = <b>${e.d}</b> steps`));
         return [[it.p, it.R, it.q], ['P', 'R', 'Q'], true];
       }
       if (it.type === 'corner') {
@@ -846,10 +850,20 @@
         function reveal() {
           done = true; inRow.querySelectorAll('button,input').forEach((e) => { e.disabled = true; });
           trick.classList.remove('ph'); trick.innerHTML = ''; trick.appendChild(h('div', 'k', '✨ The trick'));
-          const g = trickHtml(it, trick);
-          const gridBox = h('div', 'sl-gridbox');
-          trick.appendChild(btn('Show it on the grid 🗺️', function () { if (gridBox.firstChild) { gridBox.innerHTML = ''; this.textContent = 'Show it on the grid 🗺️'; } else { gridBox.appendChild(miniGrid(g[0], g[1], quad, n, g[2])); this.textContent = 'Hide the grid'; } }, 'ghost'));
-          trick.appendChild(gridBox);
+          if (it.type === 'both' || it.type === 'corner') {
+            /* Words and number lines stay on the left; the grid with the rover's route sits on the right. */
+            const Lbox = h('div', 'sl-trickL'); Lbox.appendChild(h('div', 'k', '✨ The trick'));
+            const g2 = trickHtml(it, Lbox); card.insertBefore(Lbox, trick);
+            trick.innerHTML = ''; trick.appendChild(h('div', 'k', '🗺️ On the grid'));
+            const big = w.matchMedia && w.matchMedia('(min-width:900px)').matches;
+            trick.appendChild(miniGrid(g2[0], g2[1], quad, n, g2[2], big ? 420 : 300));
+            trick.appendChild(h('div', 'ix-note', 'P is where it starts, R is the turn, Q is where it stops.'));
+          } else {
+            const g = trickHtml(it, trick);
+            const gridBox = h('div', 'sl-gridbox');
+            trick.appendChild(btn('Show it on the grid 🗺️', function () { if (gridBox.firstChild) { gridBox.innerHTML = ''; this.textContent = 'Show it on the grid 🗺️'; } else { gridBox.appendChild(miniGrid(g[0], g[1], quad, n, g[2])); this.textContent = 'Hide the grid'; } }, 'ghost'));
+            trick.appendChild(gridBox);
+          }
           nav.innerHTML = '';
           nav.appendChild(btn(i + 1 >= items.length ? (learn ? 'Go to practice 🏋️' : 'Finish round') : 'Next →', () => { i++; if (i >= items.length) finish(); else show(); }, 'go'));
           see(nav);
