@@ -31,7 +31,7 @@
         ]
       },
       'Which questions need data?': {
-        viz: () => V.cycleSteps(['Need data', 'or', 'Known fact']),
+        viz: () => ix('sorter', { buckets: ['Needs data', 'Known fact'], cards: [{ t: 'Minutes our class spends on homework', b: 0, why: 'Every class is different: you have to ask (a survey).' }, { t: 'Minutes in an hour', b: 1, why: 'Always 60. You can look it up.' }, { t: 'Favorite lunch in our grade', b: 0, why: 'Opinions change from group to group: collect data.' }, { t: 'Days in a week', b: 1, why: 'Always 7. A known fact.' }, { t: 'How far students live from school', b: 0, why: 'You need to ask each student.' }, { t: 'Inches in a foot', b: 1, why: 'Always 12. A known fact.' }] }),
         steps: ['Read the question.', 'Ask: would I need to survey or measure a group?', 'If one remembered fact answers it, it is not a data question.'],
         trap: '“How many days are in a week?” is a fact. “How many days were students absent this week?” needs data.',
         aap: 'AAP: write one statistical question and one non-statistical question about the same topic (for example, sleep).',
@@ -87,7 +87,7 @@
     },
     u1c4: {
       'Mean is a fair share': {
-        viz: () => V.barGraph(['A', 'B', 'C', 'D'], [3, 5, 7, 9], { title: 'Stickers to share', color: '#2f80ed' }),
+        viz: () => ix('levelBars', { values: [3, 5, 7, 9], label: 'stickers' }),
         steps: ['Add the values: 3 + 5 + 7 + 9 = 24.', 'Count how many values: 4.', 'Divide: 24 ÷ 4 = 6. Each fair share is 6.'],
         trap: 'Do not divide by the greatest value. Divide by how many numbers you added.',
         aap: 'AAP: if a fifth person with 11 stickers joins, what is the new mean? 35 ÷ 5 = 7.',
@@ -119,6 +119,7 @@
         ]
       },
       'From percent to a count': {
+        viz: () => ix('percentBar', { whole: 20, parts: 20, cuts: [20, 10, 4], target: 35 }),
         watch: { id: 'pctof', p: 35, n: 20 },
         viz: () => V.hundredGrid(35, { fill: '#ffc43d', label: '35% of 20 students = 7' }),
         steps: ['35% means 35 per 100, or 0.35.', 'Multiply the percent (as a decimal) by the total: 0.35 × 20 = 7.', 'Check: 7 out of 20 is 35% because 7 ÷ 20 = 0.35.'],
@@ -134,7 +135,7 @@
     /* ---------- Unit 2 ---------- */
     u2L1: {
       'The order': {
-        viz: () => V.cycleSteps(['( )', '× and ÷', '+ and −']),
+        viz: () => ix('opsStepper', { expr: '(3 + 5) × 2 − 4 ÷ 2' }),
         steps: ['Parentheses first.', 'Then multiply and divide, left to right — they are partners.', 'Then add and subtract, left to right — they are partners too.'],
         trap: '“Multiply always before divide” is wrong. In 24 ÷ 4 × 2 you divide first because it comes first from the left.',
         aap: 'AAP: simplify 18 + 36 ÷ (3 × 2) − 4. Parentheses first: 3 × 2 = 6, then 36 ÷ 6 = 6, then 18 + 6 − 4 = 20.',
@@ -144,7 +145,7 @@
         ]
       },
       'Left to right, step by step': {
-        viz: () => V.cycleSteps(['24 ÷ 4', '6 × 2', '12 + 3']),
+        viz: () => ix('opsStepper', { expr: '24 ÷ 4 × 2 + 3' }),
         steps: ['24 ÷ 4 × 2 + 3', '÷ comes first from the left: 6 × 2 + 3', 'Then multiply: 12 + 3 = 15'],
         trap: 'Doing 4 × 2 first (and getting 24 ÷ 8 + 3) is the classic miss. Left to right for × and ÷.',
         aap: 'AAP: try 100 − 40 ÷ 5 × 2. Left to right: 40 ÷ 5 = 8, 8 × 2 = 16, 100 − 16 = 84.',
@@ -156,7 +157,7 @@
     },
     u2L2: {
       'Two kinds of numbers': {
-        viz: () => V.numberLine(0, 12, [{ pos: 1, label: 'neither' }, { pos: 7, label: 'prime' }, { pos: 12, label: 'composite' }]),
+        viz: () => ix('arrayMaker', { n: 12 }),
         steps: ['A prime has exactly two factors: 1 and itself (7: 1 and 7).', 'A composite has more than two factors (12: 1, 2, 3, 4, 6, 12).', 'The number 1 is neither prime nor composite.'],
         trap: 'Odd does not mean prime. 9, 15, 21, 25, 27, 35, 45, 49, and 51 are all composite.',
         aap: 'AAP: is 91 prime? 91 = 7 × 13, so it is composite — a frequent challenge number.',
@@ -166,7 +167,7 @@
         ]
       },
       'Quick tests': {
-        viz: () => V.barGraph(['Ends 0,2,4,6,8', 'Digits sum ×3', 'Ends 0 or 5'], [2, 3, 5], { title: 'Divisibility tests', color: '#0fb39c' }),
+        viz: () => ix('divTester', { n: 51, tests: [2, 3, 5] }),
         steps: ['Even last digit → divisible by 2.', 'Digits add to a multiple of 3 → divisible by 3. (51: 5 + 1 = 6.)', 'Ends in 0 or 5 → divisible by 5.'],
         trap: 'A number can fail the “looks prime” test and still be composite. Always try 3 and 7 on two-digit odds.',
         aap: 'AAP: test 87. 8 + 7 = 15, so 3 divides it: 87 = 3 × 29. Composite.',
@@ -280,7 +281,7 @@
     },
     u2L4: {
       'Expression vs equation': {
-        viz: () => V.cycleSteps(['n + 7', 'has no =', 'n + 7 = 12']),
+        viz: () => ix('sorter', { buckets: ['Expression', 'Equation'], cards: [{ t: 'n + 7', b: 0, why: 'No equals sign: an expression.' }, { t: 'n + 7 = 12', b: 1, why: 'It has an equals sign: an equation.' }, { t: '3 × p', b: 0, why: 'No equals sign.' }, { t: '20 − k = 8', b: 1, why: 'An equals sign makes it an equation.' }, { t: '15 + 6', b: 0, why: 'No equals sign, even with no letter.' }, { t: '9 = m − 4', b: 1, why: 'The equals sign can be on the left.' }] }),
         steps: ['An expression is a phrase: n + 7. No equals sign.', 'An equation is a sentence: n + 7 = 12.', 'A variable is a letter for an unknown number.'],
         trap: 'Solving is for equations. You do not “solve” n + 7 by itself.',
         aap: 'AAP: write two different equations that both have the solution n = 5, such as n + 3 = 8 and 2n = 10.',
@@ -290,7 +291,7 @@
         ]
       },
       'Story to equation': {
-        viz: () => V.barGraph(['Start p', 'Plus 15', 'Total 42'], [27, 15, 42], { title: 'Pages read', color: '#2f80ed' }),
+        viz: () => ix('tapeDiagram', { total: 42, parts: [{ v: 'p' }, { v: 15 }], eq: 'p + 15 = 42' }),
         steps: ['“Some pages, then 15 more, 42 in all.”', 'Write p + 15 = 42.', 'Opposite operation: p = 42 − 15 = 27.'],
         trap: 'If the story says “got more,” do not start with subtraction in the equation. Subtract when you solve.',
         aap: 'AAP: “4 bags with n apples each make 36.” The equation is 4 × n = 36, so n = 9. Match the operation to the story.',
@@ -302,7 +303,7 @@
     },
     u2B1: {
       'Greatest common factor': {
-        viz: () => V.cycleSteps(['18: 1,2,3,6,9,18', '24: 1,2,3,4,6,8,12,24', 'GCF 6']),
+        viz: () => ix('arrayMaker', { mode: 'pairs', a: 18, b: 24 }),
         steps: ['List the factors of each number: 18 has 1, 2, 3, 6, 9, 18 and 24 has 1, 2, 3, 4, 6, 8, 12, 24.', 'Circle the factors they share: 1, 2, 3, 6.', 'The greatest one is the GCF: 6.'],
         trap: 'Do not confuse GCF with LCM. The GCF is a factor (it divides both). The LCM is a multiple (both divide it).',
         aap: 'AAP: GCF(24, 36, 60). Shared factors include 12. For three numbers, check the candidate on all three.',
@@ -358,7 +359,7 @@
         ]
       },
       'Compatible numbers for division': {
-        viz: () => V.cycleSteps(['3196 ≈ 3200', '38 ≈ 40', '3200 ÷ 40 = 80']),
+        viz: () => ix('compatPicker', { a: 3196, b: 38, as: [3100, 3200, 3300], bs: [35, 40], exact: '84 R4' }),
         steps: ['Look for nearby numbers that divide cleanly.', '3196 is near 3200, 38 is near 40.', '3200 ÷ 40 = 80. The exact answer, 84 R4, is close, so it checks out.'],
         trap: 'Rounding both numbers up (or both down) can push the estimate the same way. Watch the size.',
         aap: 'AAP: 8124 ÷ 28. Compatible: 8400 ÷ 28 = 300, or 8100 ÷ 27 = 300. The exact quotient should be near 300.',
@@ -424,7 +425,7 @@
     },
     u3L4: {
       'The story decides': {
-        viz: () => V.cycleSteps(['Divide', 'Look at R', 'What does R mean?']),
+        viz: () => ix('remainderStory', { a: 130, b: 24, unit: 'bus', units: 'buses', item: 'kids' }),
         steps: ['Compute the quotient and remainder.', 'Read the story: do you need whole groups only, leftover items, or a mixed number?', 'The remainder never stays bigger than the divisor.'],
         trap: 'Ignoring the remainder when the story is about leftover seats, or keeping it when the story needs another whole van.',
         aap: 'AAP: 50 ÷ 8 could be 6 R 2, or 6.25, or “7 vans if everyone must ride.” The story picks the form.',
@@ -444,9 +445,17 @@
         ]
       }
     },
+    u3L5: {
+      'Test before you divide': {
+        viz: () => ix('divTester', { n: 348, tests: [2, 3, 4, 5, 6, 8, 9, 10], more: [1365, 7240, 1316, 5128, 741, 2016] })
+      },
+      'The digit sum and remainders': {
+        viz: () => ix('divTester', { mode: 'digitsum', n: 2026, by: 9 })
+      }
+    },
     u3L6: {
       'A shortcut for repeated multiplication': {
-        viz: () => V.cycleSteps(['10 × 10 × 10', '10³', '1000']),
+        viz: () => ix('powerBuilder', { base: 10, exp: 3 }),
         steps: ['An exponent counts how many times the base is a factor: 10³ = 10 × 10 × 10 = 1000.', 'The base is the number being multiplied (10 here). The exponent is the small number up high.', 'With base 10, the answer is a 1 followed by that many zeros: 10³ = 1000 and 10⁵ = 100000.'],
         trap: '10³ is not 10 × 3 = 30. It is three factors of 10, which is 1000.',
         aap: 'Stretch: other bases. 2⁵ = 2 × 2 × 2 × 2 × 2 = 32 and 3⁴ = 81. Only base 10 just adds zeros; other bases need the repeated multiplication.',
@@ -517,7 +526,7 @@
     },
     u3B3: {
       'Other bases grow fast': {
-        viz: () => V.cycleSteps(['2⁶ = 64', '2⁷ = 128', '2⁸ = 256']),
+        viz: () => ix('powerBuilder', { base: 2, exp: 8, bases: [2, 3, 5, 10], max: 8, swap: true }),
         steps: ['Base 10 only adds zeros. Other bases need the repeated multiplication.', 'Each time the exponent goes up by 1, multiply by the base once more: 2⁴ = 16, 2⁵ = 32, 2⁶ = 64, 2⁷ = 128, 2⁸ = 256.', 'Swapping base and exponent changes the value: 3⁵ = 243 but 5³ = 125.'],
         trap: 'Thinking a power is a product: 3⁵ is not 15.',
         tries: [
@@ -526,7 +535,7 @@
         ]
       },
       'Powers come right after parentheses': {
-        viz: () => V.cycleSteps(['( )', 'powers', '× ÷', '+ −']),
+        viz: () => ix('opsStepper', { expr: '3 + 2² × 5' }),
         steps: ['Parentheses first.', 'Then powers: 2² = 4.', 'Then × and ÷ from left to right: 4 × 5 = 20.', 'Last + and − from left to right: 3 + 20 = 23.'],
         trap: 'Doing 3 + 2 first. Powers and multiplication beat addition, so 3 + 2² × 5 is 23, not 125.',
         tries: [
@@ -732,6 +741,7 @@
         ]
       },
       'Fraction, decimal, percent': {
+        viz: () => ix('percentBar', { whole: 100, parts: 5, cuts: [5, 10], target: 60 }),
         watch: { id: 'scale100', n: 3, d: 5 },
         viz: () => ixGrid({ start: 60, pct: true, fill: '#0fb39c', challenges: [{ n: 3, d: 5 }, { pct: 75 }, { dec: '0.2' }, { n: 1, d: 2 }, { pct: 5 }] }),
         steps: ['Write the fraction as hundredths when you can: ' + fr(3, 5) + ' = ' + fr(60, 100) + ' = 0.60 = 60%.', 'The other way: 40% = ' + fr(40, 100) + ' = ' + fr(2, 5) + ' = 0.4.', 'All three names can sit on the same point.'],
@@ -745,7 +755,7 @@
     },
     u4a4: {
       'A percent of a number': {
-        viz: () => ixGrid({ start: 25, pct: true, fill: '#2f80ed', tip: '25% of a 100-square grid is 25 squares. 25% of 80 is the same share of 80.' }),
+        viz: () => ix('percentBar', { whole: 80, parts: 10, cuts: [10, 4, 2], target: 25 }),
         steps: ['25% of 80 means ' + fr(25, 100) + ' of 80, or 0.25 × 80.', '0.25 × 80 = 20. You can also take one fourth of 80.', 'Friendly percents: 50% is half, 10% is one tenth, 25% is one fourth.'],
         trap: '25% of 80 is not 25. The percent is the share, not the answer by itself.',
         aap: '15% of 80 is 0.15 × 80 = 12. Try 12.5% of 80 as a stretch (10).',
@@ -943,7 +953,7 @@
     },
     u6L2: {
       'Benchmarks': {
-        viz: () => V.barGraph(['mm (thin card)', 'cm (finger width)', 'm (a long step)', 'km (a long walk)'], [1, 10, 1000, 1000000], { title: 'Sense of size', color: '#2f80ed' }),
+        viz: () => ix('sorter', { buckets: ['about 1 mm', 'about 1 cm', 'about 1 m', 'about 1 km'], cards: [{ t: 'Thickness of a dime', b: 0, why: 'A dime is very thin: about 1 mm.' }, { t: 'Width of a fingernail', b: 1, why: 'About 1 cm.' }, { t: 'One big step', b: 2, why: 'A big step is about 1 m.' }, { t: 'A 12-minute walk', b: 3, why: 'About 1 km.' }, { t: 'Height of a doorknob', b: 2, why: 'About 1 m off the floor.' }] }),
         steps: ['A millimeter is about the thickness of a dime or a thin card.', 'A centimeter is about a finger width. A meter is a long step.', 'A kilometer is a long walk (about 12 city blocks, or a 10-minute walk).'],
         trap: 'Measuring a room in kilometers, or a road in millimeters, is a units mismatch — even if the conversion is arithmetically possible.',
         aap: 'AAP: a bathtub is about 200 liters, not 200 milliliters. Capacity has its own ladder (kL, L, mL).',
@@ -953,7 +963,7 @@
         ]
       },
       'Pick the best unit': {
-        viz: () => V.metricLadder('m'),
+        viz: () => ix('sorter', { buckets: ['mm', 'cm', 'm', 'km'], cards: [{ t: 'Thickness of a coin', b: 0, why: 'Tiny: millimeters.' }, { t: 'Width of a book', b: 1, why: 'Hand-sized: centimeters.' }, { t: 'Length of a room', b: 2, why: 'A few big steps: meters.' }, { t: 'Distance to the next town', b: 3, why: 'Far away: kilometers.' }] }),
         steps: ['Match the unit to the size of what you measure.', 'Room length: meters. Book width: centimeters. Coin thickness: millimeters.', 'If the number would be huge or tiny, switch units.'],
         trap: 'A “reasonable” number is usually not in the millions or in thousandths for everyday objects.',
         aap: 'AAP: 0.75 m = 75 cm = 750 mm. Pick the unit that keeps the number friendly for the job.',
@@ -965,7 +975,7 @@
     },
     u6L3: {
       'Convert first, then compute': {
-        viz: () => V.cycleSteps(['2 m', '→ 200 cm', '− 45 cm', '= 155 cm']),
+        viz: () => ix('tapeDiagram', { total: '2 m', convert: '200 cm', whole: 200, cut: 45, unit: 'cm' }),
         steps: ['Put every measurement in the same unit before you add or subtract.', '2 m = 200 cm, minus 45 cm is 155 cm.', '155 cm is also 1.55 m.'],
         trap: 'Subtracting 45 − 2 because the units were ignored (2 m − 45 cm is not 43 of anything useful).',
         aap: 'AAP: 2 hours 15 minutes is not 2.15 hours. Convert minutes first: 2 + 15/60 = 2.25 hours, or stay in minutes (135).',
@@ -1080,6 +1090,7 @@
         ]
       },
       'From percent to people': {
+        viz: () => ix('percentBar', { whole: 40, parts: 10, cuts: [10, 4, 2], target: 25 }),
         watch: { id: 'pctof', p: 25, n: 40, wrong: '25' },
         viz: () => V.hundredGrid(25, { fill: '#ffc43d', label: '25% of 40 students = 10' }),
         steps: ['Change the percent to a decimal: 25% = 0.25.', 'Multiply by the total: 0.25 × 40 = 10.', 'Check: 10 out of 40 is 25%.'],
@@ -1286,7 +1297,7 @@
     /* ---------- Unit 10 ---------- */
     u10L1: {
       'Even it out': {
-        viz: () => V.barGraph(['3', '7', '5', '9'], [3, 7, 5, 9], { title: 'Share equally → mean 6', color: '#2f80ed' }),
+        viz: () => ix('levelBars', { values: [3, 7, 5, 9], label: 'stickers' }),
         steps: ['The mean is a fair share: dump everything into one pile, then split equally.', 'Add, then divide by how many values.', '3, 7, 5, 9: total 24, mean 24 ÷ 4 = 6.'],
         trap: 'Dividing by the wrong count (forgetting one value, or dividing by the greatest value).',
         aap: 'AAP: if the mean of four numbers is 9, the total is 36. A missing number is 36 minus the other three.',
@@ -1330,7 +1341,7 @@
     },
     u10L3: {
       'Tree diagrams': {
-        viz: () => V.cycleSteps(['coin: H or T', '× spinner: red, blue, green', '2 × 3 = 6 outcomes']),
+        viz: () => ix('treeBuilder', { stages: [['H', 'T'], ['red', 'blue', 'green']] }),
         steps: ['A tree (or the counting principle) lists every path.', 'A coin has 2 results and the spinner has 3 colors, so there are 2 × 3 = 6 outcomes.', 'Multiply the number of choices at each step.'],
         trap: 'Adding the choices (2 + 3 = 5 outcomes) instead of multiplying.',
         aap: 'AAP: 3 shirts, 2 pants, 2 hats: 3 × 2 × 2 = 12 outfits. Each new independent choice multiplies the total.',
