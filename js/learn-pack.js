@@ -1275,13 +1275,13 @@
     /* ---------- Unit 10 ---------- */
     u10L1: {
       'Even it out': {
-        viz: () => V.barGraph(['2', '4', '6', '8'], [2, 4, 6, 8], { title: 'Share equally → mean 5', color: '#2f80ed' }),
-        steps: ['The mean is a fair share: dump everything into one pile, then split equally.', 'Add, then divide by how many values.', '2, 4, 6, 8: total 20, mean 20 ÷ 4 = 5.'],
+        viz: () => V.barGraph(['3', '7', '5', '9'], [3, 7, 5, 9], { title: 'Share equally → mean 6', color: '#2f80ed' }),
+        steps: ['The mean is a fair share: dump everything into one pile, then split equally.', 'Add, then divide by how many values.', '3, 7, 5, 9: total 24, mean 24 ÷ 4 = 6.'],
         trap: 'Dividing by the wrong count (forgetting one value, or dividing by the greatest value).',
         aap: 'AAP: if the mean of four numbers is 9, the total is 36. A missing number is 36 minus the other three.',
         tries: [
           () => num('What is the mean of 4, 6, and 8?', 6, '4 + 6 + 8 = 18, and 18 ÷ 3 = 6.'),
-          () => num('Four numbers have a mean of 5. What is their total?', 20, 'Mean × how many: 5 × 4 = 20.')
+          () => num('Four numbers have a mean of 6. What is their total?', 24, 'Mean × how many: 6 × 4 = 24.')
         ]
       },
       'Median, mode, range': {
@@ -1297,34 +1297,34 @@
     },
     u10L2: {
       'Stem-and-leaf plots': {
-        viz: () => V.stemLeaf([31, 32, 35, 40, 44, 51], { title: 'Scores', key: 'Key: 3 | 1 means 31' }),
-        steps: ['The stem is the tens. The leaves are the ones, written in order.', 'A key is required: “3 | 1 means 31.”', 'You can still find mean, median, mode, and range from the plot.'],
-        trap: 'Reading 3 | 1 2 as 3.12 or as 312. Each leaf is a ones digit on that stem.',
+        viz: () => V.stemLeaf([21, 24, 24, 28, 30, 35, 42], { title: 'Scores', key: 'Key: 2 | 1 means 21' }),
+        steps: ['The stem is the tens. The leaves are the ones, written in order.', 'A key is required: “2 | 1 means 21.”', 'You can still find mean, median, mode, and range from the plot.'],
+        trap: 'Reading 2 | 1 4 as 2.14 or as 214. Each leaf is a ones digit on that stem.',
         aap: 'AAP: from the plot, the median is the middle leaf when all leaves are listed in order across the rows.',
         tries: [
-          () => num('In 3 | 1 2 5 with key “3 | 1 means 31,” how many values are in that row?', 3, 'Three leaves: 31, 32, and 35.'),
-          () => mc('What is the range of 31, 32, 35, 40, 44, 51?', '20', [['3', 'That is a stem, not the range.'], ['51', 'Range is greatest minus least.'], ['10', '51 − 31 = 20.']], '51 − 31 = 20.')
+          () => num('In 2 | 1 4 4 8 with key “2 | 1 means 21,” how many values are in that row?', 4, 'Four leaves: 21, 24, 24, and 28.'),
+          () => mc('What is the range of 21, 24, 24, 28, 30, 35, 42?', '21', [['2', 'That is a stem, not the range.'], ['42', 'Range is greatest minus least.'], ['20', '42 − 21 = 21.']], '42 − 21 = 21.')
         ]
       },
       'Your turn': {
-        viz: () => V.linePlot([2, 2, 3, 3, 3, 5, 8], { title: 'A line plot of the same data idea' }),
+        viz: () => V.linePlot([12, 15, 15, 19, 20, 23, 23, 23, 31], { title: 'The same data on a line plot' }),
         steps: ['A line plot and a stem-and-leaf plot can show the same set.', 'Use the plot to count, to find the cluster, and to find the range.', 'Titles and labels still matter.'],
         trap: 'Counting the tick marks on the number line instead of the dots.',
-        aap: 'AAP: if a new outlier 12 is added to 2, 2, 3, 3, 3, 5, 8, the range jumps and the mean rises more than the median.',
+        aap: 'AAP: if an outlier 60 is added to this data, the range jumps from 19 to 48 and the mean rises more than the median.',
         tries: [
-          () => num('On a line plot of 2, 2, 3, 3, 3, 5, 8, how many dots are above 3?', 3, 'Three values are 3.'),
-          () => num('What is the range of 2, 2, 3, 3, 3, 5, 8?', 6, '8 − 2 = 6.')
+          () => num('On the line plot above, how many dots are above 23?', 3, 'Three values are 23.'),
+          () => num('What is the range of 12, 15, 15, 19, 20, 23, 23, 23, 31?', 19, '31 − 12 = 19.')
         ]
       }
     },
     u10L3: {
       'Tree diagrams': {
-        viz: () => V.cycleSteps(['shirt', '× pants', '× hat', 'outfits']),
-        steps: ['A tree (or the counting principle) lists every path.', 'If there are 3 shirts and 2 pants, there are 3 × 2 = 6 outfits.', 'Multiply the number of choices at each step.'],
-        trap: 'Adding the choices (3 + 2 = 5 outfits) instead of multiplying.',
+        viz: () => V.cycleSteps(['coin: H or T', '× spinner: red, blue, green', '2 × 3 = 6 outcomes']),
+        steps: ['A tree (or the counting principle) lists every path.', 'A coin has 2 results and the spinner has 3 colors, so there are 2 × 3 = 6 outcomes.', 'Multiply the number of choices at each step.'],
+        trap: 'Adding the choices (2 + 3 = 5 outcomes) instead of multiplying.',
         aap: 'AAP: 3 shirts, 2 pants, 2 hats: 3 × 2 × 2 = 12 outfits. Each new independent choice multiplies the total.',
         tries: [
-          () => num('3 shirts and 2 pants: how many outfits?', 6, '3 × 2 = 6.'),
+          () => num('Flip a coin and spin a 3-color spinner: how many outcomes?', 6, '2 × 3 = 6.'),
           () => mc('For 4 flavors and 3 toppings, how many sundaes?', '12', [['7', 'That adds 4 + 3.'], ['4', 'That counts only flavors.'], ['3', 'That counts only toppings.']], '4 × 3 = 12.')
         ]
       },
@@ -1341,12 +1341,12 @@
     },
     u10B1: {
       'The mean balances the data': {
-        viz: () => V.numberLine(0, 10, [{ pos: 2, label: '2' }, { pos: 5, label: 'mean' }, { pos: 8, label: '8' }]),
-        steps: ['Think of the mean as a balance point on a number line.', 'Values below the mean and values above it “balance.”', '2 and 8 balance around 5: each is 3 away.'],
+        viz: () => V.numberLine(0, 10, [{ pos: 2, label: '2' }, { pos: 4, label: '4' }, { pos: 6, label: 'mean 6' }, { pos: 8, label: '8' }, { pos: 10, label: '10' }]),
+        steps: ['Think of the mean as a balance point on a number line.', 'Values below the mean and values above it “balance.”', '2 and 10 balance around 6 (each is 4 away), and so do 4 and 8 (each is 2 away).'],
         trap: 'Moving one point and expecting the mean to stay put. The balance point shifts toward the move.',
         aap: 'AAP: if 2, 5, 8 has mean 5, changing 8 to 14 shifts the mean to 7. The total rose by 6, and 6 ÷ 3 = 2.',
         tries: [
-          () => num('What is the mean of 2, 5, and 8?', 5, '2 + 5 + 8 = 15, and 15 ÷ 3 = 5. It is also the balance point.'),
+          () => num('What is the mean of 2, 4, 6, 8, and 10?', 6, '2 + 4 + 6 + 8 + 10 = 30, and 30 ÷ 5 = 6. It is also the balance point.'),
           () => mc('If one value rises and the others stay, the mean', 'rises a little', [['stays the same', 'The total changed, so the mean changes.'], ['becomes that new value', 'The other values still count.'], ['always doubles', 'It shifts by (the change) ÷ (how many values).']], 'The mean moves toward the value that changed, by a fraction of the change.')
         ]
       },
