@@ -1387,13 +1387,13 @@
     },
     u11L2: {
       'Patterns make lines': {
-        viz: () => V.plane([{ x: 1, y: 2, label: '(1, 2)' }, { x: 2, y: 4, label: '(2, 4)' }, { x: 3, y: 6, label: '(3, 6)' }], { n: 8 }),
-        steps: ['A table of (x, y) pairs can follow a rule, like y = 2x.', '(1, 2), (2, 4), (3, 6) sit on a straight line.', 'The graph of a constant rate is a line through those points.'],
+        viz: () => V.plane([{ x: 1, y: 3, label: '(1, 3)' }, { x: 2, y: 6, label: '(2, 6)' }, { x: 3, y: 9, label: '(3, 9)' }], { n: 10 }),
+        steps: ['A table of (x, y) pairs can follow a rule. Saving $3 a week gives (week, dollars) pairs that follow y = 3x.', '(1, 3), (2, 6), (3, 9) sit on a straight line.', 'The graph of a constant rate is a line through those points.'],
         trap: 'Plotting the points and then connecting them in the order of the table when a point was mistyped — check that they follow the rule first.',
-        aap: 'AAP: if y = 2x + 1, the points are (1, 3), (2, 5), (3, 7). The “+1” shifts every y-value up by 1.',
+        aap: 'AAP: if y = 3x + 1, the points are (1, 4), (2, 7), (3, 10). The “+1” shifts every y-value up by 1.',
         tries: [
-          () => num('If y = 2x, what is y when x = 4?', 8, '2 × 4 = 8. The point is (4, 8).'),
-          () => mc('The points (1, 2), (2, 4), (3, 6) follow which rule?', 'y = 2x', [['y = x + 2', 'That would give (1, 3).'], ['y = x', 'That would give (1, 1).'], ['x = 2y', 'That would swap the roles.']], 'Each y is twice x.')
+          () => num('Save $3 each week. How many dollars after week 4?', 12, '3 × 4 = 12. The point is (4, 12).'),
+          () => mc('The points (1, 3), (2, 6), (3, 9) follow which rule?', 'y = 3x', [['y = x + 2', 'That works for (1, 3) but gives (2, 4), not (2, 6).'], ['y = x', 'That would give (1, 1).'], ['x = 3y', 'That would swap the roles.']], 'Each y is 3 times x.')
         ]
       }
     },
