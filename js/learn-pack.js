@@ -1047,32 +1047,32 @@
     },
     u7L3: {
       'Same form, then compare': {
-        viz: () => V.numberLine(0, 1, [{ pos: 0.4, label: '2/5' }, { pos: 0.45, label: '45%' }, { pos: 0.5, label: '0.5' }]),
-        steps: ['Rename everything as decimals (or as percents, or as fractions with a common denominator).', 'Then compare: 0.4, 0.45, and 0.5.', 'The largest decimal is the largest amount.'],
-        trap: 'Comparing 2/5 and 45% by looking at 2, 5, and 45 as if they were all whole numbers.',
+        viz: () => V.numberLine(0, 1, [{ pos: 0.4, label: '2/5' }, { pos: 0.45, label: '0.45' }, { pos: 0.48, label: '48%' }]),
+        steps: ['Rename everything as decimals (or as percents, or as fractions with a common denominator).', 'Then compare: 0.40, 0.45, and 0.48.', 'The largest decimal is the largest amount.'],
+        trap: 'Comparing 2/5 and 48% by looking at 2, 5, and 48 as if they were all whole numbers.',
         aap: 'AAP: order ' + fr(2, 3) + ', 70%, and 0.6. 2/3 ≈ 0.667, so 0.6, 70% (0.70), then 2/3.',
         tries: [
-          () => mc('Which is greatest: ' + fr(2, 5) + ', 45%, or 0.5?', '0.5', [[fr(2, 5), '2/5 = 0.4, less than 0.5.'], ['45%', '45% = 0.45, less than 0.5.'], ['They are equal', '0.4, 0.45, and 0.5 are different.']], '0.5 = 50% is the largest.'),
+          () => mc('Which is greatest: ' + fr(2, 5) + ', 0.45, or 48%?', '48%', [[fr(2, 5), '2/5 = 0.40, less than 0.48.'], ['0.45', '0.45 is less than 0.48.'], ['They are equal', '0.40, 0.45, and 0.48 are different.']], '48% = 0.48 is the largest.'),
           () => mc('Which is least: 0.3, ' + fr(1, 4) + ', or 20%?', '20%', [['0.3', '0.3 = 30%.'], [fr(1, 4), '1/4 = 0.25 = 25%.'], ['They are equal', '20%, 25%, and 30% differ.']], '20% = 0.20, which is less than 0.25 and 0.30.')
         ]
       }
     },
     u7B1: {
       'The whole circle is 100%': {
-        viz: () => V.pie([40, 35, 25], ['40%', '35%', '25%']),
+        viz: () => V.pie([25, 25, 50], ['25%', '25%', '50%']),
         steps: ['Every slice is a part of one whole, so the percents add to 100%.', 'A larger slice means a larger share of the group.', 'If a slice is missing from the labels, you can find it by subtracting from 100%.'],
-        trap: 'Reading a slice as a count without knowing the total (40% is not “40 people” unless the whole is 100 people).',
+        trap: 'Reading a slice as a count without knowing the total (50% is not “50 people” unless the whole is 100 people).',
         aap: 'AAP: if art is 40% of 80 students, that is 0.40 × 80 = 32 students, not 40.',
         tries: [
-          () => num('Slices are 40% and 35%. What percent is the rest?', 25, '100 − 40 − 35 = 25.'),
+          () => num('Slices are 25% and 25%. What percent is the rest?', 50, '100 − 25 − 25 = 50.'),
           () => mc('A circle graph is the right choice to show', 'how one class’s votes split among three choices', [['how rainfall changed month by month', 'Use a line graph for change over time.'], ['the height of each student', 'That is not parts of one whole.'], ['a single score', 'You need parts that add to 100%.']], 'Circle graphs show parts of one whole.')
         ]
       },
       'From percent to people': {
-        watch: { id: 'pctof', p: 35, n: 20, wrong: '35' },
-        viz: () => V.hundredGrid(35, { fill: '#ffc43d', label: '35% of 20 students = 7' }),
-        steps: ['Change the percent to a decimal: 35% = 0.35.', 'Multiply by the total: 0.35 × 20 = 7.', 'Check: 7 out of 20 is 35%.'],
-        trap: 'Using the percent as a count (35% of 20 is not 35 students).',
+        watch: { id: 'pctof', p: 25, n: 40, wrong: '25' },
+        viz: () => V.hundredGrid(25, { fill: '#ffc43d', label: '25% of 40 students = 10' }),
+        steps: ['Change the percent to a decimal: 25% = 0.25.', 'Multiply by the total: 0.25 × 40 = 10.', 'Check: 10 out of 40 is 25%.'],
+        trap: 'Using the percent as a count (25% of 40 is not 25 students).',
         aap: 'AAP: 15% of 80 is 12. 12.5% of 80 is 10. Half of 25% is 12.5%.',
         tries: [
           () => num('15% of 80 students is how many students?', 12, '0.15 × 80 = 12.'),
