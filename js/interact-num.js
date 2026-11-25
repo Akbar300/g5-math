@@ -301,9 +301,175 @@
     return root;
   }
 
+  /* stacked fraction inside an SVG (labels never say "3/4" on one line) */
+  function svgFrac(parent, x, y, n, d, attrs) {
+    const a = Object.assign({ 'font-size': '13', fill: 'var(--ink)' }, attrs || {}), fs = +a['font-size'];
+    const g = sv('g', { 'font-weight': '800', fill: a.fill, 'font-size': String(fs), 'text-anchor': 'middle' }, parent);
+    const wd = Math.max(String(n).length, String(d).length) * fs * 0.62 + 4;
+    sv('text', { x, y: y - fs * 0.25 }, g).textContent = n;
+    sv('line', { x1: x - wd / 2, y1: y, x2: x + wd / 2, y2: y, stroke: a.fill, 'stroke-width': '1.6' }, g);
+    sv('text', { x, y: y + fs * 0.95 }, g).textContent = d;
+    return g;
+  }
+  /* a chip: '0.45', '48%', or { n:2, d:5 } → value, HTML label, SVG drawer, decimal name */
+  function chipOf(c, places) {
+    if (c && typeof c === 'object') return { v: c.n / c.d, html: fr(c.n, c.d), draw: (p, x, y, at) => svgFrac(p, x, y, c.n, c.d, at), key: c.n + '/' + c.d, dec: (c.n / c.d).toFixed(places) };
+    const t = String(c).trim();
+    if (/%$/.test(t)) { const v = parseFloat(t) / 100; return { v, html: t, draw: (p, x, y, at) => txt(p, x, y + 5, t, at), key: t, dec: v.toFixed(places) }; }
+    const v = parseFloat(t); return { v, html: t, draw: (p, x, y, at) => txt(p, x, y + 5, t, at), key: t, dec: v.toFixed(places) };
+  }
+
+  /* --- drop: { rounds:[{ chips:[{n:3,d:4},'0.75'], min:0, max:1, step:0.05 }] } (or chips/min/max/step at the top)
+     Tap a name, then tap where it sits on the line. Keyboard: focus the line, arrow keys move, Enter places. --- */
+  function llDrop(o) {
+    const rounds = o.rounds || [{ chips: o.chips, min: o.min, max: o.max, step: o.step }];
+    let ri = 0;
+    const root = h('div', 'viz ix ix-col ix-ll');
+    const ask = h('div', 'ix-q ll-ask');
+    const chipRow = h('div', 'ix-ctr ll-chips');
+    const stage = h('div', 'll-stage');
+    const fb = h('div', 'ix-fb', '');
+    const bar = h('div', 'ix-ctr ll-bar');
+    [ask, chipRow, stage, fb, bar].forEach((x) => root.appendChild(x));
+    function load() {
+      const R = rounds[ri], min = R.min != null ? R.min : 0, max = R.max != null ? R.max : 1, step = R.step || 0.1;
+      const places = Math.max(0, Math.round(-Math.log10(step) + 0.3));
+      const chips = R.chips.map((c) => chipOf(c, Math.max(2, places)));
+      const placed = [], N = Math.round((max - min) / step);
+      let sel = null, cursor = Math.round(N / 2);
+      fb.className = 'ix-fb'; fb.innerHTML = ''; bar.innerHTML = '';
+      ask.innerHTML = 'Tap a name, then tap the spot on the line where it sits.';
+      const x0 = 24, x1 = LL_W - 24, pos = (v) => x0 + (v - min) / (max - min) * (x1 - x0);
+      let SH = 140, Y = 96;
+      function draw() {
+        chipRow.innerHTML = '';
+        chips.forEach((c, i) => {
+          if (placed.includes(i)) return;
+          const b = btn(c.html, () => { sel = i; draw(); fb.className = 'ix-fb'; fb.innerHTML = ''; }, 'll-chip' + (sel === i ? ' on' : ''));
+          b.setAttribute('aria-label', 'Place ' + c.key);
+          chipRow.appendChild(b);
+        });
+        if (!chipRow.children.length) chipRow.style.display = 'none'; else chipRow.style.display = '';
+        const stackNow = Math.max(1, ...placed.map((i) => placed.filter((j) => Math.abs(chips[j].v - chips[i].v) < 1e-9).length));
+        SH = 52 + stackNow * 36 + 52; Y = SH - 52;
+        const s = axisSvg(SH);
+        s.setAttribute('tabindex', '0'); s.setAttribute('role', 'slider'); s.setAttribute('aria-label', 'Number line: arrow keys move, Enter places the chosen name');
+        s.setAttribute('aria-valuemin', String(min)); s.setAttribute('aria-valuemax', String(max)); s.setAttribute('aria-valuenow', (min + cursor * step).toFixed(places));
+        s.classList.add('ll-tap');
+        sv('line', { x1: x0, y1: Y, x2: x1, y2: Y, stroke: 'var(--ink)', 'stroke-width': '3', 'stroke-linecap': 'round' }, s);
+        const labEvery = Math.max(1, Math.round((max - min) / step / 10));
+        for (let k = 0; k <= N; k++) {
+          const v = min + k * step, big = k % labEvery === 0;
+          sv('line', { x1: pos(v), y1: Y - (big ? 9 : 5), x2: pos(v), y2: Y + (big ? 9 : 5), stroke: 'var(--ink)', 'stroke-width': big ? 2 : 1.2 }, s);
+          if (big) txt(s, pos(v), Y + 26, trimDec(v.toFixed(places)), { 'font-size': '12', fill: 'var(--muted)' });
+        }
+        /* placed chips: stack names that share a point */
+        const seen = {};
+        placed.forEach((i) => {
+          const c = chips[i], kx = c.v.toFixed(4), row = seen[kx] = (seen[kx] || 0) + 1, x = pos(c.v);
+          if (row === 1) sv('circle', { cx: x, cy: Y, r: 8, fill: 'var(--viz-teal)', stroke: 'var(--ink)', 'stroke-width': '2.5' }, s);
+          c.draw(s, x, Y - 24 - (row - 1) * 36, { 'font-size': '14' });
+        });
+        if (sel != null) { const cx = pos(min + cursor * step); sv('path', { d: `M ${cx - 7} ${Y + 42} L ${cx} ${Y + 32} L ${cx + 7} ${Y + 42} Z`, fill: 'var(--viz-gold)', stroke: 'var(--ink)', 'stroke-width': '1.5' }, s); }
+        sv('rect', { x: 0, y: 0, width: LL_W, height: SH, fill: 'transparent' }, s);
+        s.addEventListener('pointerdown', (e) => {
+          const r = s.getBoundingClientRect(), x = (e.clientX - r.left) * LL_W / r.width;
+          cursor = Math.max(0, Math.min(N, Math.round((x - x0) / (x1 - x0) * N)));
+          place();
+        });
+        s.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowRight' || e.key === 'ArrowUp') cursor = Math.min(N, cursor + 1);
+          else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') cursor = Math.max(0, cursor - 1);
+          else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); place(); return; }
+          else return;
+          e.preventDefault(); draw(); stage.querySelector('svg').focus();
+        });
+        stage.innerHTML = ''; stage.appendChild(s);
+      }
+      function place() {
+        if (sel == null) { fb.className = 'ix-fb no'; fb.innerHTML = 'Tap one of the names first.'; return; }
+        const c = chips[sel], v = min + cursor * step;
+        if (Math.abs(v - c.v) < step / 2 + 1e-9) {
+          placed.push(sel); sel = null; fb.className = 'ix-fb ok';
+          fb.innerHTML = /^[\d.]+$/.test(c.key) ? `Yes: <b>${c.key}</b> sits right there.` : `Yes: ${c.html} = <b>${c.dec}</b> sits right there.`;
+          if (placed.length === chips.length) finish();
+        } else {
+          fb.className = 'ix-fb no';
+          fb.innerHTML = `Not there: you tapped ${trimDec(v.toFixed(places))}. Rename it first: ${c.html} = <b>${c.dec}</b>.`;
+        }
+        draw();
+      }
+      function finish() {
+        const same = chips.every((c) => Math.abs(c.v - chips[0].v) < 1e-9);
+        const order = chips.map((c, i) => i).sort((a, b) => chips[a].v - chips[b].v);
+        fb.className = 'ix-fb ok';
+        fb.innerHTML = same ? `All ${chips.length} names sit on one point, so ${chips.map((c) => c.html).join(' = ')}.`
+          : `In order: ${order.map((i) => chips[i].html).join(' &lt; ')}. As decimals: ${order.map((i) => trimDec(chips[i].dec) === '' ? '0' : chips[i].dec).join(', ')}.`;
+        if (rounds.length > 1) bar.appendChild(btn(ri < rounds.length - 1 ? 'Next set ▶' : 'Start over ↺', () => { ri = (ri + 1) % rounds.length; load(); }, 'go'));
+      }
+      draw();
+    }
+    load();
+    return root;
+  }
+
+  /* --- ray: { op:'>', v:3, min:-2, max:8, tests:[4, 5, 10, 3.5, 3], add:0 }
+     Inequality on a line: symbol chips redraw the circle (open/closed) and the ray. With add:5, rhs:8 it reads n + 5 > 8. --- */
+  const RAY_OPS = { '>': (a, b) => a > b, '<': (a, b) => a < b, '≥': (a, b) => a >= b, '≤': (a, b) => a <= b };
+  const RAY_WORD = { '>': 'greater than', '<': 'less than', '≥': 'greater than or equal to', '≤': 'less than or equal to' };
+  function llRay(o) {
+    let op = o.op || '>';
+    const v = o.v != null ? o.v : 3, add = o.add || 0, rhs = add ? (o.rhs != null ? o.rhs : v + add) : v, letter = o.letter || (add ? 'n' : 'x');
+    const tests = o.tests || [v + 1, v + 2, v + 7, v + 0.5, v];
+    let tried = [];
+    const root = h('div', 'viz ix ix-col ix-ll');
+    const opRow = h('div', 'ix-ctr ll-ops');
+    const expr = h('div', 'll-expr');
+    const stage = h('div', 'll-stage');
+    const tRow = h('div', 'ix-ctr ll-tests');
+    const fb = h('div', 'ix-fb', '');
+    [opRow, expr, stage, tRow, fb].forEach((x) => root.appendChild(x));
+    const lhsTxt = add ? `${letter} + ${add}` : letter;
+    function draw() {
+      opRow.innerHTML = '';
+      if (o.ops !== false) Object.keys(RAY_OPS).forEach((k) => { const b = btn(k, () => { op = k; tried = []; fb.className = 'ix-fb'; fb.innerHTML = ''; draw(); }, 'll-op' + (k === op ? ' on' : '')); b.setAttribute('aria-label', RAY_WORD[k]); opRow.appendChild(b); });
+      expr.innerHTML = add ? `${lhsTxt} ${op} ${rhs} <span class="ll-then">→ ${letter} ${op} ${v}</span>` : `${letter} ${op} ${v}`;
+      const ax = makeAxis({ min: o.min != null ? o.min : v - 5, max: o.max != null ? o.max : v + 5 }, 110, 64);
+      const s = ax.s, x = ax.pos(v), right = op === '>' || op === '≥', end = right ? LL_W - 12 : 12, closed = op === '≥' || op === '≤';
+      sv('line', { x1: x, y1: 64, x2: end, y2: 64, stroke: 'var(--viz-blue)', 'stroke-width': '8', 'stroke-linecap': 'round', opacity: '.75' }, s);
+      sv('path', { d: right ? `M ${end - 14} 54 L ${end} 64 L ${end - 14} 74` : `M ${end + 14} 54 L ${end} 64 L ${end + 14} 74`, fill: 'none', stroke: 'var(--viz-blue)', 'stroke-width': '5', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, s);
+      sv('circle', { cx: x, cy: 64, r: 10, fill: closed ? 'var(--viz-blue)' : 'var(--viz-empty)', stroke: 'var(--viz-blue)', 'stroke-width': '4' }, s);
+      tried.forEach((t) => { const ok = RAY_OPS[op](t + add, rhs); sv('circle', { cx: ax.pos(t), cy: 30, r: 7, fill: ok ? 'var(--viz-teal)' : 'var(--viz-coral)', stroke: 'var(--ink)', 'stroke-width': '2' }, s); txt(s, ax.pos(t), 18, String(t), { 'font-size': '12' }); });
+      stage.innerHTML = ''; stage.appendChild(s);
+      tRow.innerHTML = '';
+      tRow.appendChild(h('span', 'ix-lab', `Test ${letter} =`));
+      tests.forEach((t) => tRow.appendChild(btn(String(t), () => test(t), 'll-test')));
+      const f = h('form', 'll-own'); f.setAttribute('novalidate', '');
+      const inp = h('input', 'ix-num'); inp.type = 'text'; inp.inputMode = 'decimal'; inp.setAttribute('aria-label', 'Test your own number'); inp.placeholder = '?';
+      f.appendChild(inp); const go = btn('Test', () => {}, 'go'); go.type = 'submit'; f.appendChild(go);
+      f.onsubmit = (e) => { e.preventDefault(); const t = parseFloat(String(inp.value).replace('−', '-')); if (isFinite(t)) test(t); };
+      tRow.appendChild(f);
+    }
+    function test(t) {
+      if (!tried.includes(t)) tried.push(t);
+      const val = t + add, ok = RAY_OPS[op](val, rhs);
+      const plug = add ? `${t} + ${add} = ${val}. Is ${val} ${op} ${rhs}? ` : `Is ${t} ${op} ${v}? `;
+      fb.className = ok ? 'ix-fb ok' : 'ix-fb no';
+      let why = '';
+      if (!ok && val === rhs) why = ` ${rhs} is not ${RAY_WORD[op]} itself, so the circle is <b>open</b>: ${v} is not a solution.`;
+      else if (ok && val === rhs) why = ` The “or equal” part counts it, so the circle is <b>closed</b>.`;
+      else if (ok) why = ` ${t} is on the shaded ray, so it is a solution.`;
+      else why = ` ${t} is off the ray, so it is not a solution.`;
+      fb.innerHTML = plug + (ok ? '<b>Yes</b>.' : '<b>No</b>.') + why;
+      draw();
+    }
+    draw();
+    return root;
+  }
+
   /* Modes are registered here: a new mode is one function (opts) → DOM node.
-     'drop' (place chips like 0.45, 48%, 2/5 on a line) and 'ray' (inequalities) are planned for Batches 2 and 4. */
-  const LL_MODES = { round: llRound, hop: llHop, compare: llCompare };
+     drop: place names like 0.45, 48% and 2/5 on a line. ray: inequalities with open or closed circles. */
+  const LL_MODES = { round: llRound, hop: llHop, compare: llCompare, drop: llDrop, ray: llRay };
   function lineLab(opts) {
     const o = Object.assign({ mode: 'round' }, opts || {});
     const make = LL_MODES[o.mode];

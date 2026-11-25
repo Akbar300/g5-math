@@ -324,7 +324,7 @@
     },
     u2B2: {
       'More than one answer': {
-        viz: () => V.numberLine(-2, 8, [{ pos: 3, label: '3' }, { pos: 4, label: '4' }, { pos: 5, label: '5…' }]),
+        viz: () => ix('lineLab', { mode: 'ray', op: '>', v: 3, min: -2, max: 10, tests: [4, 5, 10, 3.5, 3] }),
         steps: ['An inequality like n > 3 has many solutions: 4, 5, 6, …', 'On a number line, an open circle means the endpoint is not included.', 'A closed circle means it is included (≥ or ≤).'],
         trap: 'For n > 3, 3 itself is not a solution. The inequality is strict.',
         aap: 'AAP: integers that satisfy −2 < n ≤ 1 are −1, 0, and 1. List them all.',
@@ -334,7 +334,7 @@
         ]
       },
       'Test the values': {
-        viz: () => V.numberLine(-4, 6, [{ pos: 0, label: '0' }, { pos: 2, label: '2?' }]),
+        viz: () => ix('lineLab', { mode: 'ray', op: '>', v: 3, add: 5, rhs: 8, ops: false, min: -2, max: 10, tests: [2, 3, 4, 6] }),
         steps: ['To test a value, substitute it into the inequality.', 'Keep the inequality direction the same when you add or subtract on both sides.', 'If you multiply or divide both sides by a negative, flip the sign.'],
         trap: 'Forgetting to flip the sign when multiplying or dividing by a negative is the classic AAP-level miss.',
         aap: 'AAP: solve −2n > 6. Divide by −2 and flip: n < −3.',
@@ -629,7 +629,7 @@
     },
     u4c4: {
       'A point has more than one name': {
-        viz: () => V.numberLine(0, 1, [{ pos: 0.75, label: '3/4' }]),
+        viz: () => ix('lineLab', { mode: 'drop', rounds: [{ chips: [{ n: 3, d: 4 }, { n: 6, d: 8 }, { n: 75, d: 100 }, '0.75'], min: 0, max: 1, step: 0.05 }, { chips: [{ n: 1, d: 2 }, { n: 2, d: 4 }, '0.5'], min: 0, max: 1, step: 0.05 }] }),
         steps: ['The same point can be ' + fr(3, 4) + ', ' + fr(6, 8) + ', ' + fr(75, 100) + ', and 0.75.', 'Multiply or divide the numerator and denominator by the same number.', 'Select every name that sits on that same point.'],
         trap: 'Changing only the numerator (or only the denominator) moves the point. Both parts have to scale together.',
         aap: 'AAP: ' + mixed(1, 1, 2) + ' = 1.5 = ' + fr(3, 2) + ' = 150%. Mixed numbers, improper fractions, decimals, and percents can all match.',
@@ -1058,7 +1058,7 @@
     },
     u7L3: {
       'Same form, then compare': {
-        viz: () => V.numberLine(0, 1, [{ pos: 0.4, label: '2/5' }, { pos: 0.45, label: '0.45' }, { pos: 0.48, label: '48%' }]),
+        viz: () => ix('lineLab', { mode: 'drop', chips: ['0.45', '48%', { n: 2, d: 5 }], min: 0.35, max: 0.5, step: 0.01 }),
         steps: ['Rename everything as decimals (or as percents, or as fractions with a common denominator).', 'Then compare: 0.40, 0.45, and 0.48.', 'The largest decimal is the largest amount.'],
         trap: 'Comparing 2/5 and 48% by looking at 2, 5, and 48 as if they were all whole numbers.',
         aap: 'AAP: order ' + fr(2, 3) + ', 70%, and 0.6. 2/3 ≈ 0.667, so 0.6, 70% (0.70), then 2/3.',
