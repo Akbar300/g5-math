@@ -756,7 +756,7 @@
         /* ---------- Unit 5 ---------- */
     u5L1: {
       'Decimal points stack': {
-        viz: () => V.placeValue('12.40'),
+        viz: () => V.placeValue('12.35'),
         steps: ['Line the decimal points up, one under the other.', 'Then add or subtract like whole numbers.', 'Bring the point straight down into the answer.'],
         trap: 'Lining up the last digits instead of the points (12.4 + 3.25 as if they were 124 + 325) is the classic miss.',
         aap: 'AAP: 4.5 + 0.75 + 12 = 17.25. The whole number 12 is 12.00 when you line the points up.',
@@ -778,12 +778,12 @@
     },
     u5L2: {
       'Ignore the point, then place it': {
-        viz: () => V.areaRect(12, 3),
-        steps: ['Estimate first: 1.2 × 3 is near 1 × 3 = 3, or 1.2 × 3 = a bit more than 3.', 'Multiply 12 × 3 = 36 as whole numbers.', '1.2 has one decimal place, so the product is 3.6.'],
-        trap: 'Putting the point in the same place as one of the factors (12 × 3 = 36, then “1.2 so 3.6” is right here — but 1.2 × 0.3 is 0.36, not 3.6). Count all the places.',
+        viz: () => V.areaRect(3.4, 6),
+        steps: ['Estimate first: 3.4 × 6 is near 3 × 6 = 18.', 'Multiply 34 × 6 = 204 as whole numbers.', '3.4 has one decimal place, so the product is 20.4. It is close to 18.'],
+        trap: 'Putting the point in the same place as one of the factors (34 × 6 = 204, then “3.4 so 20.4” is right here — but 3.4 × 0.6 is 2.04, not 20.4). Count all the places.',
         aap: 'AAP: 1.2 × 0.4 = 0.48 (two places in all). Estimate: a little less than half of 1.2.',
         tries: [
-          () => num('Find 1.2 × 3', 3.6, '12 × 3 = 36, and 1.2 has one decimal place: 3.6.'),
+          () => num('Find 3.4 × 6', 20.4, '34 × 6 = 204, and 3.4 has one decimal place: 20.4.'),
           () => mc('Best estimate for 1.9 × 3.1?', '6', [['60', '1.9 is near 2, not 20.'], ['2', 'That is near the sum, not the product? Actually near 2+3.'], ['9', 'A little high: 2 × 3 = 6.']], '2 × 3 = 6.')
         ]
       },
@@ -801,11 +801,11 @@
     u5L3: {
       'A tenth of a tenth': {
         viz: () => (w.IX ? w.IX.overlapGrid({ a: 3, b: 4 }) : V.hundredGrid(12, { fill: '#0fb39c', label: '0.3 × 0.4 = 0.12' })),
-        steps: ['0.1 × 0.1 is one tenth of one tenth: 0.01, a hundredth.', 'Each factor has one decimal place, so the product has two.', 'A tenth of a tenth is smaller than a tenth.'],
+        steps: ['0.3 × 0.4 is 3 tenths of 4 tenths: the overlap is 12 squares, 0.12.', 'Each factor has one decimal place, so the product has two.', '0.12 is smaller than both 0.3 and 0.4.'],
         trap: '0.1 × 0.1 is not 0.1 and not 0.2. Multiplication by a tenth makes a number smaller.',
         aap: 'AAP: 0.1 × 0.1 × 0.1 = 0.001 (thousandths). Watch the places pile up.',
         tries: [
-          () => num('What is 0.1 × 0.1?', 0.01, 'A tenth of a tenth is one hundredth: 0.01.'),
+          () => num('What is 0.3 × 0.4?', 0.12, '3 × 4 = 12, and two decimal places make 0.12.'),
           () => mc('Which is 0.2 × 0.3?', '0.06', [['0.6', 'Two places in all, not one.'], ['0.5', 'That is a sum.'], ['6', 'The point belongs in the product.']], '2 × 3 = 6, and two decimal places make 0.06.')
         ]
       },
@@ -822,12 +822,12 @@
     },
     u5L4: {
       'Point goes straight up': {
-        viz: () => V.placeValue('5.40'),
-        steps: ['When you divide a decimal by a whole number, the point in the quotient sits straight above the point in the dividend.', '5.4 ÷ 3: 5.4 is 54 tenths, 54 ÷ 3 = 18 tenths, so 1.8.', 'Estimate: a little less than 6 ÷ 3 = 2.'],
-        trap: 'Dropping the point and then guessing (54 ÷ 3 = 18, so the answer is 18) forgets the tenths.',
+        viz: () => V.placeValue('7.65'),
+        steps: ['When you divide a decimal by a whole number, the point in the quotient sits straight above the point in the dividend.', '7.65 ÷ 3: 7.65 is 765 hundredths, 765 ÷ 3 = 255 hundredths, so 2.55.', 'Estimate: between 6 ÷ 3 = 2 and 9 ÷ 3 = 3.'],
+        trap: 'Dropping the point and then guessing (765 ÷ 3 = 255, so the answer is 255) forgets the hundredths.',
         aap: 'AAP: 7.5 ÷ 5 = 1.5. Check: 5 × 1.5 = 7.5.',
         tries: [
-          () => num('Find 5.4 ÷ 3', 1.8, 'The point rises straight up: 5.4 ÷ 3 = 1.8.'),
+          () => num('Find 7.65 ÷ 3', 2.55, 'The point rises straight up: 7.65 ÷ 3 = 2.55.'),
           () => num('Find 8.4 ÷ 2', 4.2, '8.4 ÷ 2 = 4.2. Check: 2 × 4.2 = 8.4.')
         ]
       },
@@ -844,29 +844,29 @@
     },
     u5L5: {
       'Make the divisor whole': {
-        viz: () => V.cycleSteps(['5.4 ÷ 0.3', '×10 both', '54 ÷ 3 = 18']),
-        steps: ['To divide by a decimal, multiply dividend and divisor by the same power of 10 until the divisor is whole.', '5.4 ÷ 0.3 → 54 ÷ 3 = 18.', 'The quotient does not change because both numbers were scaled the same way.'],
-        trap: 'Moving the point in only one number (5.4 ÷ 0.3 → 5.4 ÷ 3) makes the answer 10 times too small.',
+        viz: () => V.cycleSteps(['4.8 ÷ 0.6', '×10 both', '48 ÷ 6 = 8']),
+        steps: ['To divide by a decimal, multiply dividend and divisor by the same power of 10 until the divisor is whole.', '4.8 ÷ 0.6 → 48 ÷ 6 = 8.', 'The quotient does not change because both numbers were scaled the same way.'],
+        trap: 'Moving the point in only one number (4.8 ÷ 0.6 → 4.8 ÷ 6 = 0.8) makes the answer 10 times too small.',
         aap: 'AAP: 0.84 ÷ 0.12 → 84 ÷ 12 = 7. Two places in each, so ×100 on both.',
         tries: [
-          () => num('Find 5.4 ÷ 0.3', 18, 'Multiply both by 10: 54 ÷ 3 = 18.'),
+          () => num('Find 4.8 ÷ 0.6', 8, 'Multiply both by 10: 48 ÷ 6 = 8.'),
           () => num('Find 1.2 ÷ 0.2', 6, '12 ÷ 2 = 6.')
         ]
       },
       'Why bigger?': {
-        viz: () => V.fractionBar(1, 1, { fill: '#0fb39c', label: 'How many 0.2s fit in 1.2?' }),
-        steps: ['1.2 ÷ 0.2 asks how many two-tenths fit in 1.2.', 'Six of them fit, so the quotient is 6 — larger than both numbers.', 'Dividing by a number less than 1 makes a larger result.'],
+        viz: () => V.fractionBar(8, 8, { fill: '#0fb39c', label: '8 pieces of 0.6 fit in 4.8' }),
+        steps: ['4.8 ÷ 0.6 asks how many 0.6s fit in 4.8.', 'Eight of them fit, so the quotient is 8 — larger than both numbers.', 'Dividing by a number less than 1 makes a larger result.'],
         trap: 'Expecting a smaller answer because “division makes smaller” — that is for divisors greater than 1.',
         aap: 'AAP: 3 ÷ 0.05 = 60. Think: how many nickels (0.05) fit in 3 dollars? 60.',
         tries: [
-          () => num('Find 1.2 ÷ 0.2', 6, 'How many 0.2s fit in 1.2? Six of them. Or 12 ÷ 2 = 6.'),
+          () => num('Find 4.8 ÷ 0.6', 8, 'How many 0.6s fit in 4.8? Eight of them. Or 48 ÷ 6 = 8.'),
           () => num('Find 3 ÷ 0.5', 6, 'How many halves fit in 3? Six.')
         ]
       }
     },
     u5B1: {
       'Below zero': {
-        viz: () => V.numberLine(-8, 4, [{ pos: -5, label: '−5' }, { pos: 0, label: '0' }, { pos: 3, label: '3' }]),
+        viz: () => V.numberLine(-8, 4, [{ pos: -8, label: '−8' }, { pos: -5, label: '−5' }, { pos: -3, label: '−3' }, { pos: 0, label: '0' }]),
         steps: ['Negative numbers sit to the left of 0 on the number line.', '−8 is less than −3, because −8 is farther left.', 'The farther left you go, the smaller the number.'],
         trap: 'Thinking “8 is bigger than 3, so −8 is bigger than −3.” The sign flips the comparison.',
         aap: 'AAP: order −4, 1, −1, 0, −6 from least to greatest: −6, −4, −1, 0, 1.',
