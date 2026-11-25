@@ -75,6 +75,8 @@ window.G5I = (function () {
     balance: S(`<path d="M32 10v42M18 56h28"/><path d="M10 20h44"/><path d="M10 20L4 36h12ZM54 20l-6 16h12Z" ${soft}/>${dot(32, 10, 4)}`),
     bargraph: S(`<path d="M8 8v48h48"/><rect x="14" y="34" width="9" height="22" rx="2" ${soft}/><rect x="28" y="22" width="9" height="34" rx="2" ${soft}/><rect x="42" y="28" width="9" height="28" rx="2" ${soft}/><path d="M14 30L30 14l10 8 14-12" stroke-width="3"/>`),
     pie: S(`<circle cx="32" cy="32" r="24" ${soft}/><path d="M32 32V8a24 24 0 0 1 22.8 31.4Z" ${ink} opacity=".85"/><path d="M32 32L12 45" /><circle cx="32" cy="32" r="24"/>`),
+    /* make a circle graph: a bar of counts turning into a pie */
+    piemake: S(`<rect x="6" y="40" width="10" height="16" rx="2" ${soft}/><rect x="18" y="30" width="10" height="26" rx="2" ${soft}/><path d="M28 18h8M32 14l4 4-4 4" stroke-width="3"/><circle cx="48" cy="38" r="12" ${soft}/><path d="M48 38V26a12 12 0 0 1 12 12Z" ${ink}/><circle cx="48" cy="38" r="12"/>`),
     mean: S(`<path d="M6 56h52"/><rect x="10" y="26" width="12" height="30" rx="2" ${soft}/><rect x="26" y="38" width="12" height="18" rx="2" ${soft}/><rect x="42" y="32" width="12" height="24" rx="2" ${soft}/><path d="M6 34h52" stroke-dasharray="4 5" stroke-width="3"/>`),
     outlier: S(`<path d="M6 50h52"/><g ${ink}><circle cx="12" cy="40" r="3.5"/><circle cx="20" cy="40" r="3.5"/><circle cx="20" cy="31" r="3.5"/><circle cx="28" cy="40" r="3.5"/><circle cx="28" cy="31" r="3.5"/><circle cx="28" cy="22" r="3.5"/><circle cx="36" cy="40" r="3.5"/></g><circle cx="53" cy="40" r="6" ${soft}/>${dot(53, 40, 3.5)}`),
     /* data changes: a balance beam with a new weight dropping in */
@@ -171,7 +173,7 @@ window.G5I = (function () {
     u4a1: 'ratio', u4a2: 'ratiotable', u4a5: 'betterbuy', u4a6: 'rategraph', u4a3: 'percent', u4a4: 'percentof',
     u5L0: 'round', u5L1: 'lineup', u5L2: 'estimate', u5L3: 'areagrid', u5L4: 'divwhole', u5L5: 'tenthtiles',
     u6L1: 'ladder', u6L2: 'ruler', u6L3: 'steps', u6B1: 'rate',
-    u7L1: 'percent', u7L2: 'convert', u7L3: 'compare', u7B1: 'pie',
+    u7L1: 'percent', u7L2: 'convert', u7L3: 'compare', u7B1: 'pie', u7B2: 'piemake',
     u8L1: 'unlike', u8L2: 'mixed', u8L3: 'wholefrac', u8B1: 'fracops', u8B2: 'mixmul', u8B3: 'bigsmall',
     u9L1: 'angle', u9L4: 'perimarea', u9L2: 'triangle', u9L5: 'circle', u9L3: 'volume',
     u10L1: 'mean', u10L2: 'lineplot', u10L3: 'chance', u10B1: 'outlier', u10B2: 'meanshift',
