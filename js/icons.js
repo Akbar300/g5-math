@@ -142,6 +142,12 @@ window.G5I = (function () {
     /* ---- coordinates ---- */
     plot: '', /* filled below from the unit 11 icon */
     story: S(`<path d="M8 8v48h48"/><path d="M8 50l12-16h12l8-18 14 6" ${soft} stroke="none" opacity="0"/><path d="M8 50l12-16h12l8-18 14 6"/>${dot(20, 34)}${dot(32, 34)}${dot(40, 16)}`),
+    /* distance across an axis: two dots on a line through the y-axis */
+    axisdist: S(`<path d="M32 6v52" stroke-width="3" opacity=".5"/><path d="M6 44h52" stroke-width="3" opacity=".5"/><path d="M12 24h40" stroke-width="5"/>${dot(12, 24, 6)}${dot(52, 24, 6)}<path d="M12 32v6M32 32v6M52 32v6" stroke-width="2.5"/>`),
+    /* polygon in four quadrants: a rectangle across both axes */
+    quadpoly: S(`<path d="M32 4v56M4 32h56" stroke-width="3" opacity=".5"/><rect x="12" y="16" width="40" height="28" rx="2" ${soft}/>${dot(12, 16, 4)}${dot(52, 16, 4)}${dot(52, 44, 4)}${dot(12, 44, 4)}`),
+    /* reflection: a point and its mirror image across a dashed axis */
+    reflect: S(`<path d="M32 6v52" stroke-dasharray="5 5" stroke-width="3"/><path d="M8 40L22 18v22Z" ${ink}/><path d="M56 40L42 18v22Z" ${soft}/><path d="M24 50h16M36 46l4 4-4 4M28 46l-4 4 4 4" stroke-width="2.5"/>`),
     quadrants: S(`<path d="M32 6v52M6 32h52"/><rect x="34" y="8" width="22" height="22" rx="3" ${soft} stroke="none"/><rect x="8" y="34" width="22" height="22" rx="3" ${soft} stroke="none" opacity=".6"/>${dot(45, 19, 4)}${dot(19, 45, 4)}<path d="M15 15l8 8M23 15l-8 8M41 41l8 8M49 41l-8 8" stroke-width="2.5" opacity=".6"/>`)
   };
   const H = window.HUB_ICONS || {};
@@ -161,7 +167,7 @@ window.G5I = (function () {
     u8L1: 'unlike', u8L2: 'mixed', u8L3: 'wholefrac', u8B1: 'fracops',
     u9L1: 'angle', u9L4: 'perimarea', u9L2: 'triangle', u9L5: 'circle', u9L3: 'volume',
     u10L1: 'mean', u10L2: 'lineplot', u10L3: 'chance', u10B1: 'outlier',
-    u11L1: 'plot', u11L2: 'story', u11B1: 'quadrants',
+    u11L1: 'plot', u11L2: 'story', u11B1: 'quadrants', u11B2: 'axisdist', u11B3: 'quadpoly', u11B4: 'reflect',
     u12L1: 'negative', u12L2: 'intorder', u12L3: 'zeropair', u12L4: 'addopp',
     u12B1: 'intmul', u12B2: 'orderops', u12B3: 'elevation', u12B4: 'exponent'
   };
