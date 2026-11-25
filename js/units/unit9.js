@@ -124,7 +124,7 @@ var lessons = [
      tr:function(){ return bg.carea.f('adv', 0); }},
     {t:'Radius, not diameter', h:'<p>A circle is <b>10 cm across</b>. Find its area.</p><div class="big">r = 10 ÷ 2 = 5</div><div class="big">A = 3.14 × 5 × 5 = 78.5 cm²</div>',
      trap:'Using the diameter: 3.14 × 10 × 10 = 314 cm² is 4 times too big. Halve the diameter first.',
-     aap:'Advanced: a half circle (semicircle) with radius 4 has area 3.14 × 4 × 4 ÷ 2 = 25.12.',
+     aap:'A half circle (semicircle) with radius 4 has area 3.14 × 4 × 4 ÷ 2 = 25.12.',
      tries:[function(){ return bg.carea.f('adv', 1); }, function(){ return bg.carea.f('adv', 2); }]},
     {t:'Around or cover?', h:L.tbl(['Question','Formula','Units'], [['fence around a round garden','C = π × d','cm, m, ft'],['grass to cover a round garden','A = π × r × r','cm², m², ft²']]) + '<p>Radius 3 m: around is 3.14 × 6 = 18.84 m. Cover is 3.14 × 3 × 3 = 28.26 m².</p>',
      trap:'Mixing up the units. Area is in square units (m²); the distance around is plain units (m).',

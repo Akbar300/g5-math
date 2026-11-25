@@ -32,16 +32,87 @@ var bg = {
   rtab: {name:'Conversion tables', f:function(lv){
     var k = L.pick([[100,'m','cm'],[1000,'kg','g'],[1000,'L','mL'],[10,'cm','mm']]), a = L.ri(2, 9);
     return {type:'num', q:'Finish the ratio table.' + L.tbl([k[1], '1', '2', String(a)], [[k[2], String(k[0]), String(2*k[0]), '?']]), a:a*k[0], why:'Every row keeps the same ratio: 1 ' + k[1] + ' : ' + k[0] + ' ' + k[2] + '. ' + a + ' × ' + k[0] + ' = ' + a*k[0] + '.'};
-  }}
+  }},
+  prop: {name:'Proportions', f:function(lv, kind){
+    for (var t = 0; t < 8; t++) { var it = propQ(lv, kind); if (it) return it; } return null;
+  }},
+  buy: {name:'Better buy', f:function(lv, kind){ return buyQ(lv, kind); }}
 };
+function propQ(lv, kind){
+  {
+    /* Missing value in a proportional table, "is it proportional?", equivalent ratios. Whole-number unit rates. */
+    var C = L.pick([['hours','miles'],['packs','cards'],['minutes','pages'],['bags','apples'],['days','dollars saved']]);
+    var k = kind != null ? kind : L.pick([0, 0, 1, 1, 2, 2, 3]);
+    if (k === 0 || k === 1) {
+      var r = L.ri(2, 12), a = L.ri(2, 5), b = a + L.ri(2, 6), add = b*r - a*r, addTrap = a*r + (b - a);
+      var tb = L.tbl([C[0], String(a), String(b)], [[C[1], String(a*r), '?']]);
+      if (k === 0) return {type:'num', fmt:'TYPE IN', q:'This table is proportional. What is the missing value?' + tb, a:b*r, why:'Unit rate: ' + a*r + ' ÷ ' + a + ' = ' + r + ' ' + C[1] + ' per 1. Then ' + b + ' × ' + r + ' = <b>' + b*r + '</b>.'};
+      return mc('This table is proportional. What is the missing value?' + tb, String(b*r), [
+        [String(addTrap), 'That adds ' + (b - a) + ' to the top AND the bottom. Proportional means multiply by the same rate: ' + r + ' ' + C[1] + ' per 1.'],
+        [String(r), 'That is the unit rate (for 1). Now multiply by ' + b + '.'],
+        [String(b*r + r), 'Check: ' + b + ' × ' + r + ' = ' + b*r + '.']],
+        a*r + ' ÷ ' + a + ' = ' + r + ' per 1, so ' + b + ' × ' + r + ' = <b>' + b*r + '</b>.');
+    }
+    if (k === 2) {
+      var m = L.ri(2, 8), x0 = L.ri(1, 3), xs = [x0, x0 + 1, x0 + 3, x0 + 5], yes = Math.random() < .5, plus = L.ri(1, 5);
+      var ys = xs.map(function(x){ return yes ? m*x : m*x + plus; });
+      return mc('Is this table proportional?' + L.tbl(['x'].concat(xs), [['y'].concat(ys)]), yes ? 'Yes: y ÷ x is ' + m + ' every time' : 'No: y ÷ x changes', [
+        [yes ? 'No: y ÷ x changes' : 'Yes: y ÷ x is ' + m + ' every time', 'Divide y ÷ x for EVERY column. ' + (yes ? 'They all equal ' + m + '.' : ys[0] + ' ÷ ' + xs[0] + ' and ' + ys[2] + ' ÷ ' + xs[2] + ' are different.')],
+        ['Yes: y always goes up', 'Going up is not enough. y ÷ x has to stay the same.'],
+        ['No: the x-values skip numbers', 'Skipping is fine. Check y ÷ x in each column.']],
+        yes ? 'Every y ÷ x = ' + m + ', so it is proportional (y = ' + m + ' × x).' : 'y ÷ x is not the same in every column (each y has ' + plus + ' extra), so it is not proportional.');
+    }
+    var u = L.ri(2, 9), ch = [], seen = {};
+    [1, 2, 3, 4, 5, 6, 7, 8].forEach(function(n){ if (ch.length < 5 && Math.random() < .6) { var right = ch.filter(function(c){ return c.ok; }).length < 3 && Math.random() < .55, top = right ? u*n : u*n + L.pick([1, -1, u]); if (top > 0 && !seen[top + ':' + n]) { seen[top + ':' + n] = 1; ch.push({t:top + ' : ' + n, ok:top === u*n}); } } });
+    if (ch.length < 4 || !ch.some(function(c){ return c.ok; }) || ch.every(function(c){ return c.ok; })) return null;
+    ch = L.shuffle(ch);
+    return {type:'ms', fmt:'SELECT ALL', q:'Select <b>all</b> the ratios that match a unit rate of <b>' + u + ' per 1</b>.', ch:ch.map(function(c){ return c.t; }), a:ch.map(function(c, i){ return c.ok ? i : -1; }).filter(function(i){ return i >= 0; }), why:'Divide the first number by the second: it must be ' + u + '. ' + ch.map(function(c){ var p = c.t.split(' : '); return c.t + (c.ok ? ' → ' + u + ' ✓' : ' → not ' + u); }).join('; ') + '.'};
+  }
+}
+function buyQ(lv, kind){
+  {
+    /* Unit prices in whole cents, so every answer is exact money. */
+    var I = L.pick([['notebooks','notebook'],['granola bars','granola bar'],['juice boxes','juice box'],['markers','marker'],['ounces of cereal','ounce']]);
+    var n1 = L.ri(2, 6), n2 = n1 + L.ri(2, 6), c1 = 5 * L.ri(6, 40), d = 5 * L.ri(1, 4) * (Math.random() < .5 ? -1 : 1), c2 = c1 + d;
+    if (c2 <= 0) return null;
+    var p1 = c1 * n1, p2 = c2 * n2, usd = function(c){ return '$' + (c / 100).toFixed(2); }, best = c1 < c2 ? 'A' : 'B';
+    var k = kind != null ? kind : L.pick([0, 0, 1, 2]);
+    var stores = 'Store A: <b>' + n1 + ' ' + I[0] + ' for ' + usd(p1) + '</b>. Store B: <b>' + n2 + ' ' + I[0] + ' for ' + usd(p2) + '</b>.';
+    var why = 'Price for one: A ' + usd(p1) + ' ÷ ' + n1 + ' = ' + usd(c1) + ', B ' + usd(p2) + ' ÷ ' + n2 + ' = ' + usd(c2) + '. The lower price for one is the better buy.';
+    if (k === 0) {
+      var lowerTotal = p1 < p2 ? 'A' : 'B';
+      return mc(stores + ' Which is the better buy?', 'Store ' + best + ' (' + usd(Math.min(c1, c2)) + ' each)', [
+        ['Store ' + (best === 'A' ? 'B' : 'A') + ' (' + usd(Math.max(c1, c2)) + ' each)', 'Compare the price for ONE, not the total.'],
+        lowerTotal !== best ? ['Store ' + lowerTotal + ', because it costs less in all', 'A lower total buys fewer ' + I[0] + '. Compare the price for one.'] : best === 'A' ? ['Store B, because you get more', 'More ' + I[0] + ' is not always cheaper. Compare the price for one.'] : null,
+        ['They are the same deal', 'Find each price for one: ' + usd(c1) + ' and ' + usd(c2) + '.']].filter(Boolean), why);
+    }
+    if (k === 1) { var w = Math.random() < .5 ? 1 : 2, nn = w === 1 ? n1 : n2, pp = w === 1 ? p1 : p2, cc = w === 1 ? c1 : c2, v = cc / 100;
+      return {type:'num', fmt:'TYPE IN', q:(w === 1 ? 'Store A' : 'Store B') + ' sells <b>' + nn + ' ' + I[0] + ' for ' + usd(pp) + '</b>. What is the price for one ' + I[1] + ', in dollars?', a:v, acc:[v, v.toFixed(2), '$' + v.toFixed(2), '$' + L.num(v)], placeholder:'$0.00', why:usd(pp) + ' ÷ ' + nn + ' = <b>' + usd(cc) + '</b> per ' + I[1] + '.'}; }
+    var save = Math.abs(c1 - c2) / 100;
+    return {type:'num', fmt:'TYPE IN', q:stores + ' How much do you save on <b>each</b> ' + I[1] + ' at the better store, in dollars?', a:save, acc:[save, save.toFixed(2), '$' + save.toFixed(2), '$' + L.num(save)], placeholder:'$0.00', why:why + ' ' + usd(Math.max(c1, c2)) + ' − ' + usd(Math.min(c1, c2)) + ' = <b>' + usd(Math.abs(c1 - c2)) + '</b> saved on each.'};
+  }
+}
 var bridge = {
   title:'Go Further: conversions are ratios', tab:'🚀 Go Further',
-  intro:'Every metric conversion is a <b>ratio</b>: 1 m : 100 cm. Advanced Unit 8 (Proportional Reasoning) builds on exactly this with <b>unit rates</b> and <b>ratio tables</b>.',
+  intro:'Every metric conversion is a <b>ratio</b>: 1 m : 100 cm. Advanced Unit 8 (Proportional Reasoning) builds on exactly this with <b>unit rates</b>, <b>ratio tables</b>, <b>proportions</b> and the <b>better buy</b>.',
   lessons:[{id:'u6B1', name:'Unit rates', icon:'⚡', cards:[
     {t:'A conversion table is a ratio table', h:L.tbl(['m','1','2','5','7'], [['cm','100','200','500','700']]) + '<p>Each column is the same ratio. "100 cm per 1 m" is a <b>unit rate</b>.</p>'},
     {t:'Rates for one', h:'<p>A car drives 180 km in 3 hours. Unit rate: 180 ÷ 3 = <b>60 km per hour</b>.</p>', tr:bg.urate.f()}
+  ]},{id:'u6B2', name:'Proportions & better buy', icon:'🏷️', cards:[
+    {t:'Missing value: find the rate for one', h:L.tbl(['hours','2','5','8'], [['miles','90','?','?']]) + '<p>Rate for one: 90 ÷ 2 = <b>45 miles per hour</b>. Then 5 × 45 = 225 and 8 × 45 = 360.</p>',
+     steps:['Find the rate for 1: divide the bottom by the top in a full column.', 'Multiply that rate by the new top number.', 'Check: 225 ÷ 5 = 45, the same rate.'],
+     trap:'Adding instead of multiplying: 2 → 5 is + 3, but 90 + 3 = 93 is wrong. A proportion keeps the same rate, not the same difference.',
+     tries:[function(){ return bg.prop.f('adv', 0); }, function(){ return bg.prop.f('adv', 1); }]},
+    {t:'Is it proportional?', h:'<p>A table is <b>proportional</b> when y ÷ x is the <b>same in every column</b>.</p>' + L.tbl(['x','1','2','4'], [['y','3','6','12']]) + '<p>3 ÷ 1 = 6 ÷ 2 = 12 ÷ 4 = 3. Yes! On a graph it is a straight line through (0, 0).</p>',
+     trap:'A table that always goes up is not automatically proportional. x = 1, 2, 3 with y = 5, 7, 9 goes up, but 5 ÷ 1 is not 7 ÷ 2.',
+     tries:[function(){ return bg.prop.f('adv', 2); }, function(){ return bg.prop.f('adv', 3); }]},
+    {t:'Better buy: price for one', h:'<p>Store A: 3 notebooks for $2.40. Store B: 5 notebooks for $3.75.</p>' + L.tbl(['Store','Price for one'], [['A','$2.40 ÷ 3 = $0.80'],['B','$3.75 ÷ 5 = <b>$0.75</b>']]) + '<p>B costs less for each notebook, so <b>B is the better buy</b>.</p>',
+     key:'Better buy = lower price for ONE. Divide the price by how many.',
+     trap:'Picking the smaller total. $2.40 is less than $3.75, but it buys fewer notebooks.',
+     aap:'Compare without dividing. Make the amounts match: 15 notebooks cost 5 × $2.40 = $12 at A, and 3 × $3.75 = $11.25 at B.',
+     tries:[function(){ return bg.buy.f('adv', 0); }, function(){ return bg.buy.f('adv', 1); }]}
   ]}],
-  gens:bg, repIds:['urate','rtab'],
+  gens:bg, repIds:['urate','rtab','prop','buy'],
   next:'Stay in the Advanced (Go Further) path of this unit for more practice.'
 };
 window.V2 = {key:'u6', lessons:lessons, test:test, bridge:bridge};

@@ -126,6 +126,8 @@ window.G5I = (function () {
     ruler: S(`<rect x="4" y="22" width="56" height="20" rx="4" ${soft}/><path d="M12 22v8M20 22v5M28 22v8M36 22v5M44 22v8M52 22v5" stroke-width="2.5"/>`),
     steps: S(`<path d="M6 56h14V44h14V32h14V20h10" ${soft}/><path d="M48 20V6l10 4-10 4"/>${dot(13, 50, 3)}`),
     rate: S(`<path d="M8 44a24 24 0 0 1 48 0" ${soft}/><path d="M32 44L46 24" /><path d="M14 44h4M46 44h4M32 22v4" stroke-width="3"/>${dot(32, 44, 4)}`),
+    /* better buy: a price tag with a check */
+    betterbuy: S(`<path d="M8 32L30 10h22v22L30 54Z" ${soft}/><circle cx="43" cy="19" r="4" fill="var(--card)"/><path d="M20 33l7 7 13-13" stroke-width="5"/>`),
     /* ---- fractions ---- */
     unlike: S(`<rect x="6" y="12" width="52" height="16" rx="3"/><rect x="6" y="12" width="26" height="16" rx="3" ${soft}/><rect x="6" y="36" width="52" height="16" rx="3"/><rect x="6" y="36" width="17.3" height="16" rx="3" ${soft}/><path d="M40.6 36v16" stroke-width="2.5"/><path d="M32 4v56" stroke-dasharray="2 5" stroke-width="2"/>`),
     mixed: S(`<circle cx="18" cy="32" r="13" ${ink} opacity=".8"/><circle cx="46" cy="32" r="13" ${soft}/><path d="M46 32V19A13 13 0 0 1 59 32Z" ${ink} opacity=".8"/><path d="M46 19v26M33 32h26" stroke-width="2"/><circle cx="46" cy="32" r="13"/>`),
@@ -154,7 +156,7 @@ window.G5I = (function () {
     u4c1: 'tenths', u4c2: 'hundred', u4c3: 'eighthsthirds', u4c4: 'samename', u4c5: 'ratio', u4c6: 'percent',
     u4a1: 'ratio', u4a2: 'ratiotable', u4a3: 'percent', u4a4: 'percentof',
     u5L0: 'round', u5L1: 'lineup', u5L2: 'estimate', u5L3: 'areagrid', u5L4: 'divwhole', u5L5: 'tenthtiles',
-    u6L1: 'ladder', u6L2: 'ruler', u6L3: 'steps', u6B1: 'rate',
+    u6L1: 'ladder', u6L2: 'ruler', u6L3: 'steps', u6B1: 'rate', u6B2: 'betterbuy',
     u7L1: 'percent', u7L2: 'convert', u7L3: 'compare', u7B1: 'pie',
     u8L1: 'unlike', u8L2: 'mixed', u8L3: 'wholefrac', u8B1: 'fracops',
     u9L1: 'angle', u9L4: 'perimarea', u9L2: 'triangle', u9L5: 'circle', u9L3: 'volume',

@@ -360,7 +360,7 @@ var bridge = {
      key:'Below sea level, owing money and losing yards are negative. Above, earning and gaining are positive.',
      tries:[function(){ return bg.istory.f('adv', 1); }, function(){ return bg.istory.f('adv', 2); }]},
     {t:'Repeated change', h:'<p>"A diver goes down 3 m each minute for 6 minutes."</p><div class="big">6 × (−3) = −18 m</div><p>"Each" and "for 6 minutes" mean multiply.</p>',
-     aap:'Advanced: the mean change of −2, −4 and −6 is (−12) ÷ 3 = −4 per day.',
+     aap:'The mean change of −2, −4 and −6 is (−12) ÷ 3 = −4 per day.',
      tries:[function(){ return bg.istory.f('adv', 4); }, function(){ return bg.istory.f('adv', 5); }]}
   ]},{id:'u12B4', name:'Go Further: scientific notation', icon:'🔭', cards:[
     {t:'Powers of 10 going down', h:L.tbl(['Power','Value'], [['10<sup>3</sup>','1000'],['10<sup>2</sup>','100'],['10<sup>1</sup>','10'],['10<sup>0</sup>','1'],['10<sup>−1</sup>','0.1'],['10<sup>−2</sup>','0.01'],['10<sup>−3</sup>','0.001']]) + '<p>Each step down the table divides by 10. A negative exponent makes a small number, not a negative one.</p>',
