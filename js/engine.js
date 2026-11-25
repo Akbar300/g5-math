@@ -289,19 +289,43 @@
     const table = document.createElement('div');
     table.className = 'paper';
     const cols = width;
+    /* Work boxes: typing a digit moves left (the way you work on paper); at the end of a row it jumps to the
+       next row's rightmost empty box. Backspace in an empty box steps back right. */
+    let lastWork = null;
+    const usable = (c) => c && c.matches && c.matches('input.cell') && !c.readOnly && c.style.visibility !== 'hidden';
+    const moveLeft = (inp) => {
+      let c = inp.previousElementSibling;
+      while (c && !usable(c)) c = c.previousElementSibling;
+      if (c) { c.focus(); return; }
+      let r = inp.parentElement && inp.parentElement.nextElementSibling;
+      while (r) {
+        const cells = [...r.querySelectorAll('input.cell')].filter(usable);
+        const empty = cells.filter((x) => !x.value);
+        if (empty.length) { empty[empty.length - 1].focus(); return; }
+        r = r.nextElementSibling;
+      }
+    };
     const mkCell = (cls, opts) => {
       const inp = document.createElement('input');
       inp.className = 'cell' + (cls ? ' ' + cls : '');
       inp.maxLength = 1;
       inp.inputMode = 'numeric';
+      inp.autocomplete = 'off';
       inp.dataset.expect = opts.expect != null ? String(opts.expect) : '';
-      if (opts.fixed != null) { inp.value = opts.fixed; inp.readOnly = true; inp.classList.add('ghost'); }
+      if (opts.fixed != null) { inp.value = opts.fixed; inp.readOnly = true; inp.tabIndex = -1; inp.classList.add('given'); }
       inp.addEventListener('input', () => {
         inp.value = inp.value.replace(/\D/g, '').slice(0, 1);
-        if (inp.value && inp.nextElementSibling && inp.nextElementSibling.matches && inp.nextElementSibling.matches('input.cell') && !inp.nextElementSibling.readOnly) {
-          /* stay; user tabs */
-        }
+        if (!inp.value) return;
+        if (opts.carry) { if (lastWork) lastWork.focus(); }
+        else moveLeft(inp);
       });
+      inp.addEventListener('keydown', (e) => {
+        if (e.key !== 'Backspace' || inp.value || opts.carry) return;
+        let c = inp.nextElementSibling;
+        while (c && !usable(c)) c = c.nextElementSibling;
+        if (c) { e.preventDefault(); c.focus(); c.value = ''; }
+      });
+      if (!opts.carry && opts.fixed == null) inp.addEventListener('focus', () => { lastWork = inp; });
       return inp;
     };
     const rowOf = (numStr, { prefix, carryRow, expect } = {}) => {
@@ -321,6 +345,24 @@
       }
       return row;
     };
+    /* Carry boxes above the top number: scratch only (never graded or revealed). Shown over every digit of
+       the top number except the ones place. They clear when a new row starts (new digit = new carries). */
+    const carryRow = document.createElement('div');
+    carryRow.className = 'carry';
+    carryRow.style.display = 'grid';
+    carryRow.style.gridTemplateColumns = `24px repeat(${cols}, 28px)`;
+    carryRow.style.justifyContent = 'center';
+    carryRow.style.gap = '0 2px';
+    carryRow.style.marginBottom = '2px';
+    carryRow.appendChild(document.createElement('div'));
+    const padA = cols - A.length;
+    for (let i = 0; i < cols; i++) {
+      const c = mkCell('', { carry: true });
+      c.setAttribute('aria-label', 'carry');
+      if (i < padA - 1 || i === cols - 1) c.style.visibility = 'hidden';
+      carryRow.appendChild(c);
+    }
+    table.appendChild(carryRow);
     // factor rows (shown, not editable)
     table.appendChild(rowOf(A, { prefix: '' }));
     table.appendChild(rowOf(B, { prefix: '×' }));
@@ -342,11 +384,19 @@
       expectRows.push(r);
       table.appendChild(r);
     });
+    const clearCarries = () => carryRow.querySelectorAll('input.cell').forEach((c) => { c.value = ''; });
+    let curRow = expectRows[0];
+    const watchRow = (r) => r.addEventListener('focusin', (e) => {
+      if (!e.target.matches('input.cell') || r === curRow) return;
+      curRow = r; clearCarries();
+    });
+    expectRows.forEach(watchRow);
     if (digitsB.length > 1) {
       const bar2 = bar1.cloneNode(true);
       table.appendChild(bar2);
       const ansRow = rowOf(String(ans), { prefix: '', expect: true });
       expectRows.push(ansRow);
+      watchRow(ansRow);
       table.appendChild(ansRow);
     }
     wrap.appendChild(table);

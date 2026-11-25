@@ -2185,3 +2185,7 @@ html[data-theme="dark"] .zp-n{background:#45201a;border-color:#ff8a70;color:#ffd
 .hb .hb-bridge-sub{margin:0 0 8px;color:var(--muted);font-size:14px;max-width:70ch}
 .hb .hb-trail-bridge::before{display:none}
 .hb .is-aap a{border:2px dashed var(--ic);background:color-mix(in srgb,var(--ic-soft) 45%,transparent)}
+
+/* Paper multiplication: given digits in full ink (were faded); carry boxes are scratch space */
+.paper input.cell.given{color:var(--ink);opacity:1;background:transparent;-webkit-text-fill-color:var(--ink)}
+.paper .carry input.cell{border-style:dashed}
