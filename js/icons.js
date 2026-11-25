@@ -111,6 +111,8 @@ window.G5I = (function () {
     ratiotable: S(`<rect x="6" y="10" width="52" height="34" rx="5" ${soft}/><path d="M6 27h52M23 10v34M40 10v34" stroke-width="2.5"/><path d="M14 50c8 8 18 8 26 0" stroke-width="3"/><path d="M38 46l3 5-6 1" stroke-width="3"/>`),
     /* graph of a rate: points on a straight line through the origin */
     rategraph: S(`<path d="M8 8v48h48"/><path d="M8 56L54 12" stroke-width="3"/>${dot(20, 44.5, 4.5)}${dot(31, 34, 4.5)}${dot(42, 23.5, 4.5)}`),
+    /* y = mx: two lines from the origin, the steeper one bold */
+    slope: S(`<path d="M8 8v48h48"/><path d="M8 56L56 32" stroke-width="3" opacity=".45"/><path d="M8 56L34 8" stroke-width="4.5"/><path d="M20 34h6v-11" stroke-width="2.5" stroke-dasharray="3 3"/>`),
     percent: S(`<circle cx="18" cy="18" r="9" ${soft}/><circle cx="46" cy="46" r="9" ${soft}/><path d="M50 10L14 54" stroke-width="5"/>`),
     percentof: S(`<rect x="4" y="38" width="56" height="16" rx="5" fill="var(--card)"/><rect x="4" y="38" width="21" height="16" rx="5" ${soft} stroke="none"/><rect x="4" y="38" width="56" height="16" rx="5"/><path d="M25 38v16" stroke-width="3"/><circle cx="17" cy="12" r="5"/><circle cx="35" cy="26" r="5"/><path d="M38 8L14 30" stroke-width="3.5"/>`),
     convert: S(`<path d="M32 8L56 50H8Z" ${soft}/><circle cx="32" cy="8" r="6" fill="var(--card)"/><circle cx="56" cy="50" r="6" fill="var(--card)"/><circle cx="8" cy="50" r="6" fill="var(--card)"/>${dot(32, 8, 2.5)}${dot(56, 50, 2.5)}${dot(8, 50, 2.5)}`),
@@ -172,7 +174,7 @@ window.G5I = (function () {
     u3L1: 'estimate', u3L2: 'multiply', u3L3: 'divide', u3L4: 'remainder', u3L5: 'divisible', u3L6: 'exponent',
     u3B1: 'bigcalc', u3B2: 'square', u3B3: 'exponent',
     u4c1: 'tenths', u4c2: 'hundred', u4c3: 'eighthsthirds', u4c4: 'samename', u4c5: 'ratio', u4c6: 'percent',
-    u4a1: 'ratio', u4a2: 'ratiotable', u4a5: 'betterbuy', u4a6: 'rategraph', u4a3: 'percent', u4a4: 'percentof',
+    u4a1: 'ratio', u4a2: 'ratiotable', u4a5: 'betterbuy', u4a6: 'rategraph', u4a7: 'slope', u4a3: 'percent', u4a4: 'percentof',
     u5L0: 'round', u5L1: 'lineup', u5L2: 'estimate', u5L3: 'areagrid', u5L4: 'divwhole', u5L5: 'tenthtiles',
     u6L1: 'ladder', u6L2: 'ruler', u6L3: 'steps', u6B1: 'rate',
     u7L1: 'percent', u7L2: 'convert', u7L3: 'compare', u7B1: 'pie', u7B2: 'piemake',

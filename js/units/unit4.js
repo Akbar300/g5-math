@@ -1157,3 +1157,38 @@
   adv.skills.splice(sk >= 0 ? sk + 1 : adv.skills.length, 0, { id: 'rgraph', name: 'Graphs of rates', gen: function () { return gens.rgraph.f('adv'); } });
   adv.intro = 'Go Further: equivalent ratios, ratio tables, proportions and the better buy, graphs of rates, percent of a number, and fraction–decimal–percent conversions.';
 })();
+
+/* Go Further: y = m × x (Tier 3, rev 4: Unit 4 after proportions and graphs of rates). Grade 6 / 7 preview. */
+(function () {
+  if (!window.UNIT || !window.V2L) return;
+  var L = V2L, mc = L.mc;
+  function slopeQ(lv, kind) {
+    var m = L.ri(2, 9), k = kind != null ? kind : L.pick([0, 1, 2, 3]);
+    if (k === 0) return mc('A proportional table has (1, ' + m + '), (2, ' + 2 * m + '), (3, ' + 3 * m + '). Which equation fits?', 'y = ' + m + 'x', [
+      ['y = x + ' + m, 'Check (2, ' + 2 * m + '): 2 + ' + m + ' = ' + (2 + m) + ', not ' + 2 * m + '. Proportional means multiply.'],
+      ['x = ' + m + 'y', 'y is the output: y = ' + m + ' × x.'],
+      ['y = ' + 2 * m + 'x', 'Use the y-value when x = 1: that is ' + m + '.']],
+      'y ÷ x = ' + m + ' for every pair, so <b>y = ' + m + 'x</b>. The ' + m + ' is the unit rate (the slope).');
+    if (k === 1) { var x = L.ri(4, 12);
+      return { type: 'num', fmt: 'TYPE IN', q: 'Use <b>y = ' + m + 'x</b>. What is y when x = ' + x + '?', a: m * x, why: m + ' × ' + x + ' = <b>' + m * x + '</b>.' }; }
+    if (k === 2) { var X = L.ri(2, 6);
+      return { type: 'num', fmt: 'TYPE IN', q: 'A line through (0, 0) also goes through (' + X + ', ' + m * X + '). In y = mx, what is m?', a: m, why: 'm = y ÷ x = ' + m * X + ' ÷ ' + X + ' = <b>' + m + '</b>: up ' + m + ' for every 1 across.' }; }
+    var a = L.ri(2, 5), b = a + L.ri(1, 4), C = L.pick([['Pump A', 'Pump B', 'liters per minute'], ['Rider A', 'Rider B', 'miles per hour']]);
+    return mc(C[0] + ' follows y = ' + a + 'x. ' + C[1] + ' follows y = ' + b + 'x. Which line is steeper on a graph?', C[1] + ' (y = ' + b + 'x)', [
+      [C[0] + ' (y = ' + a + 'x)', 'The bigger m goes up faster for each step across.'], ['They are equally steep', 'Different m-values make different steepness.']],
+      'The steeper line has the bigger m: ' + b + ' &gt; ' + a + '. ' + C[1] + ' goes up ' + b + ' ' + C[2].split(' per ')[0] + ' for each ' + C[2].split(' per ')[1] + '.');
+  }
+  var gens = { slope: { name: 'y = mx (Go Further)', f: function (lv, kind) { return slopeQ(lv, kind); } } };
+  var lesson = { id: 'u4a7', name: 'Go Further: y = mx', icon: '📐', cards: [
+    { t: 'The rule of a proportional graph', html: L.tbl(['x', '1', '2', '3', '4'], [['y', '3', '6', '9', '12']]) + '<p>Every y is 3 times x: <b>y = 3x</b>. The number in front of x is the <b>slope</b>: up 3 for every 1 across. It is also the unit rate.</p>',
+      steps: ['Find y when x = 1: that is m.', 'Check another pair: 6 ÷ 2 = 3 ✓.', 'Write y = m × x, usually written y = mx.'],
+      trap: 'Writing y = x + 3. That works for (1, 4), not (1, 3). A proportional rule multiplies.',
+      tries: [function () { return gens.slope.f('adv', 0); }, function () { return gens.slope.f('adv', 1); }] },
+    { t: 'Bigger m, steeper line', html: '<p>y = 2x goes up 2 for each step across. y = 5x goes up 5. The bigger m, the <b>steeper</b> the line, the faster the rate.</p>',
+      tries: [function () { return gens.slope.f('adv', 2); }, function () { return gens.slope.f('adv', 3); }] }
+  ] };
+  var adv = UNIT.advanced, at = adv.lessons.findIndex(function (x) { return x.id === 'u4a6'; });
+  adv.lessons.splice(at >= 0 ? at + 1 : adv.lessons.length, 0, lesson);
+  var sk = adv.skills.findIndex(function (x) { return x.id === 'rgraph'; });
+  adv.skills.splice(sk >= 0 ? sk + 1 : adv.skills.length, 0, { id: 'slope', name: 'y = mx (Go Further)', gen: function () { return gens.slope.f('adv'); } });
+})();
