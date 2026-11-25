@@ -2202,3 +2202,4 @@ html[data-theme="dark"] .zp-n{background:#45201a;border-color:#ff8a70;color:#ffd
 .ldiv-r{font-size:18px}
 .ldiv-r input.cell{width:48px}
 @media (max-width:360px){.paper{--pc:32px}.ldiv{--ldiv-cell:34px}}
+.nw{white-space:nowrap}

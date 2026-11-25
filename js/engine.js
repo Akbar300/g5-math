@@ -174,10 +174,44 @@
     return root;
   }
 
+  /* Keep short math together on phones: "3 + 4 = 7", "30–39", "6 × 2" go in a nowrap span
+     so the line never breaks inside them. Long chains are left alone so they can still wrap. */
+  const MATH_NUM = String.raw`[−\-(]?\$?\d[\d.,]*%?\)?`;
+  const MATH_CHAIN = new RegExp(MATH_NUM + String.raw`(?:(?:\s?[–]\s?|\s[+−\-×÷=<>≤≥]\s)` + MATH_NUM + ')+', 'g');
+  function glueMathIn(root) {
+    const skipSel = 'script,style,textarea,input,svg,code,.paper,.ldiv,.paper-wrap,.nw,table';
+    const walk = (node) => {
+      if (node.nodeType === 1) { if (node.matches && node.matches(skipSel)) return; [...node.childNodes].forEach(walk); return; }
+      if (node.nodeType !== 3) return;
+      let t = node.nodeValue;
+      if (!t || !/\d/.test(t)) return;
+      /* "… = " right before <b>7</b>: don't break after the sign */
+      if (node.nextSibling && node.nextSibling.nodeType === 1) t = t.replace(/(\s[+−\-×÷=<>≤≥]) $/, '$1\u00a0');
+      let out = '', last = 0, hit = false, m;
+      MATH_CHAIN.lastIndex = 0;
+      while ((m = MATH_CHAIN.exec(t))) {
+        if (m[0].length > 24) continue;
+        hit = true;
+        out += esc(t.slice(last, m.index)) + '<span class="nw">' + esc(m[0]) + '</span>';
+        last = m.index + m[0].length;
+      }
+      if (!hit) { if (t !== node.nodeValue) node.nodeValue = t; return; }
+      out += esc(t.slice(last));
+      const holder = document.createElement('span');
+      holder.innerHTML = out;
+      const parent = node.parentNode;
+      while (holder.firstChild) parent.insertBefore(holder.firstChild, node);
+      parent.removeChild(node);
+    };
+    const esc = (x) => x.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    walk(root);
+  }
+
   function formatHTML(html) {
     const box = document.createElement('div');
     box.innerHTML = String(html == null ? '' : html);
     formatFractionsIn(box);
+    glueMathIn(box);
     return box.innerHTML;
   }
 
@@ -607,10 +641,11 @@ function paperDivide(dividend, divisor) {
     const q = document.createElement('div');
     q.className = 'q-text';
     q.innerHTML = item.q;
+    glueMathIn(q);
     const body = document.createElement('div');
     const fb = document.createElement('div'); fb.className = 'fb';
     const why = document.createElement('div'); why.className = 'why';
-    if (item.why) why.innerHTML = item.why;
+    if (item.why) { why.innerHTML = item.why; glueMathIn(why); }
     /* Check / Next live in one action bar at the end of the card (sticky on phones in Practice and Test Lab). */
     const actions = document.createElement('div'); actions.className = 'q-actions';
     box.appendChild(meta); box.appendChild(q); box.appendChild(body); box.appendChild(fb); box.appendChild(why); box.appendChild(actions);
@@ -1285,6 +1320,7 @@ function paperDivide(dividend, divisor) {
         }
         place(pair);
       }
+      glueMathIn(main);
       body.appendChild(main);
 
       if (hasTries) {
@@ -1322,7 +1358,7 @@ function paperDivide(dividend, divisor) {
         const side = document.createElement('div');
         side.className = 'lesson-side';
         side.appendChild(prac);
-        sideItems.forEach((x) => side.appendChild(x));
+        sideItems.forEach((x) => { glueMathIn(x); side.appendChild(x); });
         body.appendChild(side);
       }
       card.appendChild(body);

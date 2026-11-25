@@ -130,7 +130,7 @@ var bg = {
         why);
     }
     var x0 = L.ri(-5, 5), y0 = -L.ri(1, 5), up = L.ri(2, 8);
-    return {type:'num', fmt:'TYPE IN', q:'A rover starts at ' + P2(x0, y0) + ' and drives straight up to ' + P2(x0, y0 + up) + '. How many units did it drive?', a:up, why:'Same x. ' + (y0 + up > 0 ? 'It crosses the x-axis: ' + Math.abs(y0) + ' up to 0, then ' + (y0 + up) + ' more = <b>' + up + '</b>.' : (y0 + up) + ' − ' + L.par(y0) + ' = <b>' + up + '</b>.')};
+    return {type:'num', fmt:'TYPE IN', q:'A rover starts at ' + P2(x0, y0) + ' and drives straight up to ' + P2(x0, y0 + up) + '. How many units did it drive?', a:up, why:'Same x. ' + (y0 + up > 0 ? 'It crosses the x-axis: ' + Math.abs(y0) + ' up to 0, then ' + (y0 + up) + ' more: ' + Math.abs(y0) + ' + ' + (y0 + up) + ' = <b>' + up + '</b> units.' : (y0 + up) + ' − ' + L.par(y0) + ' = <b>' + up + '</b>.')};
   }},
   qpoly: {name:'Polygons in four quadrants', f:function(lv, kind){
     var x1 = -L.ri(1, 5), x2 = L.ri(1, 5), y1 = -L.ri(1, 5), y2 = L.ri(1, 5), w = x2 - x1, h = y2 - y1;
@@ -189,7 +189,7 @@ var bridge = {
      tries:[function(){ return bg.qdist.f('adv', 0); }, function(){ return bg.qdist.f('adv', 2); }]}
   ]},{id:'u11B3', name:'Polygons in four quadrants', icon:'▭', cards:[
     {t:'Rectangle across the axes', h:'<p>Corners (−3, 2), (4, 2), (4, −1), (−3, −1).</p>', viz:function(){ return planeDraw([[-3, 2, 'A'], [4, 2, 'B'], [4, -1, 'C'], [-3, -1, 'D']], {poly:[[-3, 2], [4, 2], [4, -1], [-3, -1]]}); },
-     steps:['Width (same y): from −3 to 4 = 3 + 4 = 7.', 'Height (same x): from −1 to 2 = 1 + 2 = 3.', 'Perimeter = 7 + 3 + 7 + 3 = 20. Area = 7 × 3 = 21 square units.'],
+     steps:['Width (same y): from −3 to 4 is 3 + 4 = 7 units.', 'Height (same x): from −1 to 2 is 1 + 2 = 3 units.', 'Perimeter = 7 + 3 + 7 + 3 = 20. Area = 7 × 3 = 21 square units.'],
      trap:'Using 4 − 3 = 1 for the width. The rectangle crosses the y-axis, so add the two parts.',
      tries:[function(){ return bg.qpoly.f('adv', 1); }, function(){ return bg.qpoly.f('adv', 0); }]},
     {t:'Find the missing corner', h:'<p>A rectangle\'s corners share x-values in pairs and y-values in pairs. Three corners: (−2, 3), (5, 3), (5, −4). The fourth takes the x of one and the y of another: <b>(−2, −4)</b>.</p>',
