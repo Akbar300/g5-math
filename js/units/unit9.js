@@ -3,6 +3,8 @@
 window.EX_POPOUT = true;   /* Unit 9: Watch it pops out on big screens (js/watchmodal.js) */
 (function(){
 var L = V2L, f = L.fr, mc = L.mc;
+/* Circle area picture: 8 wedges re-stacked into a near-rectangle, pi x r long and r tall (arc coordinates computed, 45° sectors). */
+var WEDGES = '<svg viewBox="0 0 340 150" role="img" aria-label="A circle cut into 8 wedges. The wedges lined up point up, point down make a shape close to a rectangle about pi times r long and r tall." style="width:100%;max-width:440px;display:block;margin:0 auto"><path d="M62 80L62.0 30.0A50 50 0 0 1 97.4 44.6Z" fill="currentColor" fill-opacity=".45" stroke="currentColor" stroke-width="1.5"/><path d="M62 80L97.4 44.6A50 50 0 0 1 112.0 80.0Z" fill="var(--ic-soft)" stroke="currentColor" stroke-width="1.5"/><path d="M62 80L112.0 80.0A50 50 0 0 1 97.4 115.4Z" fill="currentColor" fill-opacity=".45" stroke="currentColor" stroke-width="1.5"/><path d="M62 80L97.4 115.4A50 50 0 0 1 62.0 130.0Z" fill="var(--ic-soft)" stroke="currentColor" stroke-width="1.5"/><path d="M62 80L62.0 130.0A50 50 0 0 1 26.6 115.4Z" fill="currentColor" fill-opacity=".45" stroke="currentColor" stroke-width="1.5"/><path d="M62 80L26.6 115.4A50 50 0 0 1 12.0 80.0Z" fill="var(--ic-soft)" stroke="currentColor" stroke-width="1.5"/><path d="M62 80L12.0 80.0A50 50 0 0 1 26.6 44.6Z" fill="currentColor" fill-opacity=".45" stroke="currentColor" stroke-width="1.5"/><path d="M62 80L26.6 44.6A50 50 0 0 1 62.0 30.0Z" fill="var(--ic-soft)" stroke="currentColor" stroke-width="1.5"/><path d="M140.0 105A50 50 0 0 0 178.3 105L159.1 55Z" fill="currentColor" fill-opacity=".45" stroke="currentColor" stroke-width="1.5"/><path d="M159.1 55A50 50 0 0 1 197.4 55L178.3 105Z" fill="var(--ic-soft)" stroke="currentColor" stroke-width="1.5"/><path d="M178.3 105A50 50 0 0 0 216.5 105L197.4 55Z" fill="currentColor" fill-opacity=".45" stroke="currentColor" stroke-width="1.5"/><path d="M197.4 55A50 50 0 0 1 235.7 55L216.5 105Z" fill="var(--ic-soft)" stroke="currentColor" stroke-width="1.5"/><path d="M216.5 105A50 50 0 0 0 254.8 105L235.7 55Z" fill="currentColor" fill-opacity=".45" stroke="currentColor" stroke-width="1.5"/><path d="M235.7 55A50 50 0 0 1 273.9 55L254.8 105Z" fill="var(--ic-soft)" stroke="currentColor" stroke-width="1.5"/><path d="M254.8 105A50 50 0 0 0 293.1 105L273.9 55Z" fill="currentColor" fill-opacity=".45" stroke="currentColor" stroke-width="1.5"/><path d="M273.9 55A50 50 0 0 1 312.2 55L293.1 105Z" fill="var(--ic-soft)" stroke="currentColor" stroke-width="1.5"/><path d="M62 80H112" stroke="var(--ic)" stroke-width="3" stroke-linecap="round"/><text x="87" y="73" text-anchor="middle" font-size="18" font-weight="800" fill="var(--ic)">r</text><path d="M118 80h12M125 75l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M140 40H312M140 35v10M312 35v10" fill="none" stroke="var(--ic)" stroke-width="2.5" stroke-linecap="round"/><text x="226" y="28" text-anchor="middle" font-size="19" font-weight="800" fill="var(--ic)">about π × r</text><path d="M326 55V105M321 55h10M321 105h10" fill="none" stroke="var(--ic)" stroke-width="2.5" stroke-linecap="round"/><text x="326" y="128" text-anchor="middle" font-size="18" font-weight="800" fill="var(--ic)">r</text></svg>';
 function tri(b, h){ return GV.rtri(b, h, 'cm'); }
 var test = [
  {type:'multi', fmt:'MULTI-PART', q:'A box is 6 cm long, 4 cm wide and 5 cm tall.<br>Part A: area of the base (cm²)?<br>Part B: volume (cm³)?', parts:[{label:'A:', a:24},{label:'B:', a:120}], why:'Base 6 × 4 = 24 cm². Volume 24 × 5 = 120 cm³.'},
@@ -14,6 +16,36 @@ var bg = {
   circ: {name:'Circumference', f:function(lv){
     var r = L.ri(2, 10), useD = Math.random() < .5, C = Math.round(2 * 3.14 * r * 100) / 100;
     return {type:'num', q:'A circle has a ' + (useD ? 'diameter of ' + 2*r : 'radius of ' + r) + ' cm. Using π ≈ 3.14, what is its circumference in cm?', a:C, tol:.02, why:'C = π × d = 3.14 × ' + 2*r + ' = ' + C + ' cm.' + (useD ? '' : ' (diameter = 2 × radius = ' + 2*r + ')')};
+  }},
+  carea: {name:'Circle area', f:function(lv, kind){
+    /* A = 3.14 × r × r. Traps: circumference instead of area, the diameter squared, r × 2 for r². */
+    var r2 = function(x){ return Math.round(x * 100) / 100; }, r = L.ri(3, 10), A = r2(3.14 * r * r), u = L.pick(['cm', 'm', 'in', 'ft']);
+    var k = kind != null ? kind : L.pick([0, 0, 1, 2, 2, 3, 4, 5]);
+    if (k === 0) return {type:'num', fmt:'TYPE IN', q:'A circle has a radius of ' + r + ' ' + u + '. Using π ≈ 3.14, what is its area in ' + u + '²?', a:A, why:'A = π × r × r = 3.14 × ' + r + ' × ' + r + ' = 3.14 × ' + r*r + ' = <b>' + A + ' ' + u + '²</b>.'};
+    if (k === 1) return mc('A circle has a <b>diameter</b> of ' + 2*r + ' ' + u + '. What is its area? (π ≈ 3.14)', A + ' ' + u + '²', [
+      [r2(3.14 * 4 * r * r) + ' ' + u + '²', 'That uses the diameter in r × r. Halve it first: r = ' + r + '.'],
+      [r2(3.14 * 2 * r) + ' ' + u + '²', 'That is the circumference (π × d). Area uses r × r.'],
+      [r*r + ' ' + u + '²', 'That is only ' + r + ' × ' + r + '. Multiply by π ≈ 3.14 too.']],
+      'r = ' + 2*r + ' ÷ 2 = ' + r + '. A = 3.14 × ' + r + ' × ' + r + ' = <b>' + A + ' ' + u + '²</b>.');
+    if (k === 2) return mc('Find the area of a circle with radius ' + r + ' ' + u + ' (π ≈ 3.14).', A + ' ' + u + '²', [
+      [r2(3.14 * 2 * r) + ' ' + u + '²', 'That is the circumference. Area = π × r × r.'],
+      [r2(3.14 * 4 * r * r) + ' ' + u + '²', 'Use the RADIUS, not the diameter.'],
+      [r*r + ' ' + u + '²', 'That is only ' + r + ' × ' + r + '. Multiply by π ≈ 3.14 too.']],
+      'A = 3.14 × ' + r + ' × ' + r + ' = <b>' + A + ' ' + u + '²</b>.');
+    if (k === 3) { u = L.pick(['m', 'ft']); var C = r2(3.14 * 2 * r), cover = Math.random() < .5, T = L.pick([['a round garden', 'fence goes around', 'grass covers'], ['a round rug', 'trim goes around the edge of', 'floor is covered by'], ['a round pool cover', 'rope goes around', 'cloth makes']]);
+      return mc('A circle has radius ' + r + ' ' + u + '. How much ' + (cover ? T[2].split(' ')[0] + ' ' + T[2].split(' ').slice(1).join(' ') : T[1].split(' ')[0] + ' ' + T[1].split(' ').slice(1).join(' ')) + ' ' + T[0] + '? (π ≈ 3.14)', cover ? A + ' ' + u + '²' : C + ' ' + u, [
+        [cover ? C + ' ' + u : A + ' ' + u + '²', cover ? 'That is the distance around. Covering the inside is area: π × r × r.' : 'That is the area inside. Going around is the circumference: π × d.'],
+        [cover ? A + ' ' + u : C + ' ' + u + '²', cover ? 'Area is in square units (' + u + '²).' : 'A distance around is in plain units (' + u + ').'],
+        [cover ? C + ' ' + u + '²' : A + ' ' + u, 'Pick the right formula AND the right units.']],
+        cover ? 'Covering = area: 3.14 × ' + r + ' × ' + r + ' = <b>' + A + ' ' + u + '²</b>.' : 'Around = circumference: 3.14 × ' + 2*r + ' = <b>' + C + ' ' + u + '</b>.'); }
+    if (k === 4) { var e = 3 * r * r;
+      return mc('Estimate the area of a circle with radius ' + r + ' ' + u + '. Use π ≈ 3.', 'about ' + e + ' ' + u + '²', [
+        ['about ' + 6*r + ' ' + u + '²', 'That is about the circumference (3 × d). Area: 3 × r × r.'],
+        ['about ' + 12*r*r + ' ' + u + '²', 'That squares the diameter. Use the radius.'],
+        ['about ' + r*r + ' ' + u + '²', 'That is one r × r square. A circle holds about 3 of them.']],
+        '3 × ' + r + ' × ' + r + ' = ' + e + ', so about <b>' + e + ' ' + u + '²</b> (exact with 3.14: ' + A + ').'); }
+    var rr = 2 * L.ri(1, 5), half = r2(3.14 * rr * rr / 2);
+    return {type:'num', fmt:'TYPE IN', q:'A <b>half circle</b> has a radius of ' + rr + ' ' + u + '. What is its area in ' + u + '²? (π ≈ 3.14)', a:half, why:'Whole circle: 3.14 × ' + rr + ' × ' + rr + ' = ' + r2(3.14 * rr * rr) + '. Half of it: <b>' + half + ' ' + u + '²</b>.'};
   }},
   anytri: {name:'Area of any triangle', f:function(lv){
     var b = L.ri(4, 16), h = L.ri(2, 12); if ((b * h) % 2) b++;
@@ -85,7 +117,18 @@ var lessons = [
  {id:'u9L5', name:'Circles', icon:'⚫', cards:[
     {t:'Parts of a circle', h:L.tbl(['Part','Meaning'], [['radius (r)','center to edge'],['diameter (d)','edge to edge through the center = 2r'],['circumference (C)','distance around']]) + '<p>For every circle, C ÷ d ≈ <b>3.14</b>. That number is π (pi).</p><div class="big">C = π × d</div><p>Example: radius 5 cm, so diameter 10 cm, and C ≈ 3.14 × 10 = 31.4 cm.</p>'},
     {t:'Around the circle: π', h:'<p>Roll a circle one full turn and measure the line it makes with the diameter. It always fits <b>3 times and a little more</b>: about 3.14 times. That number is <b>π</b>.</p><div class="big">C = π × d = 2 × π × r</div>', trap:'Using the radius in C = π × d. Double the radius first.', watch:{id:'circle', r:4}, tr:function(){ return bg.circ.f(); }},
-    {t:'Circle area (stretch)', h:GV.circle(3) + '<p>The area of a circle is a little more than 3 squares the size of r × r.</p><div class="big">A = π × r × r = π × r²</div>', trap:'r² uses the radius, not the diameter.', tr:function(){ var r = L.ri(2, 9), A = Math.round(3.14 * r * r * 100) / 100; return {type:'num', q:'A circle has a radius of ' + r + ' m. Using π ≈ 3.14, what is its area in m²?', a:A, tol:.02, why:'3.14 × ' + r + ' × ' + r + ' = 3.14 × ' + r*r + ' = ' + A + ' m².'}; }}
+    {t:'Circle area: wedges make a rectangle', h:'<p>Cut a circle into thin wedges. Line them up, point up, point down. They make a shape close to a <b>rectangle</b>.</p>', viz:function(){ return WEDGES; },
+     steps:['The long side is half the way around the circle (half of 2 × π × r): about π × r.', 'The short side is the radius: r.', 'Rectangle area = long × short = π × r × r.'],
+     key:'A = π × r × r (also written π r²). Use π ≈ 3.14.',
+     trap:'Using the circumference formula (π × d) for area. Area covers the inside, so it needs r × r.',
+     tr:function(){ return bg.carea.f('adv', 0); }},
+    {t:'Radius, not diameter', h:'<p>A circle is <b>10 cm across</b>. Find its area.</p><div class="big">r = 10 ÷ 2 = 5</div><div class="big">A = 3.14 × 5 × 5 = 78.5 cm²</div>',
+     trap:'Using the diameter: 3.14 × 10 × 10 = 314 cm² is 4 times too big. Halve the diameter first.',
+     aap:'Advanced: a half circle (semicircle) with radius 4 has area 3.14 × 4 × 4 ÷ 2 = 25.12.',
+     tries:[function(){ return bg.carea.f('adv', 1); }, function(){ return bg.carea.f('adv', 2); }]},
+    {t:'Around or cover?', h:L.tbl(['Question','Formula','Units'], [['fence around a round garden','C = π × d','cm, m, ft'],['grass to cover a round garden','A = π × r × r','cm², m², ft²']]) + '<p>Radius 3 m: around is 3.14 × 6 = 18.84 m. Cover is 3.14 × 3 × 3 = 28.26 m².</p>',
+     trap:'Mixing up the units. Area is in square units (m²); the distance around is plain units (m).',
+     tries:[function(){ return bg.carea.f('adv', 3); }, function(){ return bg.carea.f('adv', 4); }]}
  ]},
  {id:'u9L3', name:'Volume', icon:'📦', cards:[
   {t:'Layers of cubes', h:GV.prism(4, 3, 2, {hl:'base', note:'bottom layer: 4 × 3 = 12 cubes'}) + '<p>Volume counts the cubes that fill a box. A box 4 long, 3 wide and 2 tall holds 4 × 3 = 12 cubes in each layer, and there are 2 layers.</p><div class="big">V = l × w × h = 4 × 3 × 2 = 24 cubic units</div>', key:'V = base area × height: (cubes in one layer) × (number of layers).', watch:{id:'volume', l:4, w:3, h:2}},
@@ -97,7 +140,7 @@ var bridge = {
   title:'All shapes together', tab:'🚀 Go Further',
   intro:'Angles, perimeter and area, triangles and parallelograms, circles and volume, all in one path.',
   lessons:lessons,
-  gens:bg, repIds:['circ','para','anytri','cap','est','unit'],
+  gens:bg, repIds:['circ','carea','para','anytri','cap','est','unit'],
   next:'Try the Geometry Lab tab to practice every shape with pictures.'
 };
 window.V2 = {key:'u9', lessons:lessons, test:test, bridge:bridge};
@@ -107,8 +150,9 @@ Adapt.fromV2({
   id: 'u9', num: 9, emoji: '📐', title: 'Shape & Measure Lab',
   blurb: 'Angles, triangles, area, perimeter and volume, plus the Geometry Lab.', sol: ['5.MG.2', '5.MG.3'], dates: ['2027-03-29', '2027-04-30'], color: '#1d4ed8'
 }, window.V2, { gUnit: 9, coreStds: ['5.MG.2', '5.MG.3'] });
-/* Unit 9 teaches every shape together: Core practice also gets circles, parallelograms and any triangle. */
-UNIT.advanced.skills.filter(function (s) { return /^adv-/.test(s.id); }).forEach(function (s) { UNIT.core.skills.push(s); });
+/* Unit 9 teaches every shape together: Core practice also gets circles, parallelograms and any triangle.
+   Circle area practice stays Advanced (AAP; the Circles lesson cards show it to everyone). */
+UNIT.advanced.skills.filter(function (s) { return /^adv-/.test(s.id) && s.id !== 'adv-carea'; }).forEach(function (s) { UNIT.core.skills.push(s); });
 UNIT.core.intro = 'Angles, perimeter and area, triangles and parallelograms, circles and volume, all together.';
 
 
