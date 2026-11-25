@@ -911,17 +911,17 @@
       },
       'Big unit → small unit: multiply': {
         viz: () => V.metricLadder('cm'),
-        steps: ['Going to a smaller unit means more of them, so you multiply.', '3 m = 300 cm (×100).', '2 km = 2000 m (×1000).'],
+        steps: ['Going to a smaller unit means more of them, so you multiply.', '3.5 m = 3.5 × 100 = 350 cm (×100).', '2 km = 2000 m (×1000).'],
         trap: 'Dividing when you go to a smaller unit gives a tiny, impossible length (3 m is not 0.03 cm).',
         aap: 'AAP: 2.4 km = 2400 m = 240,000 cm. Keep the 2.4 and move the point with the zeros.',
         tries: [
-          () => num('Convert 3 meters to centimeters.', 300, '×100: 3 m = 300 cm.'),
+          () => num('Convert 3.5 meters to centimeters.', 350, '×100: 3.5 m = 350 cm.'),
           () => num('Convert 2 kilometers to meters.', 2000, '×1000: 2 km = 2000 m.')
         ]
       },
       'Small unit → big unit: divide': {
         viz: () => V.metricLadder('km'),
-        steps: ['Going to a bigger unit means fewer of them, so you divide.', '300 cm = 3 m (÷100).', '2000 m = 2 km (÷1000).'],
+        steps: ['Going to a bigger unit means fewer of them, so you divide.', '2400 g = 2400 ÷ 1000 = 2.4 kg (÷1000).', '300 cm = 3 m (÷100).'],
         trap: 'Multiplying when you go to a bigger unit makes a huge, impossible length (300 cm is not 30,000 m).',
         aap: 'AAP: 450 cm = 4.5 m, not 45 m and not 0.45 m. Two places for × or ÷ 100.',
         tries: [
@@ -954,12 +954,12 @@
     },
     u6L3: {
       'Convert first, then compute': {
-        viz: () => V.cycleSteps(['1.5 km', '→ 1500 m', '+ 800 m', '= 2300 m']),
-        steps: ['Put every measurement in the same unit before you add or subtract.', '1.5 km = 1500 m, plus 800 m is 2300 m.', '2300 m is also 2.3 km.'],
-        trap: 'Adding 1.5 + 800 because the units were ignored (1.5 km + 800 m is not 801.5 of anything useful).',
+        viz: () => V.cycleSteps(['2 m', '→ 200 cm', '− 45 cm', '= 155 cm']),
+        steps: ['Put every measurement in the same unit before you add or subtract.', '2 m = 200 cm, minus 45 cm is 155 cm.', '155 cm is also 1.55 m.'],
+        trap: 'Subtracting 45 − 2 because the units were ignored (2 m − 45 cm is not 43 of anything useful).',
         aap: 'AAP: 2 hours 15 minutes is not 2.15 hours. Convert minutes first: 2 + 15/60 = 2.25 hours, or stay in minutes (135).',
         tries: [
-          () => num('1.5 km + 500 m, in meters?', 2000, '1.5 km = 1500 m, plus 500 m is 2000 m.'),
+          () => num('A 2 m ribbon has 45 cm cut off. How many centimeters are left?', 155, '2 m = 200 cm, and 200 − 45 = 155 cm.'),
           () => num('2 m + 30 cm, in centimeters?', 230, '2 m = 200 cm, plus 30 cm is 230 cm.')
         ]
       },
@@ -976,8 +976,8 @@
     },
     u6B1: {
       'A conversion table is a ratio table': {
-        viz: () => V.barGraph(['1 m', '2 m', '3 m'], [100, 200, 300], { title: 'Centimeters', color: '#0fb39c' }),
-        steps: ['Each column scales both rows by the same factor.', '1 m : 100 cm, 2 m : 200 cm, 3 m : 300 cm.', 'A missing entry is an equivalent ratio.'],
+        viz: () => V.barGraph(['1 m', '2 m', '5 m', '7 m'], [100, 200, 500, 700], { title: 'Centimeters', color: '#0fb39c' }),
+        steps: ['Each column scales both rows by the same factor.', '1 m : 100 cm, 2 m : 200 cm, 5 m : 500 cm, 7 m : 700 cm.', 'A missing entry is an equivalent ratio.'],
         trap: 'Filling 1, 2, 3 in one row and 100, 101, 102 in the other (adding 1) instead of multiplying.',
         aap: 'AAP: 2.5 m is the 2.5 column: 250 cm. Scale factors can be decimals.',
         tries: [
@@ -986,12 +986,12 @@
         ]
       },
       'Rates for one': {
-        viz: () => V.cycleSteps(['120 km', 'in 2 h', '60 km in 1 h']),
-        steps: ['A unit rate tells the amount for one of something.', '120 km in 2 hours is 60 km per hour.', 'Divide both parts of the rate by the same number so the second part becomes 1.'],
-        trap: 'Dividing the wrong way (2 ÷ 120) gives hours per kilometer, which is a different unit rate.',
+        viz: () => V.cycleSteps(['180 km', 'in 3 h', '60 km in 1 h']),
+        steps: ['A unit rate tells the amount for one of something.', '180 km in 3 hours is 180 ÷ 3 = 60 km per hour.', 'Divide both parts of the rate by the same number so the second part becomes 1.'],
+        trap: 'Dividing the wrong way (3 ÷ 180) gives hours per kilometer, which is a different unit rate.',
         aap: 'AAP: 3 packs for $12 is $4 per pack, or 0.25 pack per dollar. Name the unit clearly.',
         tries: [
-          () => num('120 km in 2 hours is how many kilometers per hour?', 60, '120 ÷ 2 = 60.'),
+          () => num('180 km in 3 hours is how many kilometers per hour?', 60, '180 ÷ 3 = 60.'),
           () => num('3 packs cost $12. What is the dollar cost per pack?', 4, '12 ÷ 3 = 4.')
         ]
       }
