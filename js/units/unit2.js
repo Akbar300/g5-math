@@ -99,6 +99,7 @@ var bg = {
     function ok(v){ return op === '&gt;' ? v > k : op === '&lt;' ? v < k : op === '≥' ? v >= k : v <= k; }
     return {type:'ms', fmt:'SELECT ALL', q:'Select <b>all</b> values of x that make <b>x ' + op + ' ' + L.sg(k) + '</b> true.', ch:vals.map(L.sg), a:vals.map(function(v, i){ return ok(v) ? i : -1; }).filter(function(i){ return i >= 0; }), why:(op === '≥' || op === '≤' ? 'The line under the symbol means ' + L.sg(k) + ' itself counts (closed circle).' : L.sg(k) + ' itself does NOT count (open circle).') + ' Test each value.'};
   }},
+  flip: {name:'Flip the sign (Go Further)', f:function(lv, kind){ for (var t = 0; t < 8; t++) { var it = flipQ(lv, kind); if (it) return it; } return null; }},
   vocab: {name:'Algebra vocabulary', f:function(lv){
     var a = L.ri(2, 9), b = L.ri(1, 15), v = L.pick(['x','y','n','m']), c = a*L.ri(2, 9) + b;
     var e = a + v + ' + ' + b, k = L.pick(['coef','const','terms','ms','ms']);
@@ -187,6 +188,24 @@ function twoStep(lv, kind){
       'Check by substituting: ' + a + ' × ' + tryX + ' = ' + a*tryX + ', then ' + a*tryX + ' ' + op + ' ' + b + ' = ' + v + '. ' + (yes ? 'That matches ' + c + ', so yes.' : 'That is not ' + c + ', so no. The answer is x = ' + x + '.'));
   }
 }
+/* Go Further: inequalities with a negative coefficient (the sign flips). Grade 7 preview. */
+function flipQ(lv, kind){
+  var a = L.ri(2, 6), x = L.ri(-6, 6), ops = ['&gt;', '&lt;', '≥', '≤'], oi = L.ri(0, 3), op = ops[oi], fl = ops[[1, 0, 3, 2][oi]];
+  var c = -a * x, k = kind != null ? kind : L.pick([0, 0, 1, 2]);
+  var test = function(v, o){ return o === '&gt;' ? v > x : o === '&lt;' ? v < x : o === '≥' ? v >= x : v <= x; };
+  if (k === 0) return mc('Solve: <b>−' + a + 'x ' + op + ' ' + L.sg(c) + '</b>', 'x ' + fl + ' ' + L.sg(x), [
+    ['x ' + op + ' ' + L.sg(x), 'You divided by −' + a + ', a negative. Dividing by a negative flips the sign.'],
+    ['x ' + fl + ' ' + L.sg(-x), 'Check the sign: ' + L.sg(c) + ' ÷ (−' + a + ') = ' + L.sg(x) + '.'],
+    ['x = ' + L.sg(x), 'An inequality has many answers. Keep an inequality sign.']],
+    'Divide both sides by −' + a + ' and <b>flip</b> the sign: x ' + fl + ' ' + L.sg(x) + '. Check x = ' + L.sg(x + (test(x + 1, fl) ? 1 : -1)) + ': −' + a + ' × ' + L.par(x + (test(x + 1, fl) ? 1 : -1)) + ' = ' + L.sg(-a * (x + (test(x + 1, fl) ? 1 : -1))) + ', and that makes the original true.');
+  if (k === 1) { var vals = L.shuffle([x - 2, x - 1, x, x + 1, x + 3]);
+    var ok = function(v){ var l = -a * v; return op === '&gt;' ? l > c : op === '&lt;' ? l < c : op === '≥' ? l >= c : l <= c; };
+    if (vals.every(ok) || !vals.some(ok)) return null;
+    return {type:'ms', fmt:'SELECT ALL', q:'Select <b>all</b> the values of x that make <b>−' + a + 'x ' + op + ' ' + L.sg(c) + '</b> true.', ch:vals.map(L.sg), a:vals.map(function(v, i){ return ok(v) ? i : -1; }).filter(function(i){ return i >= 0; }), why:'Solve: x ' + fl + ' ' + L.sg(x) + ' (the sign flips when you divide by −' + a + '). Or test each value: ' + vals.map(function(v){ return '−' + a + ' × ' + L.par(v) + ' = ' + L.sg(-a * v); }).join(', ') + '.'}; }
+  return mc('Which step <b>flips</b> the inequality sign?', 'Dividing both sides by −' + a, [
+    ['Adding −' + a + ' to both sides', 'Adding or subtracting never flips the sign.'], ['Multiplying both sides by ' + a, 'Multiplying by a positive keeps the sign.'], ['Subtracting ' + a + ' from both sides', 'Adding or subtracting never flips the sign.']],
+    'Only multiplying or dividing both sides by a <b>negative</b> number flips the sign.');
+}
 var bridge = {
   title:'Go Further: factors, multiples & inequalities', tab:'🚀 Go Further',
   intro:'You already know prime and composite. Advanced Unit 2 adds <b>GCF</b>, <b>LCM</b>, <b>inequalities</b> and <b>two-step equations</b>, which you will use in fractions all year (LCM = common denominator!).',
@@ -220,8 +239,15 @@ var bridge = {
      key:'The "each" number goes next to n. The one-time amount is added or taken away.',
      aap:'Advanced: ' + f('x', 4) + ' + 2 = 7 means x ÷ 4, then + 2. Undo: 7 − 2 = 5, then 5 × 4 = 20.',
      tries:[function(){ return bg.two.f('adv', 4); }, function(){ return bg.two.f('adv', 5); }]}
+  ]},{id:'u2B5', name:'Go Further: flip the sign', icon:'🔁', cards:[
+    {t:'Dividing by a negative flips it', h:'<div class="big">−2x &gt; 6</div><p>Divide both sides by −2 and <b>flip</b> the sign:</p><div class="big">x &lt; −3</div>',
+     steps:['Try x = −4 (it is less than −3): −2 × (−4) = 8, and 8 &gt; 6 ✓.', 'Try x = 0 (not less than −3): −2 × 0 = 0, and 0 &gt; 6 is false.', 'So the answer really is x &lt; −3. Without the flip you would get x &gt; −3, which fails the test.'],
+     key:'Multiply or divide by a negative → flip the sign. Add or subtract → keep it.',
+     trap:'Keeping the sign. −2x &gt; 6 does NOT mean x &gt; −3: x = 0 would make it 0 &gt; 6.',
+     tries:[function(){ return bg.flip.f('adv', 0); }, function(){ return bg.flip.f('adv', 2); }]},
+    {t:'Test the values', h:'<p>When in doubt, put numbers in. Every value that makes the original inequality true belongs in the answer.</p>', tr:function(){ return bg.flip.f('adv', 1); }}
   ]}],
-  gens:bg, repIds:['gcf','lcm','ineq','vocab','two'],
+  gens:bg, repIds:['gcf','lcm','ineq','vocab','two','flip'],
   next:'Stay in the Advanced (Go Further) path of this unit for more practice.'
 };
 window.V2 = {key:'u2', lessons:lessons, gens:gens, repIds:['oo','prime','pat','io','eqn'], test:test, bridge:bridge};
