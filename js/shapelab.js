@@ -125,7 +125,10 @@
       if (pts.length < 2) { done && done(0); return; }
       flame(true);
       place(pts[0].x, pts[0].y, heading(pts[0], pts[1]));
-      let total = 0;
+      let total = 0, wait = 0;
+      if (opt.warp && !calm() && ship.animate) {      /* teleport: blink in at the start corner, then fly */
+        try { ship.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 280, easing: 'ease-out' }); wait = 320; } catch (e) {}
+      }
       const leg = (i) => {
         if (i >= pts.length - 1) { flame(false); done && done(total); return; }
         const a = pts[i], b = pts[i + 1], len = Math.hypot(b.x - a.x, b.y - a.y), rot = heading(a, b);
@@ -147,15 +150,10 @@
         };
         requestAnimationFrame(step);
       };
-      leg(0);
+      wait ? setTimeout(() => leg(0), wait) : leg(0);
     };
-    /* Takeoff from the origin (across first, then up) to the first corner, then around the shape. */
-    B.route = (loop) => {
-      const p0 = loop[0], prefix = [{ x: 0, y: 0 }];
-      if (p0.x !== 0) prefix.push({ x: p0.x, y: 0 });
-      if (p0.y !== 0) prefix.push({ x: p0.x, y: p0.y });
-      return { pts: prefix.concat(loop.slice(1)), skip: prefix.length - 1 };
-    };
+    /* The rocket teleports to the first corner (no takeoff from the origin), then flies around the shape. */
+    B.route = (loop) => ({ pts: loop.slice(), skip: 0, warp: true });
     B.legLine = (a, b, len, total) => {
       const d = dirOf(a, b);
       const words = d === 'x' ? `${len} ${b.x > a.x ? 'right ➡️' : 'left ⬅️'}` : d === 'y' ? `${len} ${b.y > a.y ? 'up ⬆️' : 'down ⬇️'}` : 'a slanted leg';
@@ -378,7 +376,7 @@
       const loop = chain.map((i) => t.ccw[i]);
       const r = B.route(loop);
       B.fly(r.pts, {
-        skip: r.skip,
+        skip: r.skip, warp: r.warp,
         onLeg: (i, a, b, len, total) => { log.appendChild(h('li', '', B.legLine(a, b, len, total))); }
       }, (total) => {
         log.appendChild(h('li', 'sum', `🏁 Flew <b>${total}</b> units all the way around. That is the <b>perimeter</b>.`));
@@ -626,7 +624,7 @@
       const loop = closed ? pts.concat([pts[0]]) : pts.slice();
       const r = B.route(loop);
       const rect = loop.every((p, i) => i === 0 || dirOf(loop[i - 1], p) !== 'd');
-      B.fly(r.pts, { skip: r.skip, onLeg: (i, a, b, len, total) => log.appendChild(h('li', '', B.legLine(a, b, len, total))) }, (total) => {
+      B.fly(r.pts, { skip: r.skip, warp: r.warp, onLeg: (i, a, b, len, total) => log.appendChild(h('li', '', B.legLine(a, b, len, total))) }, (total) => {
         log.appendChild(h('li', 'sum', rect
           ? (closed ? `🏁 Flew <b>${total}</b> units all the way around. That is the <b>perimeter</b>.` : `🏁 Flew <b>${total}</b> units along your path.`)
           : '🏁 Landed! Slanted legs are longer than they look, so we do not count them yet.'));
