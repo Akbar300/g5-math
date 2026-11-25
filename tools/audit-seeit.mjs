@@ -94,7 +94,6 @@ const show = (set) => [...set].slice(0, 8).join(' ') + (set.size > 8 ? ' …' : 
 const NEEDS_WIDGET = {
   'u6L2|Benchmarks|See it': 'Bar graph used for benchmarks; needs real-object benchmark pictures.',
   'u9L5|Parts of a circle|See it': 'Big idea is the C = π × d rule with no example; a circle with d and C measured would match it.',
-  'u10B1|Outliers|See it': 'A line plot of 30 to 80 is too wide for linePlot; needs a scaled plot that shows the mean and median shift.',
 };
 const browser = await chromium.launch();
 const warnings = [];

@@ -21,7 +21,7 @@
     /* ---------- Unit 1 ---------- */
     u1c1: {
       'Four steps, every time': {
-        viz: () => V.cycleSteps(['Ask', 'Collect', 'Show', 'Tell']),
+        viz: () => ix('dotPlot', { mode: 'build', cycle: true, values: [3, 3, 4, 5, 5, 5, 7], min: 2, max: 8, title: 'Pencils in backpacks', question: 'How many pencils does each student carry in their backpack?', tell: 'most backpacks have 5 pencils.' }),
         steps: ['Start with a question that needs a count or a measure.', 'Collect the points — usually 30 or fewer.', 'Show them on a line plot or stem-and-leaf with a title and labels.', 'Tell what the data shows, using the display.'],
         trap: 'A remembered fact (“how many minutes in an hour?”) is not a data-cycle question. The cycle needs a group to measure.',
         aap: 'AAP: after you tell what the data shows, add one follow-up: “What would change if we measured a different class or a different week?”',
@@ -53,7 +53,7 @@
         ]
       },
       'Read a plot': {
-        viz: () => V.linePlot([2, 4, 4, 4, 6, 6, 8], { title: 'Jump lengths (feet)' }),
+        viz: () => ix('dotPlot', { mode: 'read', values: [2, 4, 4, 4, 6, 6, 8], min: 1, max: 9, title: 'Jump lengths (feet)', ask: 4, unit: 'students' }),
         steps: ['To find “how many jumped 4 feet,” count the dots above 4: 3 dots.', 'To find “how many in all,” count every dot.', 'The range is the greatest value minus the least.'],
         trap: 'The height of a stack is a count of people, not the value on the number line.',
         aap: 'AAP: find the median of the jump-length plot. Order the seven values first.',
@@ -1352,7 +1352,7 @@
     },
     u10B1: {
       'The mean balances the data': {
-        viz: () => V.numberLine(0, 10, [{ pos: 2, label: '2' }, { pos: 4, label: '4' }, { pos: 6, label: 'mean 6' }, { pos: 8, label: '8' }, { pos: 10, label: '10' }]),
+        viz: () => ix('dotPlot', { mode: 'balance', values: [2, 4, 6, 8, 10], min: 0, max: 12, start: 3 }),
         steps: ['Think of the mean as a balance point on a number line.', 'Values below the mean and values above it “balance.”', '2 and 10 balance around 6 (each is 4 away), and so do 4 and 8 (each is 2 away).'],
         trap: 'Moving one point and expecting the mean to stay put. The balance point shifts toward the move.',
         aap: 'AAP: if 2, 5, 8 has mean 5, changing 8 to 14 shifts the mean to 7. The total rose by 6, and 6 ÷ 3 = 2.',
@@ -1362,7 +1362,7 @@
         ]
       },
       'Outliers': {
-        viz: () => V.linePlot([2, 3, 3, 4, 4, 5, 20], { title: 'One far-away point' }),
+        viz: () => ix('dotPlot', { mode: 'outlier', values: [31, 33, 30, 34, 80], min: 28, max: 82, outlier: 80 }),
         steps: ['An outlier sits far from the cluster.', 'It pulls the mean more than the median.', 'Always ask whether the outlier is a real value or a recording mistake.'],
         trap: 'Dropping an outlier without a reason, or letting one typo (a 20 instead of a 2.0) secretly run the mean.',
         aap: 'AAP: for 2, 3, 3, 4, 4, 5, 20 the median is still 4, but the mean is 41 ÷ 7 ≈ 5.9. Report both and mention the 20.',

@@ -946,5 +946,153 @@
     return root;
   }
 
-  Object.assign(IX, { lineLab, decimalStack, placeShift, fitStrips, ratioTiles });
+  /* ======================= dotPlot =======================
+     { mode:'build'|'read'|'balance'|'outlier', values:[...], min, max, title, unit }
+     build: drop one dot per value from the list (cycle:true adds Ask/Collect/Show/Tell chips, question:'...').
+     read: tap a value to count its dots; ask:4 asks "how many at 4?"; Count all numbers every dot.
+     balance: slide the ▲ until the line balances; it balances at the mean.
+     outlier: toggle the far value and watch the mean and median move (outlier:80). */
+  function dotPlot(opts) {
+    const o = Object.assign({ mode: 'read', values: [2, 4, 4, 4, 6, 6, 8], title: '' }, opts || {});
+    const vals = o.values.slice();
+    const lo = o.min != null ? o.min : Math.min(...vals) - 1, hi = o.max != null ? o.max : Math.max(...vals) + 1;
+    const span = hi - lo, small = span <= 14, R = small ? 8 : 5, GAP = R * 2 + 2;
+    const x0 = 24, x1 = LL_W - 24, pos = (v) => x0 + (v - lo) / span * (x1 - x0);
+    const tick = small ? 1 : span <= 30 ? 2 : 2, lab = small ? 1 : span <= 30 ? 5 : 10;
+    const sum = (a) => a.reduce((s, x) => s + x, 0);
+    const median = (a) => { const b = a.slice().sort((x, y) => x - y), n = b.length; return n % 2 ? b[(n - 1) / 2] : (b[n / 2 - 1] + b[n / 2]) / 2; };
+    const r1 = (x) => trimDec(x.toFixed(1));
+    const root = h('div', 'viz ix ix-col ix-dp');
+    const head = h('div', 'ix-q dp-ask');
+    const stage = h('div', 'll-stage');
+    const pad = h('div', 'ix-ctr dp-pad');
+    const read = h('div', 'ix-read dp-read');
+    const ctl = h('div', 'ix-ctr');
+    const fb = h('div', 'ix-fb', '');
+    [head, stage, pad, read, ctl, fb].forEach((x) => root.appendChild(x));
+    /* draw the plot: shown = values with dots; opts: tilt (deg), fulcrum, marks [{v, cls, label}], faded value, numbered */
+    function plot(shown, d) {
+      d = d || {};
+      const counts = {}; shown.forEach((v) => { counts[v] = (counts[v] || 0) + 1; });
+      const tall = Math.max(1, ...Object.values(counts), d.room || 1);
+      const top = 26 + (o.title ? 18 : 0), Y = top + tall * GAP + 8, H = Y + (d.fulcrum != null ? 64 : d.marks ? 66 : 36);
+      const s = axisSvg(H);
+      if (o.title) txt(s, LL_W / 2, 16, o.title, { 'font-size': '14' });
+      const g = sv('g', { class: 'dp-beam' + (calm() ? ' calm' : '') }, s);
+      if (d.tilt != null) { g.style.transformOrigin = `${pos(d.fulcrum)}px ${Y}px`; g.style.transform = `rotate(${d.tilt}deg)`; }
+      sv('line', { x1: x0 - 8, y1: Y, x2: x1 + 8, y2: Y, stroke: 'var(--ink)', 'stroke-width': '3', 'stroke-linecap': 'round' }, g);
+      for (let v = lo; v <= hi; v++) {
+        if ((v - lo) % tick && v % tick) continue;
+        sv('line', { x1: pos(v), y1: Y - 5, x2: pos(v), y2: Y + 5, stroke: 'var(--ink)', 'stroke-width': '1.6' }, g);
+        if (v % lab === 0 || small) txt(g, pos(v), Y + 21, String(v), { 'font-size': '12.5', fill: d.hot === v ? 'var(--ink)' : 'var(--muted)' });
+      }
+      const seen = {}; let num = 0;
+      shown.slice().sort((a, b) => a - b).forEach((v) => {
+        const i = seen[v] = (seen[v] || 0) + 1, cy = Y - 4 - R - (i - 1) * GAP;
+        const c = sv('circle', { cx: pos(v), cy, r: R, fill: d.faded === v ? 'var(--viz-empty)' : d.hot === v ? 'var(--viz-gold)' : 'var(--viz-blue)', stroke: 'var(--ink)', 'stroke-width': '1.8', class: d.drop === v && i === counts[v] ? 'dp-new' + (calm() ? ' calm' : '') : '' }, g);
+        if (d.faded === v) c.setAttribute('stroke-dasharray', '3 2');
+        if (d.numbered) { num++; txt(g, pos(v), cy + 4, String(num), { 'font-size': small ? '10' : '8', fill: '#fff' }); }
+      });
+      if (d.hot != null && counts[d.hot]) txt(g, pos(d.hot), Y - 4 - counts[d.hot] * GAP - 4, counts[d.hot] + ' dot' + (counts[d.hot] === 1 ? '' : 's'), { 'font-size': '13', fill: 'var(--viz-coral)' });
+      (d.marks || []).forEach((m, i) => {
+        const x = pos(m.v), yy = Y + 30 + i * 18;
+        sv('path', { d: `M ${x - 6} ${yy} L ${x + 6} ${yy} L ${x} ${yy - 9} Z`, fill: m.color, stroke: 'var(--ink)', 'stroke-width': '1.2' }, s);
+        txt(s, x + (x > LL_W - 80 ? -10 : 10), yy, m.label, { 'font-size': '12.5', fill: 'var(--ink)', 'text-anchor': x > LL_W - 80 ? 'end' : 'start' });
+      });
+      if (d.fulcrum != null) {
+        const fx = pos(d.fulcrum);
+        sv('path', { d: `M ${fx} ${Y + 4} L ${fx - 16} ${Y + 32} L ${fx + 16} ${Y + 32} Z`, fill: 'var(--viz-gold)', stroke: 'var(--ink)', 'stroke-width': '2' }, s);
+      }
+      stage.innerHTML = ''; stage.appendChild(s);
+    }
+    const valueButtons = (onTap, cls) => { pad.innerHTML = ''; for (let v = lo; v <= hi; v++) pad.appendChild(btn(String(v), () => onTap(v), 'dp-v' + (cls ? ' ' + cls(v) : ''))); };
+
+    if (o.mode === 'build') {
+      let placed = 0, stage4 = o.cycle ? 0 : 2;
+      const steps = ['Ask', 'Collect', 'Show', 'Tell'];
+      const chips = h('div', 'ix-chips dp-cycle');
+      if (o.cycle) root.insertBefore(chips, head);
+      function draw(drop) {
+        chips.innerHTML = '';
+        steps.forEach((t, i) => chips.appendChild(h('span', 'ix-chip' + (i === stage4 ? ' on dp-on' : ''), `<b>${i + 1}</b> ${t}`)));
+        const list = vals.map((v, i) => `<span class="dp-tally${i < placed ? ' done' : i === placed ? ' now' : ''}">${v}</span>`).join('');
+        ctl.innerHTML = ''; pad.innerHTML = '';
+        if (stage4 === 0) { head.innerHTML = `<b>Ask:</b> ${o.question || 'What do we want to find out?'}`; plot([], { room: 3 }); read.innerHTML = '<div class="ix-note">A data question needs a count or a measure from a group.</div>'; ctl.appendChild(btn('Collect the data ▶', () => { stage4 = 1; draw(); }, 'go')); return; }
+        if (stage4 === 1) { head.innerHTML = '<b>Collect:</b> here is what we found.'; plot([], { room: 3 }); read.innerHTML = `<div class="dp-list">${list}</div>`; ctl.appendChild(btn('Show it on a line plot ▶', () => { stage4 = 2; draw(); }, 'go')); return; }
+        if (placed < vals.length) {
+          head.innerHTML = `<b>Show:</b> tap <b>${vals[placed]}</b> to drop its dot.`;
+          read.innerHTML = `<div class="dp-list">${list}</div>`;
+          plot(vals.slice(0, placed), { drop, room: 3 });
+          valueButtons((v) => {
+            if (v === vals[placed]) { placed++; fb.className = 'ix-fb'; fb.innerHTML = ''; if (placed === vals.length && o.cycle) stage4 = 3; draw(v); }
+            else { fb.className = 'ix-fb no'; fb.innerHTML = `That's ${v}. This value is <b>${vals[placed]}</b>: find ${vals[placed]} on the line.`; }
+          });
+          return;
+        }
+        const counts = {}; vals.forEach((v) => { counts[v] = (counts[v] || 0) + 1; });
+        const most = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+        head.innerHTML = o.cycle ? '<b>Tell:</b> what does the plot show?' : 'All the dots are in.';
+        plot(vals, { hot: +most });
+        read.innerHTML = `<div class="ix-note">${vals.length} values, ${vals.length} dots. The tallest stack is at <b>${most}</b>: ${o.tell || 'the most common value (the mode) is ' + most + '.'}</div>`;
+        ctl.appendChild(btn('↺ Again', () => { placed = 0; stage4 = o.cycle ? 0 : 2; fb.className = 'ix-fb'; fb.innerHTML = ''; draw(); }, 'ghost'));
+      }
+      draw();
+      return root;
+    }
+    if (o.mode === 'read') {
+      let hot = null, numbered = false;
+      function draw() {
+        head.innerHTML = o.ask != null ? `How many are at <b>${o.ask}</b>? Tap ${o.ask} under the line.` : 'Tap a value to count its dots.';
+        plot(vals, { hot, numbered });
+        valueButtons((v) => {
+          hot = v; numbered = false;
+          const n = vals.filter((x) => x === v).length;
+          if (o.ask != null && v === o.ask) { fb.className = 'ix-fb ok'; fb.innerHTML = `Yes: <b>${n} dots</b> above ${v}, so ${n} ${o.unit || 'values'} at ${v}. The height of a stack is a count.`; }
+          else { fb.className = 'ix-fb'; fb.innerHTML = `${n} dot${n === 1 ? '' : 's'} above ${v}.` + (o.ask != null ? ` Now find ${o.ask}.` : ''); }
+          draw();
+        }, (v) => (v === hot ? 'on' : ''));
+        ctl.innerHTML = '';
+        ctl.appendChild(btn('Count all', () => { numbered = true; hot = null; fb.className = 'ix-fb ok'; fb.innerHTML = `${vals.length} dots, so <b>${vals.length}</b> ${o.unit || 'values'} in all. Range: ${Math.max(...vals)} − ${Math.min(...vals)} = ${Math.max(...vals) - Math.min(...vals)}.`; draw(); }, ''));
+      }
+      draw();
+      return root;
+    }
+    if (o.mode === 'balance') {
+      const mean = sum(vals) / vals.length, stepB = Number.isInteger(mean) ? 1 : 0.5;
+      let f = o.start != null ? o.start : lo + 1;
+      function draw() {
+        const left = vals.filter((v) => v < f).map((v) => f - v), right = vals.filter((v) => v > f).map((v) => v - f);
+        const tq = sum(right) - sum(left), tilt = Math.max(-14, Math.min(14, tq * 1.2));
+        head.innerHTML = 'Slide the ▲ until the line balances like a seesaw.';
+        plot(vals, { fulcrum: f, tilt });
+        pad.innerHTML = '';
+        const bl = btn('◀', () => { f = Math.max(lo, f - stepB); draw(); }, ''), br = btn('▶', () => { f = Math.min(hi, f + stepB); draw(); }, '');
+        bl.setAttribute('aria-label', 'Move the balance point left'); br.setAttribute('aria-label', 'Move the balance point right');
+        pad.appendChild(bl); pad.appendChild(h('b', 'dp-f', r1(f))); pad.appendChild(br);
+        read.innerHTML = `<div class="ix-note">Left side pulls ${left.length ? left.join(' + ') + ' = ' + sum(left) : '0'} · Right side pulls ${right.length ? right.join(' + ') + ' = ' + sum(right) : '0'}</div>`;
+        if (tq === 0) { fb.className = 'ix-fb ok'; fb.innerHTML = `Balanced at <b>${r1(f)}</b>! That is the mean: (${vals.join(' + ')}) ÷ ${vals.length} = ${sum(vals)} ÷ ${vals.length} = ${r1(mean)}.`; }
+        else { fb.className = 'ix-fb'; fb.innerHTML = `It tips ${tq > 0 ? 'right' : 'left'}: move the ▲ ${tq > 0 ? 'right' : 'left'}.`; }
+      }
+      draw();
+      return root;
+    }
+    /* outlier */
+    const far = o.outlier != null ? o.outlier : vals.slice().sort((a, b) => Math.abs(b - median(vals)) - Math.abs(a - median(vals)))[0];
+    let incl = true;
+    const rest = vals.slice(); rest.splice(rest.indexOf(far), 1);
+    const mA = sum(vals) / vals.length, mB = sum(rest) / rest.length, dA = median(vals), dB = median(rest);
+    function draw() {
+      head.innerHTML = `Is <b>${far}</b> far from the rest? Toggle it and watch the mean and median.`;
+      const use = incl ? vals : rest;
+      plot(vals, { faded: incl ? null : far, marks: [{ v: incl ? mA : mB, color: 'var(--viz-coral)', label: 'mean ' + r1(incl ? mA : mB) }, { v: incl ? dA : dB, color: 'var(--viz-teal)', label: 'median ' + r1(incl ? dA : dB) }] });
+      void use;
+      ctl.innerHTML = '';
+      ctl.appendChild(btn(incl ? `Take out ${far}` : `Put ${far} back`, () => { incl = !incl; draw(); }, 'go'));
+      read.innerHTML = `<table class="g5t dp-tab"><tr><th></th><th>With ${far}</th><th>Without</th></tr><tr><th>mean</th><td>${r1(mA)}</td><td>${r1(mB)}</td></tr><tr><th>median</th><td>${r1(dA)}</td><td>${r1(dB)}</td></tr></table><div class="ix-note">The mean moved ${r1(Math.abs(mA - mB))}; the median moved ${r1(Math.abs(dA - dB))}. One far value pulls the mean much more than the median.</div>`;
+    }
+    draw();
+    return root;
+  }
+
+  Object.assign(IX, { lineLab, decimalStack, placeShift, fitStrips, ratioTiles, dotPlot });
 })(window);

@@ -1811,3 +1811,17 @@ html[data-theme="dark"] .ix-btn.ps-unit.on{background:var(--teal);border-color:v
 .rt-table td.unit{background:color-mix(in srgb,var(--viz-gold) 30%,transparent)}
 .rt-table td.blank{outline:3px dashed var(--viz-coral);outline-offset:-4px}
 .ix-btn.rt-ch{font-family:var(--mono);font-size:20px;min-width:60px}
+/* dotPlot */
+.ix-btn.dp-v{font-family:var(--mono);min-width:38px;padding:6px 8px}
+.dp-pad{gap:4px}
+.dp-list{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+.dp-tally{font-family:var(--mono);font-weight:800;font-size:18px;border:2px solid var(--line);border-radius:10px;padding:2px 10px}
+.dp-tally.done{opacity:.4;text-decoration:line-through}
+.dp-tally.now{border-color:var(--viz-gold);box-shadow:0 0 0 3px color-mix(in srgb,var(--viz-gold) 45%,transparent)}
+.ix-chip.dp-on{background:#ffd45c}
+.dp-beam{transition:transform .5s ease}.dp-beam.calm{transition:none}
+.dp-new{animation:dpdrop .35s ease-out}.dp-new.calm{animation:none}
+@keyframes dpdrop{from{transform:translateY(-24px);opacity:0}}
+.dp-f{font-family:var(--mono);font-size:22px;min-width:3ch;text-align:center}
+.dp-read{text-align:center}.dp-tab{margin:4px auto}.dp-tab td{text-align:center!important;font-family:var(--mono)}
+@media (prefers-reduced-motion:reduce){.dp-beam{transition:none}.dp-new{animation:none}}
