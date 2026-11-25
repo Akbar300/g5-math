@@ -703,6 +703,7 @@
         ]
       },
       'Thirds repeat': {
+        watch: { id: 'thirds', n: 1 },
         viz: () => (w.IX ? w.IX.stack(w.IX.stepper('div', { a: 1000, b: 3, dp: 3, own: false }), ixBar({ d: 3, n: 1, dens: [3, 6, 9, 2, 4], fill: '#ff5a36', tip: 'Thirds, sixths and ninths repeat. Halves and fourths stop.' })) : ixBar({ d: 3, n: 1, dens: [3, 6, 9, 2, 4], fill: '#ff5a36' })),
         steps: [fr(1, 3) + ' means 1 ÷ 3. Divide 1.000 by 3 and watch the remainder: it is 1 every time.', fr(1, 3) + ' = 0.333… (the 3s keep going) and ' + fr(2, 3) + ' = 0.666… (the 6s keep going).', 'A bar over the repeating digit is a precise way to write it. On a test you can give the fraction or three decimal digits.'],
         trap: '0.3 is 3 tenths, which is a little less than ' + fr(1, 3) + '. Do not stop at one digit and call it exact.',

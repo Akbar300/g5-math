@@ -852,6 +852,7 @@
                       </tbody>
                     </table></div>`
                 + V.numberLine(0, 1, [{ pos: 1 / 3, label: '1/3', color: '#ff5a36' }, { pos: 2 / 3, label: '2/3', color: '#2f80ed' }]),
+              watch: { id: 'thirds', n: 1 },
               try: () => genThird(),
               remember: 'Eighths end (0.125, 0.375…). Thirds repeat. Both are still exact fractions.'
             }

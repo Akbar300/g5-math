@@ -43,6 +43,7 @@ EX.register('my-id', {
 | --- | --- | --- |
 | `scale100` | explain.js | n/d → hundredths → decimal → percent (friendly denominators) |
 | `eighths` | explain.js | eighths by halving, count by 0.125, anchor trick |
+| `thirds` | thirds.js | 1/3 or 2/3 as n ÷ 3 on a bar, divide n.000 by 3 (same leftover every time), repeat bar, zoom trap (0.3 or the student's answer stops short), eighths stop vs thirds repeat |
 | `pctof` | percent.js | percent of a number on a percent bar: the whole is 100% and n, cut into equal parts (halves, fourths, fifths, tenths, or tenths + 5%), shade and count up, multiplication check, trap (the percent itself, the unshaded part, more than the whole) |
 | `round` | round.js | round to the nearest whole, tenth, hundredth: place + decider, keep or bump, zoom number line, rule, 9 rollover, don't round twice, trap, clean finish |
 | `tri-area` | geometry.js | why A = ½ × b × h: rectangle, cut corner to corner, turn one half onto the other, any triangle (opt. `any`), rule, trap |
