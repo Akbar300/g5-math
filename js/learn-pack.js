@@ -355,8 +355,8 @@
         ]
       },
       'Compatible numbers for division': {
-        viz: () => V.cycleSteps(['4785 ≈ 4800', '61 ≈ 60', '4800 ÷ 60 = 80']),
-        steps: ['Look for nearby numbers that divide cleanly.', '4785 is near 4800, 61 is near 60.', '4800 ÷ 60 = 80. Use that as a check on every digit of the quotient.'],
+        viz: () => V.cycleSteps(['3196 ≈ 3200', '38 ≈ 40', '3200 ÷ 40 = 80']),
+        steps: ['Look for nearby numbers that divide cleanly.', '3196 is near 3200, 38 is near 40.', '3200 ÷ 40 = 80. The exact answer, 84 R4, is close, so it checks out.'],
         trap: 'Rounding both numbers up (or both down) can push the estimate the same way. Watch the size.',
         aap: 'AAP: 8124 ÷ 28. Compatible: 8400 ÷ 28 = 300, or 8100 ÷ 27 = 300. The exact quotient should be near 300.',
         tries: [
@@ -514,7 +514,7 @@
     },
     u3B3: {
       'Other bases grow fast': {
-        viz: () => V.cycleSteps(['2⁴ = 16', '2⁵ = 32', '2⁶ = 64']),
+        viz: () => V.cycleSteps(['2⁶ = 64', '2⁷ = 128', '2⁸ = 256']),
         steps: ['Base 10 only adds zeros. Other bases need the repeated multiplication.', 'Each time the exponent goes up by 1, multiply by the base once more: 2⁴ = 16, 2⁵ = 32, 2⁶ = 64, 2⁷ = 128, 2⁸ = 256.', 'Swapping base and exponent changes the value: 3⁵ = 243 but 5³ = 125.'],
         trap: 'Thinking a power is a product: 3⁵ is not 15.',
         tries: [
