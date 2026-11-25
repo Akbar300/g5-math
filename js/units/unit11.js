@@ -42,7 +42,7 @@ var bridge = {
   title:'Go Further: all four quadrants', tab:'🚀 Go Further',
   intro:'Advanced Unit 4 uses the <b>whole</b> coordinate plane, with negative numbers on both axes.',
   lessons:[{id:'u11B1', name:'Four quadrants', icon:'🗺️', cards:[
-    {t:'Negatives go left and down', h:plane([[3, 2, 'A'], [-4, 3, 'B'], [-2, -5, 'C'], [5, -3, 'D']], true) + L.tbl(['Quadrant','Signs'], [['I','(+, +)'],['II','(−, +)'],['III','(−, −)'],['IV','(+, −)']])},
+    {t:'Negatives go left and down', h:V.plane([{x:3, y:2, label:'A'}, {x:-3, y:2, label:'B'}, {x:-3, y:-4, label:'C'}, {x:5, y:-3, label:'D'}], {quad:true, n:6, qlabels:true}) + '<p class="cp-qnote">Start in the top right with <b>I</b> and go <b>counterclockwise</b>: II, III, IV.</p>' + L.tbl(['Quadrant','Signs'], [['I','(+, +)'],['II','(−, +)'],['III','(−, −)'],['IV','(+, −)']])},
     {t:'Your turn', h:'', tr:bg.quad.f()}
   ]}],
   gens:bg, repIds:['quad'],

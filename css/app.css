@@ -1641,7 +1641,7 @@ html[data-theme="dark"]{--gv-green:#8ae03a;--gv-ct:#1f4a5f;--gv-cl:#143546;--gv-
 .ex-end[hidden]{display:none}
 .ex-end .btn{min-height:48px;font-size:18px;padding:10px 18px}
 .ex-xp{font-weight:800;color:var(--muted);font-family:var(--display)}
-/* Watch it on phones (under 700 px, incl. iPhone Pro Max at 428 px): full screen, icon-only controls */
+/* Watch it on phones (under 700 px, incl. iPhone Pro Max at 428 px): plays in place with icon-only controls (the .wm rules only apply if a pop-out is ever opened) */
 @media (max-width:699px){
   .wm-back{padding:0;align-items:stretch}
   .wm{width:100vw;min-width:0;height:100dvh;max-height:none;border:0;border-radius:0;
@@ -1959,3 +1959,14 @@ html[data-theme="dark"] .ix-btn.ps-unit.on{background:var(--teal);border-color:v
   .wm-body .ex-stage{aspect-ratio:auto;height:clamp(200px,calc(100dvh - 450px),660px)}
   .wm-body{width:min(100%,1100px)}
 }
+
+/* Coordinate plane: named quadrants (V.plane qlabels) */
+.cp-q{opacity:.16;pointer-events:none}
+.cp-q.q1{fill:#0fb39c}.cp-q.q2{fill:#5b8cff}.cp-q.q3{fill:#ff8a5b}.cp-q.q4{fill:#f2c94c}
+.cp-qn{font-family:var(--display);font-weight:800;font-size:17px;paint-order:stroke;stroke:var(--card);stroke-width:3px}
+.cp-qs{font-family:var(--mono,monospace);font-weight:700;font-size:11px;paint-order:stroke;stroke:var(--card);stroke-width:3px}
+.cp-qn.q1,.cp-qs.q1{fill:#0b9c88}.cp-qn.q2,.cp-qs.q2{fill:#4a76e0}.cp-qn.q3,.cp-qs.q3{fill:#e0663a}.cp-qn.q4,.cp-qs.q4{fill:#b8901c}
+[data-theme="dark"] .cp-qn.q1,[data-theme="dark"] .cp-qs.q1{fill:#5fe0c8}[data-theme="dark"] .cp-qn.q2,[data-theme="dark"] .cp-qs.q2{fill:#8fb0ff}
+[data-theme="dark"] .cp-qn.q3,[data-theme="dark"] .cp-qs.q3{fill:#ffa47d}[data-theme="dark"] .cp-qn.q4,[data-theme="dark"] .cp-qs.q4{fill:#f2d06b}
+[data-theme="dark"] .cp-q{opacity:.22}
+.cp-qnote{text-align:center;margin:6px 0}

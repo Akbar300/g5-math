@@ -295,6 +295,18 @@
     const lo = G.lo, n = G.n, x0 = G.px(lo), x1 = G.px(n), y0 = G.py(lo), y1 = G.py(n);
     s.appendChild(el('rect', { x: x0, y: y1, width: x1 - x0, height: y0 - y1, class: 'cp-bg', rx: 3 }));
     const step = G.c < 22 ? 2 : 1;
+    /* qlabels: tint the four quadrants and name each one (with its signs) right on the grid. */
+    const qlab = [];
+    if (o.quad && o.qlabels) {
+      [['I', '(+, +)', 1, 1, 'q1'], ['II', '(−, +)', -1, 1, 'q2'], ['III', '(−, −)', -1, -1, 'q3'], ['IV', '(+, −)', 1, -1, 'q4']].forEach(function (q) {
+        const qx = q[2] > 0 ? G.ox : x0, qy = q[3] > 0 ? y1 : G.oy;
+        s.appendChild(el('rect', { x: qx, y: qy, width: G.ox - x0, height: G.oy - y1, class: 'cp-q ' + q[4] }));
+        const cx = q[2] > 0 ? x1 - 6 : x0 + 6, anchor = q[2] > 0 ? 'end' : 'start';
+        const ty = q[3] > 0 ? y1 + 22 : y0 - 22;
+        qlab.push(el('text', { x: cx, y: ty, class: 'cp-qn ' + q[4], 'text-anchor': anchor }, [q[0]]));
+        qlab.push(el('text', { x: cx, y: ty + 15, class: 'cp-qs ' + q[4], 'text-anchor': anchor }, [q[1]]));
+      });
+    }
     for (let i = lo; i <= n; i++) {
       if (i === 0) continue;
       const cls = (i % (o.quad ? 5 : 5) === 0) ? 'cp-major' : 'cp-minor';
@@ -327,6 +339,7 @@
       /* The origin gets one 0, tucked below-left of the corner. */
       s.appendChild(el('text', { x: G.ox - 6, y: G.oy + 15, class: 'cp-num cp-zero', 'text-anchor': 'end' }, ['0']));
     }
+    qlab.forEach(function (t) { s.appendChild(t); });
     const layer = el('g', { class: 'cp-pts' });
     (points || []).forEach((pt) => addPoint(layer, G, pt, o.guide || pt.guide));
     s.appendChild(layer);
@@ -356,9 +369,9 @@
     }
   }
 
-  function plane(points, { quad = false, n, guide = false } = {}) {
+  function plane(points, { quad = false, n, guide = false, qlabels = false } = {}) {
     if (n == null) n = quad ? 6 : 8;
-    return wrap(planeSVG(points, { quad, n, guide }));
+    return wrap(planeSVG(points, { quad, n, guide, qlabels }));
   }
 
   function angle(deg, { label } = {}) {

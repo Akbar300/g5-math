@@ -625,7 +625,7 @@
     let box = null;
     const popts = () => ({ scroll: true, speech: w.EXSpeech || null, big: !!w.EX_POPOUT, tryIt: opts.tryIt, onFinish: opts.onFinish });
     b.addEventListener('click', () => {
-      if (w.EX_POPOUT && w.EXModal) {           /* pop out: centered on big screens, full screen on phones */
+      if (w.EX_POPOUT && w.EXModal && (!w.EXModal.wide || w.EXModal.wide())) {   /* pop out full screen on wide screens; phones play in place (icon-only controls) */
         const spec = build(o); if (!spec) return;
         w.EXModal.open(spec, b, Object.assign(popts(), { scroll: false, tryIt: opts.tryIt ? () => { w.EXModal.close(); opts.tryIt(); } : null }));
         return;
