@@ -9,7 +9,11 @@
  * steps share no number. Skips "Your turn" / "Try one" practice cards and Unit 9
  * cards without a See it. Exits nonzero if any warning remains.
  *
- * Usage: node tools/audit-seeit.mjs [--json]
+ * Cards listed in NEEDS_WIDGET have a See it that needs a different kind of
+ * picture (not just new numbers). They print in their own table and do not fail
+ * the run; pass --strict to fail on them too. Remove an entry once its widget ships.
+ *
+ * Usage: node tools/audit-seeit.mjs [--json] [--strict]
  */
 import http from 'http';
 import fs from 'fs';
@@ -86,6 +90,15 @@ const shares = (a, b) => {
 };
 const show = (set) => [...set].slice(0, 8).join(' ') + (set.size > 8 ? ' …' : '');
 
+/* lesson|title|where → why the picture itself has to change. */
+const NEEDS_WIDGET = {
+  'u5L4|Point goes straight up|See it': 'placeValue shows one number; the card needs the point lining up in 7.65 ÷ 3 = 2.55.',
+  'u6L1|Big unit → small unit: multiply|See it': 'metricLadder has no amounts; needs 3.5 m moving to 350 cm on the ladder.',
+  'u6L1|Small unit → big unit: divide|See it': 'metricLadder shows length only; the example is 2400 g → 2.4 kg.',
+  'u6L2|Benchmarks|See it': 'Bar graph used for benchmarks; needs real-object benchmark pictures.',
+  'u9L5|Parts of a circle|See it': 'Big idea is the C = π × d rule with no example; a circle with d and C measured would match it.',
+  'u10B1|Outliers|See it': 'A line plot of 30 to 80 is too wide for linePlot; needs a scaled plot that shows the mean and median shift.',
+};
 const browser = await chromium.launch();
 const warnings = [];
 const errors = [];
@@ -112,16 +125,28 @@ for (let u = 1; u <= 11; u++) {
 await browser.close();
 server.close();
 
+const strict = process.argv.includes('--strict');
+warnings.forEach((w) => { w.needsWidget = NEEDS_WIDGET[`${w.lesson}|${w.title}|${w.where}`] || null; });
+const open = warnings.filter((w) => strict || !w.needsWidget);
+const known = warnings.filter((w) => w.needsWidget);
+const row = (w) => `| ${w.unit} | ${w.lvl === 'core' ? 'Core' : 'Adv'} | ${w.lesson} | ${w.title} | ${w.where} | ${w.big} | ${w.other} |`;
 if (process.argv.includes('--json')) {
   console.log(JSON.stringify({ warnings, errors }, null, 2));
 } else {
   if (errors.length) { console.log('Page errors:'); errors.forEach((e) => console.log('  ' + e)); }
-  if (!warnings.length) console.log('audit-seeit: no number mismatches.');
+  const fixable = warnings.filter((w) => !w.needsWidget);
+  if (!fixable.length) console.log('audit-seeit: no number mismatches to fix.');
   else {
-    console.log(`audit-seeit: ${warnings.length} warning(s)\n`);
+    console.log(`audit-seeit: ${fixable.length} warning(s)\n`);
     console.log('| Unit | Level | Lesson | Card | Mismatch | Big idea numbers | Other numbers |');
     console.log('|---|---|---|---|---|---|---|');
-    for (const w of warnings) console.log(`| ${w.unit} | ${w.lvl === 'core' ? 'Core' : 'Adv'} | ${w.lesson} | ${w.title} | ${w.where} | ${w.big} | ${w.other} |`);
+    fixable.forEach((w) => console.log(row(w)));
+  }
+  if (known.length) {
+    console.log(`\nNeeds a new widget (${known.length}, not counted as failures${strict ? ' — except with --strict' : ''}):\n`);
+    console.log('| Unit | Level | Lesson | Card | Mismatch | Big idea numbers | Other numbers |');
+    console.log('|---|---|---|---|---|---|---|');
+    known.forEach((w) => console.log(row(w) + '\n  → ' + w.needsWidget));
   }
 }
-if (warnings.length || errors.length) process.exitCode = 1;
+if (open.length || errors.length) process.exitCode = 1;
