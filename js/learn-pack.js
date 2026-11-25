@@ -153,8 +153,8 @@
     },
     u2L2: {
       'Two kinds of numbers': {
-        viz: () => V.numberLine(0, 12, [{ pos: 1, label: 'neither' }, { pos: 7, label: 'prime' }, { pos: 9, label: 'composite' }]),
-        steps: ['A prime has exactly two factors: 1 and itself (7: 1 and 7).', 'A composite has more than two factors (9: 1, 3, 9).', 'The number 1 is neither prime nor composite.'],
+        viz: () => V.numberLine(0, 12, [{ pos: 1, label: 'neither' }, { pos: 7, label: 'prime' }, { pos: 12, label: 'composite' }]),
+        steps: ['A prime has exactly two factors: 1 and itself (7: 1 and 7).', 'A composite has more than two factors (12: 1, 2, 3, 4, 6, 12).', 'The number 1 is neither prime nor composite.'],
         trap: 'Odd does not mean prime. 9, 15, 21, 25, 27, 35, 45, 49, and 51 are all composite.',
         aap: 'AAP: is 91 prime? 91 = 7 × 13, so it is composite — a frequent challenge number.',
         tries: [
@@ -287,7 +287,7 @@
         ]
       },
       'Story to equation': {
-        viz: () => V.barGraph(['Start n', 'Plus 15', 'Total 42'], [27, 15, 42], { title: 'Pages read', color: '#2f80ed' }),
+        viz: () => V.barGraph(['Start p', 'Plus 15', 'Total 42'], [27, 15, 42], { title: 'Pages read', color: '#2f80ed' }),
         steps: ['“Some pages, then 15 more, 42 in all.”', 'Write p + 15 = 42.', 'Opposite operation: p = 42 − 15 = 27.'],
         trap: 'If the story says “got more,” do not start with subtraction in the equation. Subtract when you solve.',
         aap: 'AAP: “4 bags with n apples each make 36.” The equation is 4 × n = 36, so n = 9. Match the operation to the story.',
@@ -299,8 +299,8 @@
     },
     u2B1: {
       'Greatest common factor': {
-        viz: () => V.cycleSteps(['12: 1,2,3,4,6,12', '18: 1,2,3,6,9,18', 'GCF 6']),
-        steps: ['List the factors of each number.', 'Circle the factors they share.', 'The greatest one is the GCF.'],
+        viz: () => V.cycleSteps(['18: 1,2,3,6,9,18', '24: 1,2,3,4,6,8,12,24', 'GCF 6']),
+        steps: ['List the factors of each number: 18 has 1, 2, 3, 6, 9, 18 and 24 has 1, 2, 3, 4, 6, 8, 12, 24.', 'Circle the factors they share: 1, 2, 3, 6.', 'The greatest one is the GCF: 6.'],
         trap: 'Do not confuse GCF with LCM. The GCF is a factor (it divides both). The LCM is a multiple (both divide it).',
         aap: 'AAP: GCF(24, 36, 60). Shared factors include 12. For three numbers, check the candidate on all three.',
         tries: [
