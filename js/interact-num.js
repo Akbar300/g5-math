@@ -1094,5 +1094,80 @@
     return root;
   }
 
-  Object.assign(IX, { lineLab, decimalStack, placeShift, fitStrips, ratioTiles, dotPlot });
+  /* ======================= mixedPiles =======================
+     { op:'+', a:{w:2,n:3,d:4}, b:{w:1,n:1,d:2} } or { op:'−', a:{w:5,n:1,d:8}, b:{w:2,n:5,d:8} }.
+     Two trays: wholes and parts. Rename to same-size pieces, trade a full set of parts for a whole (add),
+     or borrow a whole as parts before taking away (subtract). */
+  function mixedPiles(opts) {
+    const o = Object.assign({ op: '+', a: { w: 2, n: 3, d: 4 }, b: { w: 1, n: 1, d: 2 } }, opts || {});
+    const sub = o.op === '−' || o.op === '-', A = o.a, B = o.b;
+    const D = A.d * B.d / gcd(A.d, B.d), pa = A.n * D / A.d, pb = B.n * D / B.d;
+    const mixed = (w, n, d) => { const g = gcd(n, d); return n === 0 ? `<b>${w}</b>` : `${w ? '<b>' + w + '</b>' : ''}${fr(n, d)}${g > 1 ? ' = ' + (w ? '<b>' + w + '</b>' : '') + fr(n / g, d / g) : ''}`; };
+    const show = (x) => `${x.w}${fr(x.n, x.d)}`;
+    let renamed = A.d === B.d, traded = false, borrowed = false, taken = false;
+    const root = h('div', 'viz ix ix-col ix-mp');
+    const head = h('div', 'll-expr mp-expr', `${show(A)} ${sub ? '−' : '+'} ${show(B)}`);
+    const trays = h('div', 'mp-trays');
+    const read = h('div', 'ix-read mp-read');
+    const ctl = h('div', 'ix-ctr');
+    const fb = h('div', 'ix-fb', '');
+    [head, trays, read, ctl, fb].forEach((x) => root.appendChild(x));
+    const piece = (d, cls) => { const e = h('i', 'mp-p ' + cls); e.style.setProperty('--pw', String(1 / d)); return e; };
+    function tray(name, kids) { const t = h('div', 'mp-tray'); t.appendChild(h('div', 'mp-tlab', name)); const b = h('div', 'mp-tb'); kids.forEach((k) => b.appendChild(k)); t.appendChild(b); return t; }
+    function draw() {
+      trays.innerHTML = ''; ctl.innerHTML = '';
+      const W = [], P = [];
+      if (!sub) {
+        for (let i = 0; i < A.w; i++) W.push(h('span', 'mp-w ca', '1'));
+        for (let i = 0; i < B.w; i++) W.push(h('span', 'mp-w cb', '1'));
+        if (traded) W.push(h('span', 'mp-w traded', '1'));
+        const na = renamed ? pa : A.n, da = renamed ? D : A.d, nb = renamed ? pb : B.n, db = renamed ? D : B.d;
+        let skip = traded ? D : 0;
+        for (let i = 0; i < na; i++) { if (skip > 0) { skip--; continue; } P.push(piece(da, 'ca')); }
+        for (let i = 0; i < nb; i++) { if (skip > 0) { skip--; continue; } P.push(piece(db, 'cb')); }
+        trays.appendChild(tray('Wholes', W)); trays.appendChild(tray('Parts', P.length ? P : [h('span', 'mp-none', '0')]));
+        const wsum = A.w + B.w, psum = pa + pb;
+        if (!renamed) {
+          read.innerHTML = `<div class="ix-eq">Wholes: ${A.w} + ${B.w} = ${wsum}</div><div class="ix-note">Parts: ${fr(A.n, A.d)} + ${fr(B.n, B.d)}: the pieces are not the same size yet.</div>`;
+          ctl.appendChild(btn(`Cut all parts into ${D}ths`, () => { renamed = true; draw(); }, 'go'));
+        } else if (psum >= D && !traded) {
+          read.innerHTML = `<div class="ix-eq">Wholes: ${wsum} · Parts: ${fr(pa, D)} + ${fr(pb, D)} = ${fr(psum, D)}</div><div class="ix-note">${fr(psum, D)} is more than 1 whole: ${D} pieces make ${fr(D, D)} = 1.</div>`;
+          ctl.appendChild(btn(`Trade ${D}/${D} for 1 whole`, () => { traded = true; draw(); }, 'go mp-glow'));
+        } else {
+          const wf = wsum + (traded ? 1 : 0), pf = psum - (traded ? D : 0);
+          read.innerHTML = `<div class="ix-eq">${show(A)} + ${show(B)} = ${mixed(wf, pf, D)}</div><div class="ix-note">Wholes with wholes, parts with parts${traded ? ', and a full set of parts became 1 whole' : ''}.</div>`;
+          ctl.appendChild(btn('↺ Again', () => { renamed = A.d === B.d; traded = false; draw(); }, 'ghost'));
+        }
+        return;
+      }
+      /* subtract: only the first number is in the trays; the second is taken away */
+      const wA = A.w - (borrowed ? 1 : 0), nA = (renamed ? pa : A.n) + (borrowed ? (renamed ? D : A.d) : 0), dA = renamed ? D : A.d;
+      for (let i = 0; i < wA; i++) W.push(h('span', 'mp-w ca' + (taken && i >= wA - B.w ? ' gone' : ''), '1'));
+      if (borrowed) W.push(h('span', 'mp-w broke', '1 → ' + fr(dA, dA)));
+      const takeN = renamed ? pb : B.n;
+      for (let i = 0; i < nA; i++) P.push(piece(dA, (borrowed && i >= nA - dA ? 'cb' : 'ca') + (taken && i < takeN ? ' gone' : '')));
+      trays.appendChild(tray('Wholes', W)); trays.appendChild(tray('Parts', P));
+      if (!renamed) {
+        read.innerHTML = `<div class="ix-note">Take away ${show(B)}. The parts are not the same size yet.</div>`;
+        ctl.appendChild(btn(`Cut into ${D}ths`, () => { renamed = true; draw(); }, 'go'));
+        return;
+      }
+      if (taken) {
+        const wf = wA - B.w, pf = nA - pb;
+        read.innerHTML = `<div class="ix-eq">${show(A)} − ${show(B)} = ${mixed(wf, pf, D)}</div><div class="ix-note">${borrowed ? `We traded 1 whole for ${fr(D, D)}, so ${show(A)} became ${A.w - 1}${fr(nA, D)}. ` : ''}Then wholes minus wholes, parts minus parts.</div>`;
+        ctl.appendChild(btn('↺ Again', () => { renamed = A.d === B.d; borrowed = false; taken = false; fb.className = 'ix-fb'; fb.innerHTML = ''; draw(); }, 'ghost'));
+        return;
+      }
+      read.innerHTML = `<div class="ix-eq">Parts: ${fr(nA, D)} − ${fr(pb, D)}?</div><div class="ix-note">${nA < pb ? `${fr(nA, D)} is too small to take ${fr(pb, D)} from.` : `There are enough parts to take ${fr(pb, D)}.`}</div>`;
+      if (nA < pb) ctl.appendChild(btn(`Borrow 1 whole = ${D}/${D}`, () => { borrowed = true; fb.className = 'ix-fb'; fb.innerHTML = ''; draw(); }, 'go mp-glow'));
+      ctl.appendChild(btn(`Take away ${B.w} ${B.n}/${B.d}`, () => {
+        if (nA < pb) { fb.className = 'ix-fb no'; fb.innerHTML = `Only ${fr(nA, D)} in the parts tray, and you need to take ${fr(pb, D)}. <b>Borrow 1 whole</b> first: it becomes ${fr(D, D)}.`; return; }
+        taken = true; fb.className = 'ix-fb'; fb.innerHTML = ''; draw();
+      }, nA < pb ? 'ghost' : 'go'));
+    }
+    draw();
+    return root;
+  }
+
+  Object.assign(IX, { lineLab, decimalStack, placeShift, fitStrips, ratioTiles, dotPlot, mixedPiles });
 })(window);

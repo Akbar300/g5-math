@@ -1117,7 +1117,7 @@
     },
     u8L2: {
       'Wholes with wholes, parts with parts': {
-        viz: () => V.fractionBar(3, 4, { fill: '#0fb39c', label: '3/4 + 2/4 = 5/4 = 1 1/4' }),
+        viz: () => ix('mixedPiles', { op: '+', a: { w: 2, n: 3, d: 4 }, b: { w: 1, n: 1, d: 2 } }),
         steps: ['Add (or subtract) the whole numbers, then the fractions.', 'If the fractions need a common denominator, rename them first.', mixed(2, 3, 4) + ' + ' + mixed(1, 1, 2) + ': wholes 2 + 1 = 3, parts ' + fr(3, 4) + ' + ' + fr(2, 4) + ' = ' + fr(5, 4) + ' = ' + mixed(1, 1, 4) + ', so ' + mixed(4, 1, 4) + '.'],
         trap: 'Adding the whole to the numerator (2 1/2 as 3/2 is right, but 2 1/2 as 21/2 is a place-value slip).',
         aap: 'AAP: convert to improper fractions when it is cleaner: ' + mixed(2, 1, 3) + ' = ' + fr(7, 3) + '.',
@@ -1127,7 +1127,7 @@
         ]
       },
       'Subtracting with regrouping': {
-        viz: () => V.fractionBar(1, 8, { fill: '#0fb39c', label: '1/8 is too small: 5 1/8 = 4 9/8' }),
+        viz: () => ix('mixedPiles', { op: '−', a: { w: 5, n: 1, d: 8 }, b: { w: 2, n: 5, d: 8 } }),
         steps: ['If the top fraction is too small, regroup one whole as a fraction.', mixed(5, 1, 8) + ' − ' + mixed(2, 5, 8) + ': trade 1 whole for 8/8, so ' + mixed(4, 9, 8) + ' − ' + mixed(2, 5, 8) + ' = ' + mixed(2, 4, 8) + ' = ' + mixed(2, 1, 2) + '.'],
         trap: 'Subtracting the smaller fraction from the larger one regardless of order (3/4 − 1/4 the wrong way).',
         aap: 'AAP: 3 − 1 2/5 = 2 5/5 − 1 2/5 = 1 3/5. A whole number may need a regroup too.',
