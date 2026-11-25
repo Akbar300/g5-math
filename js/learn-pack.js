@@ -1106,18 +1106,18 @@
     },
     u8L2: {
       'Wholes with wholes, parts with parts': {
-        viz: () => V.fractionBar(5, 2, { fill: '#0fb39c', label: '2 1/2 = 5/2' }),
-        steps: ['Add (or subtract) the whole numbers, then the fractions.', 'If the fractions need a common denominator, rename them first.', mixed(1, 1, 2) + ' + ' + mixed(1, 1, 4) + ' = 2 + ' + fr(3, 4) + ' = ' + mixed(2, 3, 4) + '.'],
+        viz: () => V.fractionBar(3, 4, { fill: '#0fb39c', label: '3/4 + 2/4 = 5/4 = 1 1/4' }),
+        steps: ['Add (or subtract) the whole numbers, then the fractions.', 'If the fractions need a common denominator, rename them first.', mixed(2, 3, 4) + ' + ' + mixed(1, 1, 2) + ': wholes 2 + 1 = 3, parts ' + fr(3, 4) + ' + ' + fr(2, 4) + ' = ' + fr(5, 4) + ' = ' + mixed(1, 1, 4) + ', so ' + mixed(4, 1, 4) + '.'],
         trap: 'Adding the whole to the numerator (2 1/2 as 3/2 is right, but 2 1/2 as 21/2 is a place-value slip).',
         aap: 'AAP: convert to improper fractions when it is cleaner: ' + mixed(2, 1, 3) + ' = ' + fr(7, 3) + '.',
         tries: [
-          () => mc('What is ' + mixed(1, 1, 2) + ' + ' + mixed(1, 1, 4) + '?', mixed(2, 3, 4), [[mixed(2, 2, 6), 'Do not add the denominators.'], [mixed(2, 1, 6), 'Common denominator 4: 2/4 + 1/4 = 3/4.'], ['3', 'A little less than 3: 2 and 3/4.']], 'Wholes: 2. Parts: 1/2 + 1/4 = 3/4.'),
-          () => num('How many halves are in ' + mixed(2, 1, 2) + '?', 5, mixed(2, 1, 2) + ' = 5/2, so five halves.')
+          () => mc('What is ' + mixed(2, 3, 4) + ' + ' + mixed(1, 1, 2) + '?', mixed(4, 1, 4), [[mixed(3, 4, 6), 'Do not add the denominators.'], [mixed(3, 1, 4), '5/4 is more than a whole: move 1 whole to the whole pile.'], ['4', 'A little more than 4: 4 and 1/4.']], 'Wholes: 3. Parts: 3/4 + 2/4 = 5/4 = 1 1/4. Total 4 1/4.'),
+          () => num('How many fourths are in ' + mixed(2, 3, 4) + '?', 11, mixed(2, 3, 4) + ' = 8/4 + 3/4 = 11/4, so eleven fourths.')
         ]
       },
       'Subtracting with regrouping': {
-        viz: () => V.fractionBar(7, 4, { fill: '#0fb39c', label: '1 3/4 = 7/4' }),
-        steps: ['If the top fraction is too small, regroup one whole as a fraction.', mixed(2, 1, 4) + ' − ' + fr(3, 4) + ': trade 1 whole for 4/4, so ' + mixed(1, 5, 4) + ' − ' + fr(3, 4) + ' = ' + mixed(1, 2, 4) + ' = ' + mixed(1, 1, 2) + '.'],
+        viz: () => V.fractionBar(1, 8, { fill: '#0fb39c', label: '1/8 is too small: 5 1/8 = 4 9/8' }),
+        steps: ['If the top fraction is too small, regroup one whole as a fraction.', mixed(5, 1, 8) + ' − ' + mixed(2, 5, 8) + ': trade 1 whole for 8/8, so ' + mixed(4, 9, 8) + ' − ' + mixed(2, 5, 8) + ' = ' + mixed(2, 4, 8) + ' = ' + mixed(2, 1, 2) + '.'],
         trap: 'Subtracting the smaller fraction from the larger one regardless of order (3/4 − 1/4 the wrong way).',
         aap: 'AAP: 3 − 1 2/5 = 2 5/5 − 1 2/5 = 1 3/5. A whole number may need a regroup too.',
         tries: [
@@ -1128,12 +1128,12 @@
     },
     u8L3: {
       'Groups of a fraction': {
-        viz: () => V.fractionBar(3, 4, { fill: '#0fb39c', label: '3 × 1/4 = 3/4' }),
-        steps: ['4 × ' + fr(1, 3) + ' means four groups of one third: ' + fr(4, 3) + ' = ' + mixed(1, 1, 3) + '.', 'A whole times a fraction: multiply the whole by the numerator, keep the denominator.', '3 × ' + fr(2, 5) + ' = ' + fr(6, 5) + ' = ' + mixed(1, 1, 5) + '.'],
-        trap: 'Multiplying both the numerator and the denominator by the whole (3 × 2/5 = 6/15) makes the amount smaller, not larger.',
+        viz: () => V.fractionBar(2, 3, { fill: '#0fb39c', label: '6 groups of 2/3 = 12/3 = 4' }),
+        steps: ['6 × ' + fr(2, 3) + ' means six groups of two thirds.', 'A whole times a fraction: multiply the whole by the numerator, keep the denominator.', '6 × ' + fr(2, 3) + ' = ' + fr(12, 3) + ' = 4.'],
+        trap: 'Multiplying both the numerator and the denominator by the whole (6 × 2/3 = 12/18) makes the amount smaller, not larger.',
         aap: 'AAP: 10 × 3/5 = 30/5 = 6. A friendly denominator lets the whole cancel.',
         tries: [
-          () => mc('What is 3 × ' + fr(2, 5) + '?', mixed(1, 1, 5), [[fr(6, 15), 'Multiply only the numerator by 3.'], [fr(5, 6), 'That flipped and added.'], ['6', '6/5 is 1 1/5, not 6.']], '3 × 2/5 = 6/5 = 1 1/5.'),
+          () => mc('What is 6 × ' + fr(2, 3) + '?', '4', [[fr(12, 18), 'Multiply only the numerator by 6.'], [fr(8, 3), 'That added 6 to the numerator.'], ['12', '12/3 is 4, not 12.']], '6 × 2/3 = 12/3 = 4.'),
           () => num('What is 4 × ' + fr(1, 2) + '?', 2, 'Four halves make 2 wholes.')
         ]
       },
@@ -1160,12 +1160,12 @@
         ]
       },
       'How many fit?': {
-        viz: () => V.cycleSteps(['1 ÷ 1/4', 'how many 1/4s', '4']),
-        steps: ['Dividing by a fraction asks how many of those pieces fit.', '1 ÷ ' + fr(1, 4) + ' = 4, because four fourths make a whole.', 'A shortcut: multiply by the reciprocal. 1 ÷ 1/4 = 1 × 4/1 = 4.'],
-        trap: '1 ÷ 1/4 is not 1/4 and not 1/5. Dividing by a unit fraction gives a whole number larger than 1.',
+        viz: () => V.cycleSteps(['3 ÷ 1/4', 'how many 1/4s', '4 in each whole × 3', '12']),
+        steps: ['Dividing by a fraction asks how many of those pieces fit.', '3 ÷ ' + fr(1, 4) + ' = 12, because four fourths fit in each of the 3 wholes.', 'A shortcut: multiply by the reciprocal. 3 ÷ 1/4 = 3 × 4/1 = 12.'],
+        trap: '3 ÷ 1/4 is not 3/4 and not 3/5. Dividing by a unit fraction gives a whole number larger than 1.',
         aap: 'AAP: 3/4 ÷ 1/8 = 3/4 × 8/1 = 6. How many eighths fit in 3/4? Six of them.',
         tries: [
-          () => num('How many fourths fit in 1 whole?', 4, '1 ÷ 1/4 = 4.'),
+          () => num('How many fourths fit in 3 wholes?', 12, '3 ÷ 1/4 = 3 × 4 = 12.'),
           () => num('How many eighths fit in ' + fr(3, 4) + '?', 6, '3/4 ÷ 1/8 = 3/4 × 8 = 6.')
         ]
       }
