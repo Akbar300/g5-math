@@ -1891,6 +1891,8 @@ html[data-theme="dark"] .ix-btn.ps-unit.on{background:var(--teal);border-color:v
 .xm-powout{font-family:var(--mono,monospace);font-weight:800}.xm-rep{font-size:18px;overflow-wrap:anywhere}.xm-eq{font-size:22px}
 /* remainderStory */
 .xm-lot{gap:6px}.xm-veh{width:52px;height:34px;border-radius:8px 8px 4px 4px;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-weight:800}
+.xm-check .xm-log{padding-left:34px}
+.xm-chkline .hi{color:var(--teal);text-decoration:underline}
 .xm-veh.full{background:var(--teal);color:#072821}.xm-veh.part{background:var(--why-bg);border-style:dashed}
 /* treeBuilder */
 .xm-treebox{width:100%;max-width:520px}.xm-treesvg{width:100%;height:auto}.xm-outs{font-weight:700;font-size:15px}

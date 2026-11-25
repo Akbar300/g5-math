@@ -434,7 +434,7 @@
         ]
       },
       'Your turn': {
-        viz: () => V.cycleSteps(['Quotient', 'Remainder', 'Check: d × q + R']),
+        viz: () => (w.IX && w.IX.checkTap ? ix('checkTap', { a: 130, b: 24 }) : V.cycleSteps(['Quotient', 'Remainder', 'Check: d × q + R'])),
         steps: ['Write the remainder as R, as a fraction, or by rounding up — whatever the story needs.', 'Check: divisor × quotient + remainder = dividend.', 'The remainder must be smaller than the divisor.'],
         trap: 'A remainder equal to the divisor means you can take one more full group.',
         aap: 'AAP: rewrite 17 ÷ 5 as 3 R 2, as ' + mixed(3, 2, 5) + ', and as 3.4. All three name the same division.',
@@ -515,7 +515,7 @@
         ]
       },
       'Is it a perfect square?': {
-        viz: () => V.cycleSteps(['12² = 144', '150', '13² = 169']),
+        viz: () => (w.IX && w.IX.squareTest ? ix('squareTest', { max: 20, start: 150 }) : V.cycleSteps(['12² = 144', '150', '13² = 169'])),
         steps: ['Check the last digit: a square never ends in 2, 3, 7 or 8.', 'Then find its neighbors in the list: 144 < 150 < 169.', 'If it falls strictly between two squares, it is not a perfect square.'],
         trap: 'Ending in 5 does not make it a square. 65 ends in 5, but 8² = 64 and 9² = 81.',
         tries: [

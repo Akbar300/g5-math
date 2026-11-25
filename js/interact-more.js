@@ -10,6 +10,8 @@
      IX.compatPicker  choose friendly numbers to estimate a quotient
      IX.remainderStory  what the remainder means in the story
      IX.treeBuilder   grow a tree diagram, count the outcomes
+     IX.checkTap      check a division: divisor × quotient + remainder = dividend
+     IX.squareTest    type a number: last-digit test, then light up its neighbor squares
    House rules as interact-num.js: root "viz ix ix-col", ix-btn buttons, ix-fb feedback,
    44 px targets, first state already shows the card's numbers. */
 (function (w) {
@@ -434,5 +436,62 @@
     draw(); return root;
   }
 
-  Object.assign(IX, { percentBar, sorter, opsStepper, tapeDiagram, levelBars, divTester, arrayMaker, powerBuilder, compatPicker, remainderStory, treeBuilder });
+  /* ======================= checkTap { a:130, b:24 } ======================= */
+  function checkTap(o) {
+    const { root, fb } = shell('xm-check');
+    const a = o.a, b = o.b, q = Math.floor(a / b), r = a % b, p = b * q;
+    root.appendChild(h('div', 'xm-q', `${a} ÷ ${b} = <b>${q} R${r}</b>. Is it right? Work backward.`));
+    const line = h('div', 'xm-expr xm-chkline'), opts = row('xm-flist'), log = h('ol', 'xm-log');
+    root.appendChild(line); root.appendChild(opts); root.appendChild(fb); root.appendChild(log);
+    const steps = [
+      { ask: `Step 1: multiply the divisor by the quotient. ${b} × ${q} = ?`, a: p, wrong: [p - b, p + b], why: `${b} × ${q} = ${p}.`, show: `${b} × ${q} = <b>${p}</b>` },
+      { ask: `Step 2: add the remainder. ${p} + ${r} = ?`, a: p + r, wrong: [p - r, p + r + 10], why: `${p} + ${r} = ${p + r}.`, show: `${p} + ${r} = <b>${p + r}</b>` }
+    ];
+    let k = 0;
+    const draw = () => {
+      opts.innerHTML = '';
+      line.innerHTML = `${b} × ${k > 0 ? q : '<span class="hi">' + q + '</span>'} ${k >= 1 ? '+ <span class="' + (k === 1 ? 'hi' : '') + '">' + r + '</span>' : ''} ${k >= 2 ? '= ' + a : ''}`;
+      if (k === steps.length) {
+        say(fb, true, `✓ ${b} × ${q} + ${r} = <b>${a}</b>, the number we started with. And ${r} &lt; ${b}, so the remainder is not too big. The answer checks out.`);
+        opts.appendChild(btn('↺ Again', () => { k = 0; log.innerHTML = ''; draw(); }));
+        return;
+      }
+      const st = steps[k], choices = st.wrong.slice(); choices.splice((k + 1) % 3, 0, st.a);
+      say(fb, null, st.ask);
+      choices.forEach((v) => opts.appendChild(btn(String(v), (ev) => {
+        if (v === st.a) { log.appendChild(h('li', '', st.show)); k++; draw(); }
+        else { shake(ev.currentTarget); say(fb, false, `Not ${v}. ${st.ask.split('. ')[1]}`); }
+      })));
+    };
+    draw(); return root;
+  }
+
+  /* ======================= squareTest { max:20, start:150 } ======================= */
+  function squareTest(o) {
+    const max = o.max || 20, { root, fb } = shell('xm-sqtest');
+    const ans = row(), inp = h('input', 'xm-in'); inp.type = 'number'; inp.setAttribute('inputmode', 'numeric'); inp.setAttribute('aria-label', 'Number to test');
+    if (o.start != null) inp.value = o.start;
+    root.appendChild(h('div', 'xm-q', `Is it a perfect square? Type a number up to ${max * max}.`));
+    ans.appendChild(inp); ans.appendChild(btn('Test', () => test(true), 'go'));
+    root.appendChild(ans); root.appendChild(fb);
+    const gal = h('div', '', w.V && w.V.squaresGallery ? w.V.squaresGallery(max) : ''); root.appendChild(gal);
+    const tiles = () => gal.querySelectorAll('.sq-tile');
+    function test(user) {
+      tiles().forEach((t) => t.classList.remove('hl'));
+      const x = Math.round(+inp.value);
+      if (inp.value === '' || !(x >= 1)) { say(fb, null, 'Type a whole number first.'); return; }
+      if (x > max * max) { say(fb, false, `Keep it at ${max * max} or less so it fits the list.`); return; }
+      const r = Math.floor(Math.sqrt(x) + 1e-9), last = x % 10;
+      const lightUp = (n) => { const t = tiles()[n - 1]; if (t) { t.classList.add('hl'); if (user && !calm() && t.scrollIntoView) t.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } };
+      if (r * r === x) { lightUp(r); say(fb, true, `✓ Yes! ${r} × ${r} = <b>${x}</b>, so √${x} = ${r}.`); return; }
+      const digit = [2, 3, 7, 8].indexOf(last) >= 0 ? `Quick test: it ends in ${last}, and no square ends in 2, 3, 7 or 8. ` : `It ends in ${last}, so the last-digit test can't rule it out. Check the neighbors. `;
+      if (r >= 1) lightUp(r); lightUp(r + 1);
+      say(fb, null, `${digit}${r ? r + '² = ' + r * r + ' &lt; ' : ''}<b>${x}</b> &lt; ${r + 1}² = ${(r + 1) * (r + 1)}. It sits between two squares, so <b>not</b> a perfect square.`);
+    }
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') test(true); });
+    if (o.start != null) test(); else say(fb, null, 'Type a number and tap Test.');
+    return root;
+  }
+
+  Object.assign(IX, { percentBar, sorter, opsStepper, tapeDiagram, levelBars, divTester, arrayMaker, powerBuilder, compatPicker, remainderStory, treeBuilder, checkTap, squareTest });
 })(window);
