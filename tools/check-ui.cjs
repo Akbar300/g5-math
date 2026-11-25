@@ -17,7 +17,7 @@ const { chromium } = require('playwright');
     const nChips = await p.locator('#chips .lchip').count();
     for (let i = 0; i < nChips; i++) { await p.locator('#chips .lchip').nth(i).click(); await p.waitForTimeout(120); }
     const st = await p.evaluate(() => ({ ox: document.documentElement.scrollWidth - innerWidth,
-      noSvg: [...document.querySelectorAll('#chips .lchip')].filter(c => !c.querySelector('svg')).length,
+      noSvg: [...document.querySelectorAll('#chips .lchip')].filter(c => !c.querySelector('.lchip-ico svg')).length,
       lbl: [...document.querySelectorAll('.ls-h')].filter(h => !h.querySelector('svg')).length,
       tabs: [...document.querySelectorAll('#tabs button')].map(t => t.dataset.tab) }));
     for (const t of st.tabs) { await p.click(`#tabs button[data-tab="${t}"]`); await p.waitForTimeout(250);

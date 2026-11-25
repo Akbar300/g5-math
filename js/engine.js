@@ -1286,6 +1286,8 @@ function paperDivide(dividend, divisor) {
     /* Unit color and number come from the hub catalog (js/catalog.js) when it is loaded. */
     const CAT = ((w.CATALOG && CATALOG.units) || []).find((u) => u.id === UNIT.id) || {};
     const GI = (k) => (w.G5I && G5I.get(k)) || '';
+    /* Small inline icon inside a sentence; keeps the old emoji if icons.js is missing. */
+    const inIco = (k, emoji) => (GI(k) ? '<span class="in-ico" aria-hidden="true">' + GI(k) + '</span>' : emoji);
     const tabIco = (k) => { const svg = GI(k); return svg ? `<span class="tab-ico" aria-hidden="true">${svg}</span>` : ''; };
     const unitIco = GI(UNIT.id);
     const gameLbl = UNIT.game ? String(UNIT.game.tab).replace(/^(?:\p{Extended_Pictographic}|\uFE0F|\u200D)+\s*/u, '') : '';
@@ -1313,7 +1315,7 @@ function paperDivide(dividend, divisor) {
         ${UNIT.game ? '<button data-tab="game">' + (tabIco(UNIT.id === 'u9' ? 'angle' : 'game') || UNIT.game.tab.match(/^\S+/)[0] + ' ') + (tabIco('learn') ? '<span>' + gameLbl + '</span>' : gameLbl) + '</button>' : ''}
       </nav>
       <main class="stage" id="stage"></main>
-      <button class="brain" id="brain">Brain break</button>
+      <button class="brain" id="brain">${inIco('brain', '')}Brain break</button>
       <div class="overlay" id="break"><div class="modal"><div class="emo" id="bE"></div><p id="bT"></p><button class="btn" id="bC">I'm ready</button></div></div>
     `;
     root.innerHTML = '';
@@ -1336,7 +1338,9 @@ function paperDivide(dividend, divisor) {
     });
     shell.querySelector('#brain').onclick = () => {
       const br = U.pick(BREAKS);
-      shell.querySelector('#bE').textContent = br.e;
+      const bE = shell.querySelector('#bE');
+      if (GI('brain')) { bE.innerHTML = '<span class="brk-ico" aria-hidden="true">' + GI('brain') + '</span>'; bE.classList.add('emo-svg'); }
+      else bE.textContent = br.e;
       shell.querySelector('#bT').textContent = br.t;
       shell.querySelector('#break').classList.add('show');
     };
@@ -1369,7 +1373,7 @@ function paperDivide(dividend, divisor) {
           if (i === k) b.setAttribute('aria-current', 'step');
           b.innerHTML = svg
             ? `<span class="lchip-ico" aria-hidden="true">${svg}</span><span class="lchip-name">${L.name}</span>` + (M.les[L.id] ? `<span class="st" aria-label="done">${GI('check') || '✓'}</span>` : '')
-            : `${L.icon || '📘'} ${L.name}` + (M.les[L.id] ? ' <span class="st">✓</span>' : '');
+            : `${inIco('learn', L.icon || '📘')} ${L.name}` + (M.les[L.id] ? ' <span class="st">✓</span>' : '');
           b.onclick = () => open(i);
           chips.appendChild(b);
         });
@@ -1378,7 +1382,7 @@ function paperDivide(dividend, divisor) {
         if (onChip && chips.scrollWidth > chips.clientWidth) chips.scrollLeft += onChip.getBoundingClientRect().left - chips.getBoundingClientRect().left - 16;
         playLesson(host, T.lessons[k], () => {
           M.les[T.lessons[k].id] = 1; M.xp += 15; save(); setXP();
-          host.innerHTML = `<div class="remember">🎉 Lesson complete (+15 XP). ${k < T.lessons.length - 1 ? 'Next up: <b>' + T.lessons[k + 1].name + '</b>.' : 'All lessons in this level are done. Head to Practice.'}</div>`;
+          host.innerHTML = `<div class="remember">${inIco('star', '🎉')} Lesson complete (+15 XP). ${k < T.lessons.length - 1 ? 'Next up: <b>' + T.lessons[k + 1].name + '</b>.' : 'All lessons in this level are done. Head to Practice.'}</div>`;
           if (k < T.lessons.length - 1) {
             const nb = document.createElement('button'); nb.className = 'btn'; nb.textContent = 'Start ' + T.lessons[k + 1].name + ' →';
             nb.onclick = () => open(k + 1); host.appendChild(nb);
@@ -1422,7 +1426,7 @@ function paperDivide(dividend, divisor) {
       const T = track();
       const skills = T.skills || [];
       stage.innerHTML = `<h2>Practice · ${M.lvl === 'advanced' ? 'Advanced' : 'Core'}</h2>
-        <p class="lede">Fresh questions every time. Tap a choice to check it right away. For typed answers, press Check or Enter. A skill earns a ⭐ after 3 right answers on 2 different days.</p>
+        <p class="lede">Fresh questions every time. Tap a choice to check it right away. For typed answers, press Check or Enter. A skill earns a ${inIco('star', '⭐')} after 3 right answers on 2 different days.</p>
         <div class="practice-top">
           <div class="seg" id="skillSeg"></div>
           <div class="seg" id="nSeg"></div>
@@ -1502,7 +1506,7 @@ function paperDivide(dividend, divisor) {
         stage.querySelector('#stStreak').textContent = 'streak ' + streak;
       };
       function roundDone() {
-        host.innerHTML = `<div class="remember round-done">🎉 Round complete: <b>${solved}</b> solved, streak ${streak}. Nice calm work.</div>`;
+        host.innerHTML = `<div class="remember round-done">${inIco('practice', '🎉')} Round complete: <b>${solved}</b> solved, streak ${streak}. Nice calm work.</div>`;
         const b = document.createElement('button'); b.className = 'btn'; b.textContent = 'Another round';
         b.onclick = () => { qi = 0; solved = 0; keepPlace(host, next); }; host.appendChild(b);
       }
@@ -1654,7 +1658,7 @@ function paperDivide(dividend, divisor) {
         formatFractionsIn(host);
         const box = document.createElement('div'); box.className = 'test-done';
         const pct = N ? Math.round(100 * right / N) : 0;
-        box.innerHTML = `<div class="remember">🧪 Test complete: <b>${right} / ${N}</b> correct (${pct}%). ${right >= Math.ceil(N * 0.8) ? 'Strong work.' : 'Read the explanations below, review the lessons, then try a fresh pack.'}</div>`;
+        box.innerHTML = `<div class="remember">${inIco('test', '🧪')} Test complete: <b>${right} / ${N}</b> correct (${pct}%). ${right >= Math.ceil(N * 0.8) ? 'Strong work.' : 'Read the explanations below, review the lessons, then try a fresh pack.'}</div>`;
         const timeNote = M.timer ? ' Time: ' + fmtT(tEnd - t0) + '.' : '';
         if (timeNote) box.firstChild.insertAdjacentHTML('beforeend', timeNote);
         /* Results by topic */
@@ -1982,7 +1986,10 @@ function paperDivide(dividend, divisor) {
     host.style.setProperty('--print-accent', accent);
     root.style.setProperty('--print-accent', accent);
 
-    const qHead = '<h1>' + UNIT.emoji + ' ' + UNIT.title + ' · ' + levelName + ' Practice</h1><div class="print-head-meta">Grade 5 · US Letter</div>';
+    /* Header mark: the unit's drawn icon (js/icons.js) in the unit color; old emoji if icons.js is missing. */
+    const uSvg = (w.G5I && G5I.get(UNIT.id)) || '';
+    const headMark = uSvg ? '<span class="print-uico" aria-hidden="true">' + uSvg + '</span>' : UNIT.emoji + ' ';
+    const qHead = '<h1>' + headMark + UNIT.title + ' · ' + levelName + ' Practice</h1><div class="print-head-meta">Grade 5 · US Letter</div>';
     const items = [];
     const practicePages = [];
     const addPracticePage = () => {
@@ -2006,7 +2013,7 @@ function paperDivide(dividend, divisor) {
     }
     if (!items.length) {
       host.remove();
-      root.innerHTML = '<section class="print-page"><div class="print-head"><h1>' + UNIT.emoji + ' ' + UNIT.title + '</h1></div><p>No practice items were ready. Close this dialog and try Print pack again.</p></section>';
+      root.innerHTML = '<section class="print-page"><div class="print-head"><h1>' + headMark + UNIT.title + '</h1></div><p>No practice items were ready. Close this dialog and try Print pack again.</p></section>';
       openPrintDialog();
       return;
     }

@@ -2148,3 +2148,12 @@ html[data-theme="dark"] .ux .lchip .st{color:#121722}
 }
 /* Phones: wide input/output tables (6+ columns) fit without sideways scroll */
 @media screen and (max-width:600px){.g5t th,.g5t td{padding:6px 9px}}
+
+/* Unit pages: remaining emoji swapped for drawn icons (2026-11-25) */
+.ux .in-ico{display:inline-block;width:1.2em;height:1.2em;vertical-align:-.24em;color:var(--ic)}
+.ux .in-ico svg,.ux .brk-ico svg,.print-uico svg{display:block;width:100%;height:100%}
+.ux .brain{display:inline-flex;align-items:center;gap:6px;min-height:44px}
+.ux .brain .in-ico{color:#1b2437;--ic-soft:rgba(255,255,255,.55);--card:rgba(255,255,255,.85);margin-right:0}
+.ux .modal .emo-svg{display:flex;justify-content:center}
+.ux .brk-ico{display:block;width:72px;height:72px;padding:10px;border-radius:20px;background:var(--ic-soft);color:var(--ic)}
+.print-uico{display:inline-block;width:1.25em;height:1.25em;vertical-align:-.26em;margin-right:6px;color:var(--print-accent);--ic-soft:color-mix(in srgb,var(--print-accent) 22%,#fff);--card:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
