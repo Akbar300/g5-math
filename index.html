@@ -11,44 +11,68 @@
   <script src="js/theme.js"></script>
 </head>
 <body>
-  <div class="hub">
-    <header>
-      <div class="hub-top">
-        <h1>Grade 5 Math</h1>
-        <button type="button" class="icon-btn theme-toggle" data-theme-toggle></button>
-      </div>
-      <p class="sub" id="sub"></p>
+  <div class="hub hb">
+    <header class="hb-top">
+      <span class="hb-mark" aria-hidden="true">5</span>
+      <h1>Grade 5 Math</h1>
+      <button type="button" class="icon-btn theme-toggle" data-theme-toggle></button>
     </header>
-    <div class="now" id="now"></div>
-    <h2>Class units</h2>
-    <div class="grid-cards" id="units"></div>
-    <h2>Paper-method arenas</h2>
-    <div class="grid-cards" id="games"></div>
-    <footer style="margin-top:28px;color:var(--muted);font-size:14px">
-      Aligned to FCPS Grade 5 Math, FCPS Grade 5 Advanced Math, and the 2023 Virginia Math SOL. Each unit has a Core path and an Advanced (Go Further) path.
+    <section class="hb-hero" id="hero" aria-label="In class now"></section>
+    <h2 class="hb-h2">Your year, unit by unit</h2>
+    <ol class="hb-trail" id="units"></ol>
+    <section class="hb-arenas" aria-labelledby="arenasH">
+      <h2 class="hb-h2" id="arenasH">Paper-method arenas</h2>
+      <p class="hb-arenas-sub">Step-by-step practice on paper-style problems.</p>
+      <div class="hb-arena-row" id="games"></div>
+    </section>
+    <footer class="hb-foot">
+      <p id="sub"></p>
+      <p>Aligned to FCPS Grade 5 Math, FCPS Grade 5 Advanced Math, and the 2023 Virginia Math SOL. Each unit has a Core path and an Advanced (Go Further) path. Class dates are estimates from the FCPS calendar.</p>
     </footer>
   </div>
   <script src="js/catalog.js"></script>
+  <script src="js/hub-icons.js"></script>
   <script>
     const C = CATALOG;
     document.getElementById('sub').textContent = C.sub;
-    const today = new Date().toISOString().slice(0, 10);
+    const I = window.HUB_ICONS || {};
+    /* Local date (not UTC), so the unit doesn't flip early in the evening. */
+    const d0 = new Date();
+    const today = [d0.getFullYear(), String(d0.getMonth() + 1).padStart(2, '0'), String(d0.getDate()).padStart(2, '0')].join('-');
     const live = C.units.find(u => today >= u.dates[0] && today <= u.dates[1]);
     const upcoming = C.units.find(u => u.dates[0] > today);
     const cur = live || upcoming || C.units[C.units.length - 1];
-    const label = live ? 'Now in class' : (upcoming ? 'Up next in class' : 'Now in class');
-    document.getElementById('now').innerHTML = `<b>${label}:</b> Unit ${cur.num}, ${cur.title}. Start with its <b>Learn</b> tab. Dates are estimates from the FCPS calendar.`;
-    function card(u, ready) {
-      const tag = u === cur ? `<span class="tag-now">${live ? 'Now' : 'Up next'}</span>` : '';
-      const href = ready ? u.file : '#';
-      const extra = ready ? '' : ' style="opacity:.7"';
-      const note = ready ? u.blurb : 'Coming next in this lab.';
-      return `<a class="card" href="${href}"${extra}><span class="n">${u.emoji}</span><span><b>Unit ${u.num} · ${u.title}${tag}</b><span>${note}</span></span></a>`;
-    }
-    const ready = new Set(C.units.map(u => u.id));
-    document.getElementById('units').innerHTML = C.units.map(u => card(u, ready.has(u.id))).join('');
+    const next = C.units[C.units.indexOf(cur) + 1];
+    const fmt = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); };
+    const icon = (id, fallback) => I[id] || `<span class="hb-emoji">${fallback}</span>`;
+
+    const dots = C.units.map(u => {
+      const st = u === cur ? 'cur' : (u.dates[1] < today ? 'past' : '');
+      return `<i class="${st}" title="Unit ${u.num}"></i>`;
+    }).join('');
+    document.getElementById('hero').className = `hb-hero c-${cur.color || 'teal'}`;
+    document.getElementById('hero').innerHTML = `
+      <div class="hb-hero-txt">
+        <p class="hb-kicker">${live ? 'In class now' : 'Up next in class'}</p>
+        <h2 class="hb-hero-title"><span>Unit ${cur.num}</span>${cur.title}</h2>
+        <p class="hb-hero-line">${cur.short || cur.blurb}</p>
+        <a class="hb-go" href="${cur.file}">Open Unit ${cur.num}</a>
+        <div class="hb-year" aria-label="Unit ${cur.num} of ${C.units.length}"><span class="hb-dots">${dots}</span><span>Unit ${cur.num} of ${C.units.length}, ${fmt(cur.dates[0])} to ${fmt(cur.dates[1])}</span></div>
+      </div>
+      <div class="hb-hero-art">${icon(cur.id, cur.emoji)}</div>`;
+
+    document.getElementById('units').innerHTML = C.units.map(u => {
+      const st = u === cur ? 'is-now' : (u === next ? 'is-next' : (u.dates[1] < today ? 'is-past' : 'is-later'));
+      const tag = { 'is-now': live ? 'Now' : 'Next', 'is-next': 'Next', 'is-past': 'Review', 'is-later': '' }[st];
+      return `<li class="hb-unit c-${u.color || 'teal'} ${st}"><a href="${u.file}">
+        <span class="hb-node">${icon(u.id, u.emoji)}</span>
+        <span class="hb-txt"><span class="hb-num">Unit ${u.num}</span><b>${u.title}</b><span class="hb-short">${u.short || u.blurb}</span></span>
+        ${tag ? `<span class="hb-tag">${tag}</span>` : ''}
+      </a></li>`;
+    }).join('');
+
     document.getElementById('games').innerHTML = C.games.map(g =>
-      `<a class="card" href="${g.file}"><span class="n">${g.emoji}</span><span><b>${g.title}</b><span>${g.blurb}</span></span></a>`
+      `<a class="hb-arena" href="${g.file}"><span class="hb-arena-ico">${icon(g.id, g.emoji)}</span><span><b>${g.title}</b><span>${g.short || g.blurb}</span></span></a>`
     ).join('');
   </script>
 </body>
