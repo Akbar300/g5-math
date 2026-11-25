@@ -985,6 +985,15 @@ function paperDivide(dividend, divisor) {
     return out;
   }
 
+  /* Next card / Back: start the new card at its top (Try another keeps its place with keepPlace). */
+  function toCardTop(el) {
+    requestAnimationFrame(function () {
+      const y = Math.max(0, el.getBoundingClientRect().top + window.scrollY - 12);
+      const calmM = w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      try { window.scrollTo({ top: y, behavior: calmM ? 'auto' : 'smooth' }); } catch (e) { window.scrollTo(0, y); }
+    });
+  }
+
   /* Rebuild el's content without the page jumping: hold its height and the scroll spot. */
   function keepPlace(el, rebuild, exact) {
     const y = window.scrollY;
@@ -1228,7 +1237,7 @@ function paperDivide(dividend, divisor) {
       const nav = document.createElement('div'); nav.className = 'row-btns lesson-nav';
       if (i > 0) {
         const back = document.createElement('button'); back.className = 'btn ghost'; back.textContent = 'Back';
-        back.onclick = () => { i--; keepPlace(card, draw, true); }; nav.appendChild(back);
+        back.onclick = () => { i--; draw(); toCardTop(card); }; nav.appendChild(back);
       }
       const dots = document.createElement('div'); dots.className = 'dots';
       lesson.cards.forEach((_, k) => { const d = document.createElement('i'); if (k === i) d.classList.add('on'); dots.appendChild(d); });
@@ -1236,7 +1245,7 @@ function paperDivide(dividend, divisor) {
       const next = document.createElement('button'); next.className = 'btn';
       next.textContent = i < lesson.cards.length - 1 ? 'Next card' : 'Lesson complete';
       next.onclick = () => {
-        if (i < lesson.cards.length - 1) { i++; keepPlace(card, draw, true); }
+        if (i < lesson.cards.length - 1) { i++; draw(); toCardTop(card); }
         else if (onDone) onDone();
       };
       nav.appendChild(next);
