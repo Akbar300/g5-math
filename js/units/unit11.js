@@ -19,6 +19,51 @@ function planeDraw(pts, o){
   return '<div class="viz">' + s.outerHTML + '</div>';
 }
 function P2(x, y){ return '(' + L.sg(x) + ', ' + L.sg(y) + ')'; }
+/* Symmetry & regular polygons (Tier 2): shapes drawn from computed vertices, lines of symmetry dashed. */
+var SHAPES = {
+  'square':{n:4, lines:4, reg:true}, 'rectangle':{lines:2, reg:false, why:'its sides are not all equal'}, 'equilateral triangle':{n:3, lines:3, reg:true},
+  'isosceles triangle':{lines:1, reg:false, why:'only two sides are equal'}, 'scalene triangle':{lines:0, reg:false, why:'no sides are equal'},
+  'regular pentagon':{n:5, lines:5, reg:true}, 'regular hexagon':{n:6, lines:6, reg:true}, 'rhombus':{lines:2, reg:false, why:'its angles are not all equal'},
+  'parallelogram':{lines:0, reg:false, why:'its sides and angles are not all equal'}, 'regular octagon':{n:8, lines:8, reg:true}
+};
+function shapePts(name){
+  var c = 50, R = 36, S = SHAPES[name];
+  if (S.n) { var pts = []; for (var i = 0; i < S.n; i++) { var a = -Math.PI / 2 + i * 2 * Math.PI / S.n + (S.n % 2 ? 0 : Math.PI / S.n); pts.push([c + R * Math.cos(a), c + R * Math.sin(a)]); } return pts; }
+  return {'rectangle':[[14,28],[86,28],[86,72],[14,72]], 'isosceles triangle':[[50,12],[80,86],[20,86]], 'scalene triangle':[[22,82],[88,82],[40,18]], 'rhombus':[[50,10],[80,50],[50,90],[20,50]], 'parallelogram':[[30,28],[90,28],[70,72],[10,72]]}[name];
+}
+function symLines(name){
+  var c = 50, S = SHAPES[name], L2 = [];
+  if (S.n) { for (var i = 0; i < S.n; i++) { var a = -Math.PI / 2 + i * Math.PI / S.n + (S.n % 2 ? 0 : Math.PI / S.n * 0); L2.push([c - 46 * Math.cos(a), c - 46 * Math.sin(a), c + 46 * Math.cos(a), c + 46 * Math.sin(a)]); } return L2; }
+  return {'rectangle':[[50,20,50,80],[6,50,94,50]], 'isosceles triangle':[[50,6,50,94]], 'rhombus':[[50,4,50,96],[12,50,88,50]]}[name] || [];
+}
+function shapeSVG(name, showLines){
+  var pts = shapePts(name).map(function(p){ return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ');
+  var lines = showLines ? symLines(name).map(function(l){ return '<line x1="' + l[0].toFixed(1) + '" y1="' + l[1].toFixed(1) + '" x2="' + l[2].toFixed(1) + '" y2="' + l[3].toFixed(1) + '" stroke="var(--ic)" stroke-width="2.5" stroke-dasharray="5 4"/>'; }).join('') : '';
+  return '<svg viewBox="0 0 100 100" width="100" height="100" role="img" aria-label="' + name + '" style="display:inline-block;vertical-align:middle;margin:4px;width:92px;height:92px;max-width:92px"><polygon points="' + pts + '" fill="var(--ic-soft)" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>' + lines + '</svg>';
+}
+function an(w){ return (/^[aeiou]/i.test(w) ? 'an ' : 'a ') + w; }
+function symQ(lv, kind){
+  var names = Object.keys(SHAPES), k = kind != null ? kind : L.pick([0, 0, 1, 2, 3]);
+  if (k === 0) { var nm = L.pick(names), S = SHAPES[nm], right = S.lines;
+    var wr = [0, 1, 2, 3, 4, 5, 6, 8].filter(function(x){ return x !== right; });
+    var picks = L.shuffle(wr).slice(0, 3).map(function(x){ return [String(x), x > right ? 'Fold the shape on each line you count: both halves must match exactly.' : 'Look for more fold lines, ' + (S.n ? 'including the ones through the corners.' : 'across and up and down.')]; });
+    return mc('How many lines of symmetry does ' + (/^[aeiou]/i.test(nm) ? 'an' : 'a') + ' <b>' + nm + '</b>' + ' have?<br>' + shapeSVG(nm, false), String(right), picks, an(nm).replace(/^a/, 'A') + ' has <b>' + right + '</b> line' + (right === 1 ? '' : 's') + ' of symmetry.' + (S.n ? ' A regular polygon with ' + S.n + ' sides has ' + S.n + ' lines.' : '') + (nm === 'parallelogram' ? ' Folding on a diagonal does not match the halves.' : ''));
+  }
+  if (k === 1) { var ch = L.shuffle(names).slice(0, 5); if (!ch.some(function(x){ return SHAPES[x].reg; }) || ch.every(function(x){ return SHAPES[x].reg; })) return null;
+    return {type:'ms', fmt:'SELECT ALL', q:'Select <b>all</b> the <b>regular</b> polygons.', ch:ch, a:ch.map(function(x, i){ return SHAPES[x].reg ? i : -1; }).filter(function(i){ return i >= 0; }), why:'Regular = all sides equal AND all angles equal. ' + ch.filter(function(x){ return !SHAPES[x].reg; }).map(function(x){ return an(x).replace(/^a/, 'A') + ' is not regular: ' + SHAPES[x].why + '.'; }).join(' ')};
+  }
+  if (k === 2) { var nn = L.pick(['rhombus', 'rectangle', 'square', 'equilateral triangle', 'regular hexagon']), S2 = SHAPES[nn];
+    return mc('Is ' + (/^[aeiou]/i.test(nn) ? 'an' : 'a') + ' <b>' + nn + '</b> a regular polygon?<br>' + shapeSVG(nn, false), S2.reg ? 'Yes: all sides and all angles are equal' : 'No: ' + S2.why, [
+      [S2.reg ? 'No: it has corners' : 'Yes: all sides and all angles are equal', S2.reg ? 'Every polygon has corners. Regular means equal sides and equal angles.' : 'Check both: sides AND angles.'],
+      [nn === 'rhombus' ? 'Yes: all its sides are equal' : nn === 'rectangle' ? 'Yes: all its angles are right angles' : 'No: it has an even number of sides', nn === 'rhombus' ? 'Equal sides is not enough: the angles must be equal too.' : nn === 'rectangle' ? 'Equal angles is not enough: the sides must be equal too.' : 'The number of sides does not matter.']],
+      S2.reg ? 'Yes. All ' + (S2.n) + ' sides and all ' + S2.n + ' angles are equal.' : 'No. Regular needs equal sides AND equal angles, and ' + S2.why + '.');
+  }
+  var x = L.ri(1, 6), y = L.ri(-5, 5), ax = L.pick(['y', 'x']); if (ax === 'x' && y === 0) y = 3;
+  var M = ax === 'y' ? [-x, y] : [x, -y];
+  return mc('A shape is symmetric across the <b>' + ax + '-axis</b>. One corner is at ' + P2(x, y) + '. Where is the matching corner?', P2(M[0], M[1]), [
+    [ax === 'y' ? P2(x, -y) : P2(-x, y), 'That is the mirror image across the other axis.'], [P2(-x, -y), 'Only one coordinate changes sign.'], [P2(y, x), 'Do not swap x and y.']],
+    'The matching corner is the reflection across the ' + ax + '-axis: ' + (ax === 'y' ? 'x changes sign' : 'y changes sign') + '. ' + P2(x, y) + ' → <b>' + P2(M[0], M[1]) + '</b>.');
+}
 var gens = {
   read: {name:'Read a point', f:function(lv){
     var x = L.ri(1, 8), y = L.ri(1, 8); if(x === y) y = (y % 8) + 1;
@@ -109,11 +154,12 @@ var bg = {
     var cands = L.shuffle([[x, y, 'A'], [-x, y, 'B'], [x, -y, 'C'], [-x, -y, 'D']]);
     return {type:'ms', fmt:'SELECT ALL', q:'Select <b>all</b> the points that are reflections of ' + P2(x, y) + ' over the <b>x-axis or the y-axis</b>.', ch:cands.map(function(p){ return P2(p[0], p[1]); }), a:cands.map(function(p, i){ return (p[2] === 'B' || p[2] === 'C') ? i : -1; }).filter(function(i){ return i >= 0; }),
       why:'Over the y-axis: ' + P2(-x, y) + '. Over the x-axis: ' + P2(x, -y) + '. ' + P2(-x, -y) + ' changes both signs (that is a turn through the origin), and ' + P2(x, y) + ' is the point itself.'};
-  }}
+  }},
+  symm: {name:'Symmetry & regular polygons', f:function(lv, kind){ for (var t = 0; t < 8; t++) { var it = symQ(lv, kind); if (it) return it; } return null; }}
 };
 var bridge = {
   title:'Go Further: all four quadrants', tab:'🚀 Go Further',
-  intro:'Advanced Unit 4 uses the <b>whole</b> coordinate plane, with negative numbers on both axes: distance across an axis, polygons in all four quadrants, and reflections.',
+  intro:'Advanced Unit 4 uses the <b>whole</b> coordinate plane, with negative numbers on both axes: distance across an axis, polygons in all four quadrants, reflections, and symmetry.',
   lessons:[{id:'u11B1', name:'Four quadrants', icon:'🗺️', cards:[
     {t:'Negatives go left and down', h:V.plane([{x:3, y:2, label:'A'}, {x:-3, y:2, label:'B'}, {x:-3, y:-4, label:'C'}, {x:5, y:-3, label:'D'}], {quad:true, n:6, qlabels:true}) + '<p class="cp-qnote">Start in the top right with <b>I</b> and go <b>counterclockwise</b>: II, III, IV.</p>' + L.tbl(['Quadrant','Signs'], [['I','(+, +)'],['II','(−, +)'],['III','(−, −)'],['IV','(+, −)']])},
     {t:'Your turn', h:'', tr:bg.quad.f()}
@@ -142,8 +188,18 @@ var bridge = {
      key:'The sign that changes tells you the mirror: x changes → y-axis; y changes → x-axis.',
      aap:'A point and its reflection are 2 × its distance from the mirror apart: (5, 3) and (−5, 3) are 10 units apart.',
      tries:[function(){ return bg.refl.f('adv', 1); }, function(){ return bg.refl.f('adv', 3); }]}
+  ]},{id:'u11B5', name:'Symmetry & regular polygons', icon:'⬡', cards:[
+    {t:'Lines of symmetry', h:'<p>A <b>line of symmetry</b> folds a shape into two halves that match exactly. Each half is the reflection of the other.</p><p style="text-align:center">' + shapeSVG('square', true) + shapeSVG('rectangle', true) + shapeSVG('isosceles triangle', true) + shapeSVG('parallelogram', true) + '</p>' + L.tbl(['Shape','Lines of symmetry'], [['square','4'],['rectangle','2'],['isosceles triangle','1'],['parallelogram','0']]),
+     trap:'Counting the diagonals of a rectangle or a parallelogram. Fold on a diagonal and the halves do not match.',
+     tr:function(){ return bg.symm.f('adv', 0); }},
+    {t:'Regular polygons', h:'<p>A polygon is <b>regular</b> when <b>all sides</b> are equal <b>and all angles</b> are equal.</p><p style="text-align:center">' + shapeSVG('equilateral triangle', true) + shapeSVG('square', true) + shapeSVG('regular pentagon', true) + shapeSVG('regular hexagon', true) + '</p>',
+     key:'A regular polygon with n sides has n lines of symmetry: 3, 4, 5, 6 …',
+     trap:'A rhombus has equal sides but not equal angles, and a rectangle has equal angles but not equal sides. Neither is regular.',
+     tries:[function(){ return bg.symm.f('adv', 1); }, function(){ return bg.symm.f('adv', 2); }]},
+    {t:'Symmetry on the grid', h:'<p>A shape that is symmetric across the y-axis has matching corners like (−3, 2) and (3, 2): the same as a reflection.</p>', viz:function(){ return planeDraw([[-3, 2, '(−3, 2)'], [3, 2, '(3, 2)'], [0, 5, ''], [-2, -2, ''], [2, -2, '']], {poly:[[0, 5], [3, 2], [2, -2], [-2, -2], [-3, 2]], mirror:'y'}); },
+     tr:function(){ return bg.symm.f('adv', 3); }}
   ]}],
-  gens:bg, repIds:['quad','qdist','qpoly','refl'],
+  gens:bg, repIds:['quad','qdist','qpoly','refl','symm'],
   next:'Stay in the Advanced (Go Further) path of this unit for more practice.'
 };
 window.V2 = {key:'u11', lessons:lessons, gens:gens, repIds:['read','dist','table'], test:test, bridge:bridge};

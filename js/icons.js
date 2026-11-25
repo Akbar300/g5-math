@@ -158,6 +158,8 @@ window.G5I = (function () {
     quadpoly: S(`<path d="M32 4v56M4 32h56" stroke-width="3" opacity=".5"/><rect x="12" y="16" width="40" height="28" rx="2" ${soft}/>${dot(12, 16, 4)}${dot(52, 16, 4)}${dot(52, 44, 4)}${dot(12, 44, 4)}`),
     /* reflection: a point and its mirror image across a dashed axis */
     reflect: S(`<path d="M32 6v52" stroke-dasharray="5 5" stroke-width="3"/><path d="M8 40L22 18v22Z" ${ink}/><path d="M56 40L42 18v22Z" ${soft}/><path d="M24 50h16M36 46l4 4-4 4M28 46l-4 4 4 4" stroke-width="2.5"/>`),
+    /* symmetry: a regular hexagon with a dashed fold line */
+    symmetry: S(`<path d="M32 8L52.8 20v24L32 56 11.2 44V20Z" ${soft}/><path d="M32 4v56" stroke-dasharray="5 5" stroke-width="3"/>`),
     quadrants: S(`<path d="M32 6v52M6 32h52"/><rect x="34" y="8" width="22" height="22" rx="3" ${soft} stroke="none"/><rect x="8" y="34" width="22" height="22" rx="3" ${soft} stroke="none" opacity=".6"/>${dot(45, 19, 4)}${dot(19, 45, 4)}<path d="M15 15l8 8M23 15l-8 8M41 41l8 8M49 41l-8 8" stroke-width="2.5" opacity=".6"/>`)
   };
   const H = window.HUB_ICONS || {};
@@ -177,7 +179,7 @@ window.G5I = (function () {
     u8L1: 'unlike', u8L2: 'mixed', u8L3: 'wholefrac', u8B1: 'fracops', u8B2: 'mixmul', u8B3: 'bigsmall',
     u9L1: 'angle', u9L4: 'perimarea', u9L2: 'triangle', u9L5: 'circle', u9L3: 'volume',
     u10L1: 'mean', u10L2: 'lineplot', u10L3: 'chance', u10B1: 'outlier', u10B2: 'meanshift',
-    u11L1: 'plot', u11L2: 'story', u11B1: 'quadrants', u11B2: 'axisdist', u11B3: 'quadpoly', u11B4: 'reflect',
+    u11L1: 'plot', u11L2: 'story', u11B1: 'quadrants', u11B2: 'axisdist', u11B3: 'quadpoly', u11B4: 'reflect', u11B5: 'symmetry',
     u12L1: 'negative', u12L2: 'intorder', u12L3: 'zeropair', u12L4: 'addopp',
     u12B1: 'intmul', u12B2: 'orderops', u12B3: 'elevation', u12B4: 'exponent'
   };
