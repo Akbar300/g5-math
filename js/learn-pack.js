@@ -641,7 +641,7 @@
     },
     u4a1: {
       'A ratio compares two amounts': {
-        viz: () => V.barGraph(['Red', 'Blue'], [3, 5], { title: '3 to 5 jerseys', color: '#0fb39c' }),
+        viz: () => ix('ratioTiles', { a: 3, b: 5, la: 'red', lb: 'blue', unit: 'jerseys' }),
         steps: ['3 red jerseys to 5 blue jerseys is the ratio 3 : 5, two amounts in order.', 'It can also be written 3 to 5 or ' + fr(3, 5) + '.', 'Order matters: 3 : 5 is not 5 : 3.'],
         trap: 'Flipping the order changes the comparison. 3 : 5 is not the same as 5 : 3.',
         aap: 'AAP: a ratio can compare part to part or part to whole. 2 : 5 juice to water is not 2 : 7 unless you mean juice to the total mix.',
@@ -651,7 +651,7 @@
         ]
       },
       'Equivalent ratios scale together': {
-        viz: () => V.barGraph(['3:5', '6:10', '9:15'], [3, 6, 9], { title: 'Both parts × 2, then × 3', color: '#0fb39c' }),
+        viz: () => ix('ratioTiles', { a: 3, b: 5, la: 'red', lb: 'blue', unit: 'jerseys' }),
         steps: ['3 : 5, 6 : 10, and 9 : 15 are equivalent.', 'Multiply (or divide) both parts by the same number.', 'A table of equal ratios is just this scaling, column by column.'],
         trap: 'If you change only one part, the ratio is no longer equivalent.',
         aap: 'AAP: simplify 12 : 18 by dividing both parts by 6 to get 2 : 3, then build 8 : 12 as another equivalent.',
@@ -663,7 +663,7 @@
     },
     u4a2: {
       'A table of equal ratios': {
-        viz: () => V.barGraph(['×1', '×2', '×3'], [2, 4, 6], { title: 'Concentrate cups', color: '#0fb39c' }),
+        viz: () => ix('ratioTiles', { mode: 'table', top: 'concentrate', bottom: 'water', cols: [[2, 5], [4, 10], [6, 15]], blank: { c: 2, r: 1 } }),
         steps: ['Each column is a scaled copy of the first pair.', 'If 2 cups concentrate go with 5 cups water, then 4 go with 10 and 6 go with 15.', 'Find a missing entry by using the same scale factor on both rows.'],
         trap: 'Adding the same number to both parts (2 : 5 → 3 : 6) does not keep the ratio. You must multiply.',
         aap: 'AAP: if 8 is in the concentrate row and the first column is 2 to 5, the scale is ×4, so water is 20.',
@@ -699,7 +699,7 @@
 
     u4c5: {
       'Two amounts, in order': {
-        viz: () => V.barGraph(['Red', 'Blue'], [3, 5], { title: '3 to 5 tiles', color: '#0fb39c' }),
+        viz: () => ix('ratioTiles', { a: 3, b: 5, la: 'red', lb: 'blue', unit: 'tiles' }),
         steps: ['A ratio 3 : 5 compares two amounts in order.', 'It can also be written 3 to 5 or ' + fr(3, 5) + '.', 'Order matters: 3 : 5 is not the same as 5 : 3.'],
         trap: 'Flipping the order changes the comparison. 3 : 5 is not 5 : 3, and 3 : 8 would be red to the total, not red to blue.',
         aap: 'A ratio can compare part to part or part to whole. 3 : 5 red to blue is not 3 : 8 unless you mean red to all the tiles.',
@@ -709,7 +709,7 @@
         ]
       },
       'Equivalent ratios scale together': {
-        viz: () => V.barGraph(['3:5', '6:10', '9:15'], [3, 6, 9], { title: 'Both parts × 2, then × 3', color: '#0fb39c' }),
+        viz: () => ix('ratioTiles', { a: 3, b: 5, la: 'red', lb: 'blue', unit: 'tiles' }),
         steps: ['3 : 5, 6 : 10, and 9 : 15 are equivalent.', 'Multiply (or divide) both parts by the same number.', 'Changing only one part breaks the ratio.'],
         trap: 'Adding the same number to both parts (3 : 5 → 4 : 6) does not keep the ratio. You must multiply or divide.',
         aap: 'Simplify 12 : 18 by dividing both parts by 6 to get 2 : 3, then build 8 : 12 as another equivalent.',
@@ -987,7 +987,7 @@
     },
     u6B1: {
       'A conversion table is a ratio table': {
-        viz: () => V.barGraph(['1 m', '2 m', '5 m', '7 m'], [100, 200, 500, 700], { title: 'Centimeters', color: '#0fb39c' }),
+        viz: () => ix('ratioTiles', { mode: 'table', top: 'm', bottom: 'cm', cols: [[1, 100], [2, 200], [5, 500], [7, 700]], blank: { c: 2, r: 1 } }),
         steps: ['Each column scales both rows by the same factor.', '1 m : 100 cm, 2 m : 200 cm, 5 m : 500 cm, 7 m : 700 cm.', 'A missing entry is an equivalent ratio.'],
         trap: 'Filling 1, 2, 3 in one row and 100, 101, 102 in the other (adding 1) instead of multiplying.',
         aap: 'AAP: 2.5 m is the 2.5 column: 250 cm. Scale factors can be decimals.',
@@ -997,7 +997,7 @@
         ]
       },
       'Rates for one': {
-        viz: () => V.cycleSteps(['180 km', 'in 3 h', '60 km in 1 h']),
+        viz: () => ix('ratioTiles', { mode: 'table', top: 'km', bottom: 'hours', cols: [[180, 3], [60, 1]], blank: { c: 1, r: 0 } }),
         steps: ['A unit rate tells the amount for one of something.', '180 km in 3 hours is 180 ÷ 3 = 60 km per hour.', 'Divide both parts of the rate by the same number so the second part becomes 1.'],
         trap: 'Dividing the wrong way (3 ÷ 180) gives hours per kilometer, which is a different unit rate.',
         aap: 'AAP: 3 packs for $12 is $4 per pack, or 0.25 pack per dollar. Name the unit clearly.',

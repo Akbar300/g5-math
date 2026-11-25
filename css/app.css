@@ -1787,3 +1787,27 @@ html[data-theme="dark"] .ix-col .ix-btn.on,html[data-theme="dark"] .ix-btn.ll-nb
 .ix-btn.ps-unit{font-family:var(--mono);font-size:20px;min-width:58px}
 html[data-theme="dark"] .ix-btn.ps-unit.on{background:var(--teal);border-color:var(--teal);color:#072821}
 .ps-tile.trail{background:transparent;border-style:dashed;color:var(--muted);opacity:.6}
+/* ratioTiles */
+.rt-rows{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}
+.rt-legend{display:flex;gap:16px;font-weight:800;font-size:15px}.rt-legend span{display:inline-flex;align-items:center;gap:6px}.rt-legend b{font-family:var(--mono);font-size:18px}
+.rt-labs{display:flex;flex-direction:column;justify-content:space-around;gap:6px}
+.rt-lab{font-weight:800;font-size:14px;color:var(--muted);text-align:right}
+.rt-groups{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.rt-gcol{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.rt-box{display:inline-flex;gap:3px;padding:3px;border:2px solid var(--line);border-radius:8px;min-height:calc(clamp(12px,3.2vw,18px) + 4px)}
+.rt-box.odd{border:2px dashed var(--viz-coral)}
+.rt-box.empty{border-color:transparent}
+.rt-t{display:inline-block;width:clamp(12px,3.2vw,18px);height:clamp(12px,3.2vw,18px);border-radius:4px;border:1.5px solid var(--ink)}
+.rt-t.ca{background:var(--viz-coral)}.rt-t.cb{background:var(--viz-blue)}
+.rt-n{font-family:var(--mono);font-size:20px;min-width:2ch}
+.rt-read{text-align:center}.rt-read .ix-eq{justify-content:center}
+.rt-bad{color:var(--no-line,#c0392b)}
+.ix-btn.rt-k{font-family:var(--mono)}
+.rt-twrap{display:flex;flex-direction:column;align-items:center;overflow-x:auto}
+.rt-table{font-size:18px}
+.rt-table td{text-align:center!important;min-width:46px;font-family:var(--mono)}
+.rt-table .rt-fac td{border:0;background:transparent;font-size:13px;color:var(--viz-coral);font-family:var(--font)}
+.rt-table .rt-fac th{background:transparent;border:0}
+.rt-table td.unit{background:color-mix(in srgb,var(--viz-gold) 30%,transparent)}
+.rt-table td.blank{outline:3px dashed var(--viz-coral);outline-offset:-4px}
+.ix-btn.rt-ch{font-family:var(--mono);font-size:20px;min-width:60px}

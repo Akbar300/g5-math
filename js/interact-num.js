@@ -856,5 +856,95 @@
     return root;
   }
 
-  Object.assign(IX, { lineLab, decimalStack, placeShift, fitStrips });
+  /* ======================= ratioTiles =======================
+     Tiles: { a:3, b:5, la:'red', lb:'blue', unit:'tiles' }: × 2 / × 3 copy whole boxed groups, a "+1 red only" trap,
+     and Swap ("order matters").
+     Table: { mode:'table', top:'m', bottom:'cm', cols:[[1,100],[2,200],[5,500],[7,700]], blank:{c:2, r:1} }:
+     arrows show the scale factor from the first column; tap the blank and pick its value. A column with a 1 is the unit rate. */
+  function ratioTiles(opts) {
+    const o = Object.assign({ mode: 'tiles', a: 3, b: 5, la: 'red', lb: 'blue', unit: '' }, opts || {});
+    const root = h('div', 'viz ix ix-col ix-rt');
+    if (o.mode === 'table') {
+      const cols = o.cols, bl = o.blank || { c: cols.length - 1, r: 1 }, base = cols[0];
+      let solved = false;
+      const fac = (c) => { const f = cols[c][0] / base[0]; return f >= 1 ? '× ' + trimDec(f.toFixed(3)) : '÷ ' + trimDec((1 / f).toFixed(3)); };
+      const right = cols[bl.c][bl.r], f = cols[bl.c][1 - bl.r] / base[1 - bl.r];
+      const addWrong = base[bl.r] + (cols[bl.c][1 - bl.r] - base[1 - bl.r]);
+      const otherWrong = f > 1 ? right + base[bl.r] : base[bl.r] * Math.round(1 / f);
+      const choices = [...new Set([right, addWrong, otherWrong])].filter((x) => x > 0).sort((x, y) => x - y);
+      const unitCol = cols.findIndex((p) => p[0] === 1 || p[1] === 1);
+      const ask = h('div', 'ix-q', `Every column is the same ratio. Find the <b>?</b>`);
+      const wrap = h('div', 'rt-twrap');
+      const pick = h('div', 'ix-ctr');
+      const fb = h('div', 'ix-fb', '');
+      [ask, wrap, pick, fb].forEach((x) => root.appendChild(x));
+      function draw() {
+        let t = '<table class="g5t rt-table"><tr class="rt-fac"><th></th>' + cols.map((p, c) => `<td>${c ? '<span>' + fac(c) + '</span>' : ''}</td>`).join('') + '</tr>';
+        [0, 1].forEach((r) => {
+          t += `<tr><th>${r ? o.bottom : o.top}</th>` + cols.map((p, c) => {
+            const isB = c === bl.c && r === bl.r;
+            return `<td class="${c === unitCol ? 'unit' : ''}${isB ? ' blank' : ''}">${isB ? (solved ? '<b>' + right + '</b>' : '?') : p[r]}</td>`;
+          }).join('') + '</tr>';
+        });
+        t += '</table>';
+        wrap.innerHTML = t + (unitCol >= 0 ? `<div class="ix-note rt-unit">Unit rate: <b>${cols[unitCol][1 - (cols[unitCol][0] === 1 ? 0 : 1)]} ${cols[unitCol][0] === 1 ? o.bottom : o.top}</b> for every <b>1 ${cols[unitCol][0] === 1 ? o.top : o.bottom}</b></div>` : '');
+        pick.innerHTML = '';
+        if (!solved) choices.forEach((v) => pick.appendChild(btn(String(v), () => choose(v), 'rt-ch')));
+      }
+      function choose(v) {
+        if (v === right) {
+          solved = true; fb.className = 'ix-fb ok';
+          fb.innerHTML = `Yes! ${base[1 - bl.r]} ${fac(bl.c)} = ${cols[bl.c][1 - bl.r]}, so ${base[bl.r]} ${fac(bl.c)} = <b>${right}</b>. Both rows scale by the same number.`;
+        } else if (v === addWrong) {
+          fb.className = 'ix-fb no';
+          fb.innerHTML = `That adds the same amount to both rows (${base[1 - bl.r]} → ${cols[bl.c][1 - bl.r]} is +${cols[bl.c][1 - bl.r] - base[1 - bl.r]}). Ratios <b>multiply</b>: look at the arrow, ${fac(bl.c)}.`;
+        } else {
+          fb.className = 'ix-fb no';
+          fb.innerHTML = `Check the arrow: this column is ${fac(bl.c)}. Use that same step on the other row.`;
+        }
+        draw();
+      }
+      draw();
+      return root;
+    }
+    /* tiles */
+    let k = 1, extra = 0, swapped = false;
+    const rows = h('div', 'rt-rows');
+    const read = h('div', 'ix-read rt-read');
+    const ctl = h('div', 'ix-ctr');
+    [rows, read, ctl].forEach((x) => root.appendChild(x));
+    const kb = [1, 2, 3].map((n) => btn(n === 1 ? `${o.a} : ${o.b}` : '× ' + n, () => { k = n; extra = 0; draw(); }, 'rt-k'));
+    kb.forEach((b) => ctl.appendChild(b));
+    const bExtra = btn(`+1 ${o.la} only`, () => { extra = 1; draw(); }, 'ghost');
+    const bSwap = btn('Swap ⇄', () => { swapped = !swapped; draw(); }, 'ghost');
+    ctl.appendChild(bExtra); ctl.appendChild(bSwap);
+    /* group columns: each column is one boxed copy of a : b, so the groups line up */
+    function tiles(n, cls, odd) { const box = h('span', 'rt-box' + (odd ? ' odd' : '')); for (let j = 0; j < n; j++) box.appendChild(h('i', 'rt-t ' + cls)); return box; }
+    function paint() {
+      rows.innerHTML = '';
+      const top = swapped ? ['b', o.lb, 'cb'] : ['a', o.la, 'ca'], bot = swapped ? ['a', o.la, 'ca'] : ['b', o.lb, 'cb'];
+      const na0 = o.a * k + extra, nb0 = o.b * k;
+      rows.appendChild(h('div', 'rt-legend', `<span><i class="rt-t ${top[2]}"></i>${top[1]}: <b>${swapped ? nb0 : na0}</b></span><span><i class="rt-t ${bot[2]}"></i>${bot[1]}: <b>${swapped ? na0 : nb0}</b></span>`));
+      const g = h('div', 'rt-groups');
+      for (let i = 0; i < k; i++) { const c = h('div', 'rt-gcol'); c.appendChild(tiles(o[top[0]], top[2])); c.appendChild(tiles(o[bot[0]], bot[2])); g.appendChild(c); }
+      if (extra) { const c = h('div', 'rt-gcol'); const t = tiles(1, 'ca', true), e = h('span', 'rt-box empty'); if (swapped) { c.appendChild(e); c.appendChild(t); } else { c.appendChild(t); c.appendChild(e); } g.appendChild(c); }
+      rows.appendChild(g);
+    }
+    function draw() {
+      kb.forEach((b, i) => b.classList.toggle('on', i + 1 === k && !extra));
+      paint();
+      const na = o.a * k + extra, nb = o.b * k;
+      const first = swapped ? nb : na, second = swapped ? na : nb, l1 = swapped ? o.lb : o.la, l2 = swapped ? o.la : o.lb;
+      let html = `<div class="ix-eq">${l1} : ${l2} = <b>${first} : ${second}</b> = ${fr(first, second)}</div>`;
+      if (extra) html += `<div class="ix-note rt-bad">The mix changed! ${na} : ${nb} is not the same as ${o.a} : ${o.b}. Adding to one part only breaks the ratio: multiply <b>both</b> parts.</div>`;
+      else if (swapped) html += `<div class="ix-note">Order matters: ${first} ${l1} for every ${second} ${l2} is a different ratio from ${o.a} : ${o.b}.</div>`;
+      else if (k > 1) html += `<div class="ix-note">${k} boxed groups of ${o.a} : ${o.b}. Both parts × ${k}, so ${o.a * k} : ${o.b * k} is equivalent to ${o.a} : ${o.b}.</div>`;
+      else html += `<div class="ix-note">${o.a} ${o.la} for every ${o.b} ${o.lb}${o.unit ? ' ' + o.unit : ''}. Try × 2 and × 3.</div>`;
+      read.innerHTML = html;
+    }
+    draw();
+    return root;
+  }
+
+  Object.assign(IX, { lineLab, decimalStack, placeShift, fitStrips, ratioTiles });
 })(window);
