@@ -139,8 +139,8 @@ V.lineplot=(labels,counts,o={})=>{const n=labels.length,sp=Math.min(44,300/n),W=
   if(o.axis)g+=`<text x="${W/2}" y="${H-2}" font-size="11" text-anchor="middle" fill="${INK}">${o.axis}</text>`;
   return svgw(W,H,g,o.px||Math.min(W,330));};
 const stemData=(data)=>{const m={};data.forEach(v=>{const s=Math.floor(v/10);(m[s]=m[s]||[]).push(v%10);});const st=Object.keys(m).map(Number).sort((a,b)=>a-b);const lo=st[0],hi=st[st.length-1];const rows=[];for(let s=lo;s<=hi;s++)rows.push([s,(m[s]||[]).sort((a,b)=>a-b)]);return rows;};
-V.stem=(rows,keyStem,keyLeaf,o={})=>{const tr=rows.map(([s,l])=>`<tr><td class="st">${s}</td><td class="lf">${l.join('&nbsp; ')}</td></tr>`).join('');
-  return `<table class="g5sl">${o.title?`<caption>${o.title}</caption>`:''}<tr><th>Stem</th><th>Leaf</th></tr>${tr}<tr><td colspan="2" class="key">Key: ${keyStem} | ${keyLeaf} means ${keyStem}${keyLeaf}</td></tr></table>`;};
+V.stem=(rows,keyStem,keyLeaf,o={})=>{const tr=rows.map(([s,l])=>`<tr><td class="st">${s}</td><td class="lf">${l.join(' ')}</td></tr>`).join('');
+  return `<div class="sl-scroll"><table class="g5sl sl-tbl">${o.title?`<caption>${o.title}</caption>`:''}<tr><th>Stem</th><th>Leaf</th></tr>${tr}<tr><td colspan="2" class="key">Key: ${keyStem} | ${keyLeaf} means ${keyStem}${keyLeaf}</td></tr></table></div>`;};
 V.table=(head,rows,o={})=>`<table class="g5t">${o.title?`<caption>${o.title}</caption>`:''}<tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</table>`;
 /* horizontal in/out table */
 V.ioTable=(hin,hout,ins,outs)=>`<table class="g5t g5io"><tr><th>${hin}</th>${ins.map(x=>`<td>${x}</td>`).join('')}</tr><tr><th>${hout}</th>${outs.map(x=>`<td>${x}</td>`).join('')}</tr></table>`;
@@ -150,7 +150,7 @@ V.spinner=(secs,px=110)=>{const R=48,cx=52,cy=52,n=secs.length;let b='';const fi
 G.V=V;
 G.css=`.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1;font-size:.85em;margin:0 2px}.frac i{font-style:normal;padding:0 2px}.frac i:first-child{border-bottom:1.5px solid currentColor}
 .g5sl,.g5t{border-collapse:collapse;font-size:.92em;margin:4px 0;background:#fff;color:#1b2a41}.g5sl caption,.g5t caption{font-weight:bold;font-size:.9em;padding-bottom:2px}
-.g5sl th,.g5sl td,.g5t th,.g5t td{border:1.3px solid #24497a;padding:2px 9px;text-align:center}.g5sl th,.g5t th{background:#e3eef8}.g5sl td.lf{text-align:left;letter-spacing:.5px;min-width:80px}.g5sl td.key{font-size:.85em;text-align:left;border:none;padding-top:3px}
+.g5sl th,.g5sl td,.g5t th,.g5t td{border:1.3px solid #24497a;padding:2px 9px;text-align:center}.g5sl th,.g5t th{background:#e3eef8}.g5sl td.lf{text-align:left;letter-spacing:.5px;min-width:80px;white-space:nowrap}.g5sl td.key{font-size:.85em;text-align:left;border:none;padding-top:3px}
 .g5io td{min-width:34px}.g5v{display:inline-block;vertical-align:middle}`;
 /* ================= NUMBER & NUMBER SENSE (5.NS.1, 5.NS.2) ================= */
 const Q=(t,vis)=>vis?`${t}<div class="g5vis">${vis}</div>`:t;

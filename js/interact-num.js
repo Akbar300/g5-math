@@ -1020,13 +1020,18 @@
         if (stage4 === 0) { head.innerHTML = `<b>Ask:</b> ${o.question || 'What do we want to find out?'}`; plot([], { room: 3 }); read.innerHTML = '<div class="ix-note">A data question needs a count or a measure from a group.</div>'; ctl.appendChild(btn('Collect the data ▶', () => { stage4 = 1; draw(); }, 'go')); return; }
         if (stage4 === 1) { head.innerHTML = '<b>Collect:</b> here is what we found.'; plot([], { room: 3 }); read.innerHTML = `<div class="dp-list">${list}</div>`; ctl.appendChild(btn('Show it on a line plot ▶', () => { stage4 = 2; draw(); }, 'go')); return; }
         if (placed < vals.length) {
-          head.innerHTML = `<b>Show:</b> tap <b>${vals[placed]}</b> to drop its dot.`;
+          head.innerHTML = `<b>Show:</b> dot ${placed + 1} of ${vals.length}. Tap <b>${vals[placed]}</b> in the number row under the line.`;
           read.innerHTML = `<div class="dp-list">${list}</div>`;
           plot(vals.slice(0, placed), { drop, room: 3 });
           valueButtons((v) => {
-            if (v === vals[placed]) { placed++; fb.className = 'ix-fb'; fb.innerHTML = ''; if (placed === vals.length && o.cycle) stage4 = 3; draw(v); }
+            if (v === vals[placed]) { placed++; if (placed === vals.length && o.cycle) stage4 = 3;
+              const left = vals.slice(placed).filter((x) => x === v).length;
+              draw(v); fb.className = 'ix-fb ok'; fb.innerHTML = `✓ Dot at ${v}.` + (left ? ` ${left} more ${v}${left === 1 ? '' : 's'} to go: the dots stack.` : ''); }
             else { fb.className = 'ix-fb no'; fb.innerHTML = `That's ${v}. This value is <b>${vals[placed]}</b>: find ${vals[placed]} on the line.`; }
           });
+          read.querySelectorAll('.dp-tally').forEach((t) => { t.onclick = () => { const b = [...pad.children].find((x) => x.textContent === String(vals[placed]));
+            fb.className = 'ix-fb'; fb.innerHTML = `This list is the data. Tap <b>${vals[placed]}</b> in the number row above it.`;
+            if (b) { b.classList.remove('dp-hint'); void b.offsetWidth; b.classList.add('dp-hint'); } }; });
           return;
         }
         const counts = {}; vals.forEach((v) => { counts[v] = (counts[v] || 0) + 1; });

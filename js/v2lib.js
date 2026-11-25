@@ -39,7 +39,7 @@ L.counters = function(total, filled, groups){
   if(groups){ var per = total / groups, h = '<div class="v2-counters grp">', c = 0; for(var g = 0; g < groups; g++){ h += '<div class="g">'; for(var i = 0; i < per; i++){ h += '<i class="' + (c < filled ? 'f' : '') + '"></i>'; c++; } h += '</div>'; } return h + '</div>'; }
   var s = '<div class="v2-counters">'; for(var j = 0; j < total; j++) s += '<i class="' + (j < filled ? 'f' : '') + '"></i>'; return s + '</div>';
 };
-L.tbl = function(head, rows){ var h = '<table class="v2-tbl"><tr>' + head.map(function(x){ return '<th>' + x + '</th>'; }).join('') + '</tr>'; rows.forEach(function(r){ h += '<tr>' + r.map(function(x){ return x === '?' ? '<td class="q">?</td>' : '<td>' + x + '</td>'; }).join('') + '</tr>'; }); return h + '</table>'; };
+L.tbl = function(head, rows){ var sl = head[0] === 'Stem'; var h = (sl ? '<div class="sl-scroll">' : '') + '<table class="v2-tbl' + (sl ? ' sl-tbl' : '') + '"><tr>' + head.map(function(x){ return '<th>' + x + '</th>'; }).join('') + '</tr>'; rows.forEach(function(r){ h += '<tr>' + r.map(function(x){ return x === '?' ? '<td class="q">?</td>' : '<td>' + x + '</td>'; }).join('') + '</tr>'; }); return h + '</table>' + (sl ? '</div>' : ''); };
 L.chips = function(pos, neg, zeroPairs){ var h = '<div class="v2-chipsrow">'; for(var i = 0; i < pos; i++) h += '<i class="p' + (i < (zeroPairs || 0) ? ' z' : '') + '">+</i>'; for(var j = 0; j < neg; j++) h += '<i class="n' + (j < (zeroPairs || 0) ? ' z' : '') + '">−</i>'; return h + '</div>'; };
 window.V2L = L;
 })();

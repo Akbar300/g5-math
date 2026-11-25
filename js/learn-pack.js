@@ -43,7 +43,7 @@
     },
     u1c2: {
       'One dot, one value': {
-        viz: () => V.linePlot([3, 3, 4, 5, 5, 5, 7], { title: 'Pencils in backpacks' }),
+        viz: () => (w.IX && w.IX.dotPlot ? ix('dotPlot', { mode: 'build', values: [3, 3, 4, 5, 5, 5, 7], min: 2, max: 8, title: 'Pencils in backpacks' }) : V.linePlot([3, 3, 4, 5, 5, 5, 7], { title: 'Pencils in backpacks' })),
         steps: ['Draw a number line and give the plot a title.', 'Put one dot above each value.', 'If two people have the same value, stack the dots.'],
         trap: 'Do not stretch a stacked column into a bar. Each mark is still one person.',
         aap: 'AAP: if a new point 6 is added, say how the mode and the range change (or if they stay the same).',
@@ -65,7 +65,7 @@
     },
     u1c3: {
       'Tens in the stem, ones in the leaf': {
-        viz: () => V.stemLeaf([32, 35, 35, 41, 44, 50], { title: 'Scores', key: 'Key: 3 | 2 means 32' }),
+        viz: () => (w.IX && w.IX.stemBuilder ? ix('stemBuilder', { values: [35, 41, 32, 50, 35, 44], title: 'Scores', key: 'Key: 3 | 2 means 32' }) : V.stemLeaf([32, 35, 35, 41, 44, 50], { title: 'Scores', key: 'Key: 3 | 2 means 32' })),
         steps: ['Split each number: tens go in the stem, ones in the leaf.', 'List leaves in each row from least to greatest.', 'Write a title and a key, such as “3 | 2 means 32.”'],
         trap: '3 | 2 5 is 32 and 35, not 3.25 and not 325.',
         aap: 'AAP: add 39 to the plot. Which row gets the new leaf, and where in that row does it sit?',
@@ -75,7 +75,7 @@
         ]
       },
       'Read a stem': {
-        viz: () => V.stemLeaf([21, 23, 28, 30, 31, 31, 42], { title: 'Times (seconds)', key: 'Key: 2 | 1 means 21' }),
+        viz: () => (w.IX && w.IX.stemBuilder ? ix('stemBuilder', { mode: 'read', ask: 3, values: [21, 23, 28, 30, 31, 31, 42], title: 'Times (seconds)', key: 'Key: 2 | 1 means 21' }) : V.stemLeaf([21, 23, 28, 30, 31, 31, 42], { title: 'Times (seconds)', key: 'Key: 2 | 1 means 21' })),
         steps: ['Find the stem you were asked about.', 'Count the leaves in that row.', 'Each leaf is one value.'],
         trap: 'Do not count the stem itself as a data value.',
         aap: 'AAP: what is the range of this plot? Greatest leaf-value minus least.',
@@ -96,20 +96,98 @@
           () => num('Four scores add to 36. What is the mean?', 9, 'Mean = total ÷ how many: 36 ÷ 4 = 9.')
         ]
       },
-      'Median, mode, and range': {
-        viz: () => V.linePlot([2, 3, 3, 5, 8], { title: 'A small data set' }),
-        steps: ['Order the data: 2, 3, 3, 5, 8.', 'Median is the middle value: 3. (If there are two middle values, use their mean.)', 'Mode is the value that appears most: 3. Range is greatest minus least: 8 − 2 = 6.'],
-        trap: 'Find the median only after you put the numbers in order. The middle of the unordered list is a common miss.',
-        aap: 'AAP: for an even count like 2, 3, 5, 8, the median is the mean of the two middle numbers: (3 + 5) ÷ 2 = 4.',
+      'Median: the middle': {
+        viz: () => ix('centerLab', { values: [4, 7, 2, 9, 5], show: 'median' }),
+        steps: ['Order the data: 4, 7, 2, 9, 5 → 2, 4, 5, 7, 9.', 'Cross off one value from each end: 2 and 9, then 4 and 7.', 'One value is left: the median is 5. With an even count, average the two middle values: 3, 5, 8, 10 → (5 + 8) ÷ 2 = 6.5.'],
+        trap: 'Finding the middle of the unordered list. In 4, 7, 2, 9, 5 the middle spot holds 2, but the median is 5.',
+        aap: 'AAP: add a 6th value, 20, to 2, 4, 5, 7, 9. The median moves to (5 + 7) ÷ 2 = 6. How much does the mean move?',
         tries: [
-          () => num('What is the median of 2, 3, 3, 5, 8?', 3, 'The data is already ordered. The middle value is 3.'),
-          () => num('What is the range of 2, 3, 3, 5, 8?', 6, '8 − 2 = 6.')
+          () => num('What is the median of 4, 7, 2, 9, 5?', 5, 'Ordered: 2, 4, 5, 7, 9. The middle value is 5.'),
+          () => num('What is the median of 3, 10, 5, 8?', 6.5, 'Ordered: 3, 5, 8, 10. (5 + 8) ÷ 2 = 6.5.')
+        ]
+      },
+      'Mode: the most common': {
+        viz: () => ix('centerLab', { values: [8, 3, 5, 8, 7, 5, 8], show: 'mode' }),
+        steps: ['Group equal values (ordering helps): 3, 5, 5, 7, 8, 8, 8.', 'Count each value: 8 shows up 3 times.', 'The most frequent value is the mode: 8. A tie gives two modes; all different gives no mode.'],
+        trap: 'The mode is a data value (8), not how many times it shows up (3).',
+        aap: 'AAP: make a set of 6 numbers with mode 4, median 5, and range 6.',
+        tries: [
+          () => num('What is the mode of 3, 5, 5, 7, 8, 8, 8?', 8, '8 appears 3 times, more than any other value.'),
+          () => mc('What is the mode of 1, 4, 6, 7?', 'There is no mode', [['1', 'Every value appears once.'], ['4.5', 'That is the median, not the mode.'], ['6', 'Each number shows up exactly once.']], 'No value repeats, so there is no mode.')
+        ]
+      },
+      'Range: the spread': {
+        viz: () => ix('centerLab', { values: [12, 19, 7, 15], show: 'range' }),
+        steps: ['Find the greatest value: 19.', 'Find the least value: 7.', 'Subtract: 19 − 7 = 12. The range is 12 cm.'],
+        trap: 'Subtracting the first and last numbers in the list (15 − 12) instead of the greatest and least.',
+        aap: 'AAP: two classes both have mean 80. Class A has range 10, class B range 40. Which class has scores closer together?',
+        tries: [
+          () => num('What is the range of 12, 19, 7, 15?', 12, '19 − 7 = 12.'),
+          () => num('Temperatures: 41, 55, 38, 60. What is the range?', 22, '60 − 38 = 22.')
+        ]
+      },
+      'All four on one data set': {
+        viz: () => ix('centerLab', { values: [3, 7, 2, 5, 3], show: 'mean' }),
+        steps: ['Mean: 2 + 3 + 3 + 5 + 7 = 20, and 20 ÷ 5 = 4.', 'Median: ordered 2, 3, 3, 5, 7 → middle is 3. Mode: 3 shows twice.', 'Range: 7 − 2 = 5. Tap each tab in See it to check them all.'],
+        trap: 'Mixing up median and mode. Median is the middle spot; mode is the most frequent value. Here they happen to match.',
+        aap: 'AAP: change one number so the mean becomes 5 but the median stays 3. (7 → 12.)',
+        tries: [
+          () => num('What is the mean of 2, 3, 3, 5, 7?', 4, '20 ÷ 5 = 4.'),
+          () => ms('Data: 2, 3, 3, 5, 7. Select all true statements.', ['median = 3', 'mode = 3', 'range = 5', 'mean = 3'], [0, 1, 2], 'Median 3, mode 3, range 7 − 2 = 5, mean 20 ÷ 5 = 4.')
+        ]
+      }
+    },
+    u1c5: {
+      'Bar graphs compare groups': {
+        viz: () => ix('barLab', { title: 'Favorite fruit', cats: ['Apple', 'Banana', 'Grape', 'Orange'], series: [{ name: 'Votes', vals: [8, 5, 9, 3] }], max: 10, step: 2, unit: 'votes' }),
+        steps: ['Read the title and the scale: it counts by 2s.', 'Read each bar at its top: Apple 8, Banana 5, Grape 9, Orange 3.', 'Compare by subtracting: Grape − Orange = 9 − 3 = 6.'],
+        trap: 'Counting grid lines instead of reading the scale. If the scale counts by 2s, each line is 2.',
+        aap: 'AAP: what is the mean number of votes per fruit? (8 + 5 + 9 + 3) ÷ 4 = 6.25.',
+        tries: [
+          () => num('Apple 8, Banana 5, Grape 9, Orange 3. How many more votes did Grape get than Orange?', 6, '9 − 3 = 6.'),
+          () => num('How many votes in all: 8, 5, 9, 3?', 25, '8 + 5 + 9 + 3 = 25.')
+        ]
+      },
+      'Double bar graphs': {
+        viz: () => ix('barLab', { title: 'Books read', cats: ['Week 1', 'Week 2'], series: [{ name: 'Grade 4', vals: [6, 10] }, { name: 'Grade 5', vals: [8, 7] }], max: 12, step: 2, unit: 'books' }),
+        steps: ['Find the key: one color per group.', 'Read both bars in Week 2: Grade 4 has 10, Grade 5 has 7.', 'Subtract: 10 − 7 = 3 more for Grade 4.'],
+        trap: 'Comparing bars from different weeks when the question asks about one week.',
+        aap: 'AAP: which grade read more in all? Grade 4: 6 + 10 = 16. Grade 5: 8 + 7 = 15.',
+        tries: [
+          () => num('Week 2: Grade 4 read 10 books, Grade 5 read 7. How many more did Grade 4 read?', 3, '10 − 7 = 3.'),
+          () => mc('Why does a double bar graph need a key?', 'To show which bar is which group', [['To show the title', 'The title is separate.'], ['To list the scale', 'The scale is on the axis.'], ['It does not need one', 'Without a key you cannot tell the two groups apart.']], 'Two colors, two groups: the key tells which is which.')
+        ]
+      },
+      'Line graphs show change over time': {
+        viz: () => ix('lineGraph', { title: 'Plant height (cm)', xs: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], ys: [2, 4, 5, 8, 9], max: 10, step: 2, unit: 'cm' }),
+        steps: ['Time goes along the bottom: Mon to Fri.', 'Read each point: 2, 4, 5, 8, 9.', 'Change = later − earlier. Wed to Thu: 8 − 5 = 3, the steepest part of the line.'],
+        trap: 'A line graph is for change over time. Do not use it for categories like favorite colors.',
+        aap: 'AAP: if the plant keeps growing like Thu to Fri, about how tall will it be next Monday?',
+        tries: [
+          () => num('Plant height: Wed 5 cm, Thu 8 cm. How many cm did it grow?', 3, '8 − 5 = 3.'),
+          () => mc('On a line graph, a flat segment means', 'no change', [['a big increase', 'An increase goes up.'], ['a decrease', 'A decrease goes down.'], ['missing data', 'Flat still has data: the value stayed the same.']], 'Flat means the value did not change.')
+        ]
+      },
+      'Pick the right graph': {
+        viz: () => ix('sorter', { buckets: ['Line plot', 'Stem-and-leaf', 'Bar graph', 'Line graph', 'Circle graph'], cards: [
+          { t: 'Temperature every hour, 8 a.m. to 3 p.m.', b: 3, why: 'Change over time → line graph.' },
+          { t: 'Votes for each lunch choice', b: 2, why: 'Comparing categories → bar graph.' },
+          { t: 'Percent of the budget for each activity', b: 4, why: 'Parts of one whole → circle graph.' },
+          { t: 'Test scores 72, 85, 88, 91, 93', b: 1, why: 'Two-digit values, keep every score → stem-and-leaf.' },
+          { t: 'Number of siblings (0 to 5) for each student', b: 0, why: 'How often each small number shows up → line plot.' }
+        ], end: 'Each graph has a job: count small numbers, keep two-digit values, compare categories, show change, or show parts of a whole.' }),
+        steps: ['Categories (like fruits or sports)? Bar graph.', 'Change over time? Line graph. Parts of one whole? Circle graph.', 'Numbers on a number line? Line plot for small values, stem-and-leaf for two-digit values.'],
+        trap: 'A line plot (dots over a number line) is not the same as a line graph (points connected over time).',
+        aap: 'AAP: could the same data go on two kinds of graph? Show the sibling data as a line plot and as a bar graph.',
+        tries: [
+          () => mc('Which graph is best for the temperature each hour of the day?', 'Line graph', [['Circle graph', 'That shows parts of a whole.'], ['Bar graph', 'Bars compare categories; this is change over time.'], ['Stem-and-leaf plot', 'That keeps two-digit values but hides the time order.']], 'Change over time → line graph.'),
+          () => mc('Which graph shows parts of one whole as percents?', 'Circle graph', [['Line graph', 'That is for change over time.'], ['Line plot', 'That counts how often each number appears.'], ['Double bar graph', 'That compares two groups.']], 'Slices of 100% → circle graph.')
         ]
       }
     },
     u1a1: {
       'Parts of one whole': {
-        viz: () => V.pie([50, 30, 20], ['Pizza 50%', 'Tacos 30%', 'Pasta 20%']),
+        viz: () => (w.IX && w.IX.circleLab ? ix('circleLab', { parts: [{ name: 'Pizza', pct: 50 }, { name: 'Tacos', pct: 30 }, { name: 'Pasta', pct: 20 }], total: 20, totals: [20, 40, 60, 100] }) : V.pie([50, 30, 20], ['Pizza 50%', 'Tacos 30%', 'Pasta 20%'])),
         steps: ['A circle graph is one whole: all slices add to 100%.', 'A bigger slice means a bigger share.', 'Use it for parts of one group, not for change over time.'],
         trap: 'Slices must add to 100%. If they add to 90% or 110%, something was left out or counted twice.',
         aap: 'AAP: if “other” is 15% and the rest is split equally among 5 clubs, what percent is each club? (85 ÷ 5 = 17%.)',
@@ -1304,7 +1382,7 @@
         ]
       },
       'Median, mode, range': {
-        viz: () => V.linePlot([1, 2, 2, 4, 7], { title: 'Order first' }),
+        viz: () => (w.IX && w.IX.centerLab ? ix('centerLab', { values: [4, 1, 7, 2, 2], show: 'median' }) : V.linePlot([1, 2, 2, 4, 7], { title: 'Order first' })),
         steps: ['Order the data before you find the median.', 'Mode is the most frequent value. Range is greatest minus least.', 'If two values are tied for most frequent, the set can have two modes — or you can say there is no single mode, depending on the problem’s wording.'],
         trap: 'The median of an unordered list (picking the middle position before sorting).',
         aap: 'AAP: for 1, 2, 4, 7 the median is (2+4)÷2 = 3. Even counts need the mean of the two middle numbers.',
@@ -1316,7 +1394,7 @@
     },
     u10L2: {
       'Stem-and-leaf plots': {
-        viz: () => V.stemLeaf([21, 24, 24, 28, 30, 35, 42], { title: 'Scores', key: 'Key: 2 | 1 means 21' }),
+        viz: () => (w.IX && w.IX.stemBuilder ? ix('stemBuilder', { values: [24, 35, 21, 42, 28, 30, 24], title: 'Scores', key: 'Key: 2 | 1 means 21' }) : V.stemLeaf([21, 24, 24, 28, 30, 35, 42], { title: 'Scores', key: 'Key: 2 | 1 means 21' })),
         steps: ['The stem is the tens. The leaves are the ones, written in order.', 'A key is required: “2 | 1 means 21.”', 'You can still find mean, median, mode, and range from the plot.'],
         trap: 'Reading 2 | 1 4 as 2.14 or as 214. Each leaf is a ones digit on that stem.',
         aap: 'AAP: from the plot, the median is the middle leaf when all leaves are listed in order across the rows.',
@@ -1326,7 +1404,7 @@
         ]
       },
       'Your turn': {
-        viz: () => V.linePlot([12, 15, 15, 19, 20, 23, 23, 23, 31], { title: 'The same data on a line plot' }),
+        viz: () => (w.IX && w.IX.stemBuilder ? ix('stemBuilder', { mode: 'read', ask: 2, values: [12, 15, 15, 19, 20, 23, 23, 23, 31], key: 'Key: 1 | 2 means 12' }) : V.linePlot([12, 15, 15, 19, 20, 23, 23, 23, 31], { title: 'The same data on a line plot' })),
         steps: ['A line plot and a stem-and-leaf plot can show the same set.', 'Use the plot to count, to find the cluster, and to find the range.', 'Titles and labels still matter.'],
         trap: 'Counting the tick marks on the number line instead of the dots.',
         aap: 'AAP: if an outlier 60 is added to this data, the range jumps from 19 to 48 and the mean rises more than the median.',

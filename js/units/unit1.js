@@ -96,9 +96,54 @@
     };
   }
 
+  function genMode() {
+    const sets = [[3, 5, 5, 7, 8, 8, 8], [2, 4, 4, 6, 9], [6, 6, 7, 9, 9, 9, 10], [1, 3, 3, 3, 5, 8], [11, 12, 12, 14, 15]];
+    const d = U.shuffle(U.pick(sets).slice());
+    const m = mode(d);
+    return { type: 'num', fmt: 'TYPE IN', sol: '5.PS.2', q: `What is the <b>mode</b> of this data: <b>${d.join(', ')}</b>?`, a: m,
+      why: `Count how often each value shows up. <b>${m}</b> appears ${d.filter((x) => x === m).length} times, more than any other value.` };
+  }
+  function genCenterMix() {
+    const d = sampleData().slice(0, 5); const m = mean(d), md = median(d), mo = mode(d), r = range(d);
+    const ch = [`range = ${r}`, `median = ${md}`, `mean = ${+m.toFixed(2)}`, `range = ${r + 2}`, `median = ${md + 1}`];
+    return { type: 'ms', fmt: 'SELECT ALL', sol: '5.PS.2', q: `Data: <b>${d.join(', ')}</b>. Select <b>all</b> true statements.`, ch, a: [0, 1, 2],
+      why: `Ordered: ${d.slice().sort((a, b) => a - b).join(', ')}. Median ${md}, mean ${d.reduce((s, x) => s + x, 0)} ÷ ${d.length} = ${+m.toFixed(2)}, range ${Math.max(...d)} − ${Math.min(...d)} = ${r}${mo == null ? ', no mode' : ', mode ' + mo}.` };
+  }
+  function genBarRead() {
+    const cats = U.pick([['Apple', 'Banana', 'Grape', 'Orange'], ['Dogs', 'Cats', 'Fish', 'Birds'], ['Mon', 'Tue', 'Wed', 'Thu']]);
+    const vals = cats.map(() => U.ri(2, 12));
+    let i = U.ri(0, 3), j = (i + U.ri(1, 3)) % 4; if (vals[i] === vals[j]) vals[i] += 2;
+    const big = vals[i] > vals[j] ? i : j, sm = big === i ? j : i;
+    return { type: 'num', fmt: 'TYPE IN', sol: '5.PS.1', q: `How many more votes did <b>${cats[big]}</b> get than <b>${cats[sm]}</b>?` + V.barGraph(cats, vals, { title: 'Class votes' }),
+      a: vals[big] - vals[sm], why: `${cats[big]} ${vals[big]} − ${cats[sm]} ${vals[sm]} = <b>${vals[big] - vals[sm]}</b>.` };
+  }
+  function genDoubleBar() {
+    const a = [U.ri(4, 12), U.ri(4, 12)], b = [U.ri(4, 12), U.ri(4, 12)]; if (a[1] === b[1]) a[1]++;
+    const big = a[1] > b[1] ? 'Grade 4' : 'Grade 5';
+    const tbl = `<table class="g5t"><tr><th>Books read</th><th>Week 1</th><th>Week 2</th></tr><tr><td>Grade 4</td><td>${a[0]}</td><td>${a[1]}</td></tr><tr><td>Grade 5</td><td>${b[0]}</td><td>${b[1]}</td></tr></table>`;
+    return { type: 'num', fmt: 'TYPE IN', sol: '5.PS.1', q: `A double bar graph shows this data. In Week 2, how many more books did <b>${big}</b> read?` + tbl,
+      a: Math.abs(a[1] - b[1]), why: `Week 2: ${Math.max(a[1], b[1])} − ${Math.min(a[1], b[1])} = <b>${Math.abs(a[1] - b[1])}</b>.` };
+  }
+  function genLineGraph() {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']; const ys = [U.ri(1, 4)]; for (let k = 1; k < 5; k++) ys.push(ys[k - 1] + U.ri(0, 4));
+    let bi = 1; for (let k = 2; k < 5; k++) if (ys[k] - ys[k - 1] > ys[bi] - ys[bi - 1]) bi = k;
+    const tbl = `<table class="g5t"><tr>${days.map((d) => `<th>${d}</th>`).join('')}</tr><tr>${ys.map((v) => `<td>${v}</td>`).join('')}</tr></table>`;
+    return { type: 'num', fmt: 'TYPE IN', sol: '5.PS.1', q: `A line graph shows plant height (cm) each day. How many cm did it grow from <b>${days[bi - 1]}</b> to <b>${days[bi]}</b>?` + tbl,
+      a: ys[bi] - ys[bi - 1], why: `${ys[bi]} − ${ys[bi - 1]} = <b>${ys[bi] - ys[bi - 1]}</b> cm. On the graph, that is the steepest climb.` };
+  }
+  function genWhichGraph() {
+    const items = [['the temperature every hour from 8 a.m. to 3 p.m.', 'Line graph'], ['the favorite sport of each student, by sport', 'Bar graph'],
+      ['what percent of the class budget goes to each activity', 'Circle graph'], ['test scores like 72, 85, 88, 91, keeping every score', 'Stem-and-leaf plot'],
+      ['how many siblings each student has (0 to 5)', 'Line plot']];
+    const [what, right] = U.pick(items);
+    const ch = U.shuffle(['Line graph', 'Bar graph', 'Circle graph', 'Stem-and-leaf plot', 'Line plot']);
+    return { type: 'mc', fmt: 'MULTIPLE CHOICE', sol: '5.PS.1', q: `Which graph is best to show <b>${what}</b>?`, ch, a: ch.indexOf(right),
+      why: `${right}: ${{ 'Line graph': 'change over time', 'Bar graph': 'comparing categories', 'Circle graph': 'parts of one whole', 'Stem-and-leaf plot': 'two-digit data, every value kept', 'Line plot': 'how often each small number shows up' }[right]}.` };
+  }
+
   function testCore() {
     return [genQuestion(), genLineRead(), genLineTotal(), genStem(), genMean(), genMedian(), genRange(),
-      genLineRead(), genStem(), genMean(), genMedian(), genRange()];
+      genLineRead(), genStem(), genMean(), genMedian(), genRange(), genMode(), genBarRead(), genLineGraph(), genWhichGraph()];
   }
   function testAdv() {
     return [genCircle(), genCircle(), genMean(), genMedian(), genRange(), genQuestion(),
@@ -145,8 +190,45 @@
           cards: [
             { t: 'Mean is a fair share', html: `<p>If 3, 5, 7, and 9 stickers are put in one pile and shared equally, each person gets the mean: (3+5+7+9) ÷ 4 = <b>6</b>.</p>`,
               remember: 'Mean = total ÷ how many values.' },
-            { t: 'Median, mode, and range', html: `<p>Order the data first. The <b>median</b> is the middle (or the mean of the two middle numbers). The <b>mode</b> is the value that appears most. The <b>range</b> is greatest minus least — how spread out the data is.</p>`,
-              try: () => genMedian() }
+            { t: 'Median: the middle', html: `<p>Put the data <b>in order</b>, then find the middle.</p>
+              <p>Odd count: 4, 7, 2, 9, 5 → 2, 4, <b>5</b>, 7, 9. The median is <b>5</b>.</p>
+              <p>Even count: 3, 10, 5, 8 → 3, <b>5, 8</b>, 10. Two middle values, so take their mean: (5 + 8) ÷ 2 = <b>6.5</b>.</p>`,
+              remember: 'Order first. Cross off one from each end until the middle is left.', try: () => genMedian() },
+            { t: 'Mode: the most common', html: `<p>The <b>mode</b> is the value that appears most often.</p>
+              <p>3, 5, 5, 7, 8, 8, 8 → <b>8</b> appears 3 times, so the mode is 8.</p>
+              <p>2, 2, 6, 9, 9 → 2 and 9 tie: <b>two modes</b>. 1, 4, 6, 7 → every value once: <b>no mode</b>.</p>`,
+              remember: 'A data set can have one mode, more than one mode, or no mode.', try: () => genMode() },
+            { t: 'Range: the spread', html: `<p>The <b>range</b> is greatest minus least. It tells how spread out the data is.</p>
+              <p>Plant heights 12, 19, 7, 15 cm: greatest 19, least 7. Range = 19 − 7 = <b>12</b> cm.</p>`,
+              remember: 'Range is one number: a difference, not "7 to 19".', try: () => genRange() },
+            { t: 'All four on one data set', html: `<p>Data: <b>2, 3, 3, 5, 7</b> (points scored in 5 games).</p>` +
+              `<table class="g5t"><tr><th>Measure</th><th>Question it answers</th><th>How</th><th>Answer</th></tr>
+              <tr><td><b>Mean</b></td><td>Fair share?</td><td>20 ÷ 5</td><td><b>4</b></td></tr>
+              <tr><td><b>Median</b></td><td>Middle value?</td><td>2, 3, <b>3</b>, 5, 7</td><td><b>3</b></td></tr>
+              <tr><td><b>Mode</b></td><td>Most common?</td><td>3 shows twice</td><td><b>3</b></td></tr>
+              <tr><td><b>Range</b></td><td>How spread out?</td><td>7 − 2</td><td><b>5</b></td></tr></table>`,
+              remember: 'Mean, median, and mode describe the center. Range describes the spread.', try: () => genCenterMix() }
+          ]
+        },
+        {
+          id: 'u1c5', name: 'Bar & line graphs', icon: '📊',
+          cards: [
+            { t: 'Bar graphs compare groups', html: `<p>A <b>bar graph</b> compares categories. Read the top of each bar against the scale.</p>
+              <p>Favorite fruit: Apple 8, Banana 5, Grape 9, Orange 3. Grape is greatest. Grape has 9 − 3 = <b>6</b> more votes than Orange.</p>`,
+              remember: 'Check the scale first: it may count by 2s or 5s.', try: () => genBarRead() },
+            { t: 'Double bar graphs', html: `<p>A <b>double bar graph</b> compares two groups side by side, with a key.</p>
+              <p>Books read: Grade 4 vs Grade 5. Week 1: 6 and 8. Week 2: 10 and 7. In Week 2, Grade 4 read 10 − 7 = <b>3</b> more.</p>`,
+              remember: 'Use the key to tell which bar is which group.', try: () => genDoubleBar() },
+            { t: 'Line graphs show change over time', html: `<p>A <b>line graph</b> connects points in time order, so you can see the trend.</p>
+              <p>Plant height (cm): Mon 2, Tue 4, Wed 5, Thu 8, Fri 9. Thursday to Friday it grew 9 − 8 = 1 cm. The biggest jump is Wed to Thu: <b>3</b> cm.</p>`,
+              remember: 'Up = increase, down = decrease, flat = no change.', try: () => genLineGraph() },
+            { t: 'Pick the right graph', html: `<table class="g5t"><tr><th>Graph</th><th>Best for</th></tr>
+              <tr><td>Line plot</td><td>How often each number shows up (small data set)</td></tr>
+              <tr><td>Stem-and-leaf</td><td>Two-digit data, keeping every value</td></tr>
+              <tr><td>Bar graph</td><td>Comparing categories</td></tr>
+              <tr><td>Line graph</td><td>Change over time</td></tr>
+              <tr><td>Circle graph</td><td>Parts of one whole (percents)</td></tr></table>`,
+              remember: 'Ask: categories? change over time? parts of a whole? numbers on a line?', try: () => genWhichGraph() }
           ]
         }
       ],
@@ -157,7 +239,12 @@
         { id: 'stem', name: 'Stem-and-leaf', gen: genStem },
         { id: 'mean', name: 'Mean (fair share)', gen: genMean },
         { id: 'median', name: 'Median', gen: genMedian },
-        { id: 'range', name: 'Range', gen: genRange }
+        { id: 'range', name: 'Range', gen: genRange },
+        { id: 'mode', name: 'Mode', gen: genMode },
+        { id: 'center', name: 'Mean, median, mode, range', gen: genCenterMix },
+        { id: 'bars', name: 'Bar & double bar graphs', gen: () => (Math.random() < 0.5 ? genBarRead() : genDoubleBar()) },
+        { id: 'lineg', name: 'Line graphs', gen: genLineGraph },
+        { id: 'which', name: 'Pick the right graph', gen: genWhichGraph }
       ],
       test: testCore
     },

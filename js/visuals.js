@@ -222,10 +222,9 @@
     const stems = Object.keys(rows).map(Number).sort((a, b) => a - b);
     const lines = stems.map((st) => `<tr><td class="st">${st}</td><td class="lf">${rows[st].join(' ')}</td></tr>`).join('');
     const k = key || (data[0] != null ? `Key: ${Math.floor(data[0] / 10)} | ${data[0] % 10} means ${data[0]}` : '');
-    return `<div class="viz"><table class="g5t" style="border-collapse:collapse;font-weight:800;background:var(--card);border:2px solid var(--ink);border-radius:10px;overflow:hidden">
-      <caption style="font-weight:800;padding:4px">${title}</caption>
-      <thead><tr><th style="border:1.5px solid var(--ink);padding:4px 10px;background:var(--chip-bg)">Stem</th><th style="border:1.5px solid var(--ink);padding:4px 10px;background:var(--chip-bg)">Leaf</th></tr></thead>
-      <tbody>${lines}</tbody></table><div style="font-size:13px;color:var(--muted);margin-top:4px;font-weight:700">${k}</div></div>`;
+    return `<div class="viz sl-wrap"><div class="sl-scroll"><table class="g5t sl-tbl"><caption>${title}</caption>
+      <thead><tr><th>Stem</th><th>Leaf</th></tr></thead>
+      <tbody>${lines}</tbody></table></div><div class="sl-key">${k}</div></div>`;
   }
 
   function pie(parts, labels, { size = 200 } = {}) {
