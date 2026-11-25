@@ -92,7 +92,6 @@ const show = (set) => [...set].slice(0, 8).join(' ') + (set.size > 8 ? ' …' : 
 
 /* lesson|title|where → why the picture itself has to change. */
 const NEEDS_WIDGET = {
-  'u5L4|Point goes straight up|See it': 'placeValue shows one number; the card needs the point lining up in 7.65 ÷ 3 = 2.55.',
   'u6L1|Big unit → small unit: multiply|See it': 'metricLadder has no amounts; needs 3.5 m moving to 350 cm on the ladder.',
   'u6L1|Small unit → big unit: divide|See it': 'metricLadder shows length only; the example is 2400 g → 2.4 kg.',
   'u6L2|Benchmarks|See it': 'Bar graph used for benchmarks; needs real-object benchmark pictures.',

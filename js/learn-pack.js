@@ -13,6 +13,9 @@
   /* Hands-on widgets from js/interact.js, with a static fallback. */
   const ixGrid = (o) => (w.IX ? w.IX.hundredGrid(o) : V.hundredGrid(o.start || 0, { fill: o.fill }));
   const ixBar = (o) => (w.IX ? w.IX.fractionBar(o) : V.fractionBar(o.n || 0, o.d || 4, { fill: o.fill }));
+  /* Number widgets from js/interact-num.js (and the decimal stepper). No widget, no See it. */
+  const ix = (name, o) => (w.IX && w.IX[name] ? w.IX[name](o) : '');
+  const ixStep = (kind, o) => (w.IX && w.IX.stepper ? w.IX.stepper(kind, o) : '');
 
   const pack = {
     /* ---------- Unit 1 ---------- */
@@ -754,11 +757,19 @@
     },
 
         /* ---------- Unit 5 ---------- */
+    u5L0: {
+      'Find the place, then the decider': { viz: () => ix('lineLab', { mode: 'round', x: '4.738', place: 1, more: ['6.251', '3.47', '9.815'] }) },
+      'A tenths answer keeps the tenths digit': { viz: () => ix('lineLab', { mode: 'round', x: '3.062', place: 1, wrong: '3.0', more: ['18.296', '5.07', '12.041'] }) },
+      'Hundredths keep two decimal places': { viz: () => ix('lineLab', { mode: 'round', x: '0.865', place: 2, wrong: '0.09', more: ['2.314', '0.738', '4.096'] }) },
+      'Whole number: the tenths digit decides': { viz: () => ix('lineLab', { mode: 'round', x: '25.351', place: 0, wrong: '30', more: ['8.62', '13.49', '40.5'] }) },
+      'When a 9 bumps up': { viz: () => ix('lineLab', { mode: 'round', x: '7.96', place: 1, wrong: '7.10', more: ['3.97', '12.95', '0.98'] }) },
+      'One look, no chain': { viz: () => ix('lineLab', { mode: 'round', x: '2.448', place: 1, more: ['5.347', '1.449', '7.046'] }) }
+    },
     u5L1: {
       'Decimal points stack': {
-        viz: () => V.placeValue('12.35'),
-        steps: ['Line the decimal points up, one under the other.', 'Then add or subtract like whole numbers.', 'Bring the point straight down into the answer.'],
-        trap: 'Lining up the last digits instead of the points (12.4 + 3.25 as if they were 124 + 325) is the classic miss.',
+        viz: () => ix('decimalStack', { op: '+', a: '4.7', b: '12.35' }),
+        steps: ['Line the decimal points up, one under the other.', 'Fill the empty place with a zero: 4.7 = 4.70. Then add like whole numbers.', 'Bring the point straight down into the answer: 4.70 + 12.35 = 17.05.'],
+        trap: 'Lining up the last digits instead of the points: 4.7 + 12.35 done that way gives 12.82, which adds 7 tenths to 5 hundredths.',
         aap: 'AAP: 4.5 + 0.75 + 12 = 17.25. The whole number 12 is 12.00 when you line the points up.',
         tries: [
           () => num('Find 1.2 + 0.35', 1.55, 'Line up the points: 1.20 + 0.35 = 1.55.'),
@@ -766,7 +777,7 @@
         ]
       },
       'Fill in zeros': {
-        viz: () => V.placeValue('8.00'),
+        viz: () => ix('decimalStack', { op: '−', a: '8', b: '2.46' }),
         steps: ['8 has no decimal places showing, so write 8.00 when you subtract 2.46.', 'The value is unchanged.', 'Then subtract: 8.00 − 2.46 = 5.54.'],
         trap: 'Writing 8 − 2.46 as 6.46 (subtracting only the whole numbers and tacking on .46) skips regrouping.',
         aap: 'AAP: 6.3 − 2.85. Annex a zero: 6.30 − 2.85 = 3.45.',
@@ -778,17 +789,17 @@
     },
     u5L2: {
       'Ignore the point, then place it': {
-        viz: () => V.areaRect(3.4, 6),
+        viz: () => ixStep('mul', { a: '3.4', b: '6', focus: 'estimate' }),
         steps: ['Estimate first: 3.4 × 6 is near 3 × 6 = 18.', 'Multiply 34 × 6 = 204 as whole numbers.', '3.4 has one decimal place, so the product is 20.4. It is close to 18.'],
-        trap: 'Putting the point in the same place as one of the factors (34 × 6 = 204, then “3.4 so 20.4” is right here — but 3.4 × 0.6 is 2.04, not 20.4). Count all the places.',
+        trap: 'Copying the point from one factor without counting. 3.4 × 6 and 3.4 × 0.6 both start as 34 × 6 = 204, but they end as 20.4 and 2.04. Count the places in both factors, then check against the estimate.',
         aap: 'AAP: 1.2 × 0.4 = 0.48 (two places in all). Estimate: a little less than half of 1.2.',
         tries: [
           () => num('Find 3.4 × 6', 20.4, '34 × 6 = 204, and 3.4 has one decimal place: 20.4.'),
-          () => mc('Best estimate for 1.9 × 3.1?', '6', [['60', '1.9 is near 2, not 20.'], ['2', 'That is near the sum, not the product? Actually near 2+3.'], ['9', 'A little high: 2 × 3 = 6.']], '2 × 3 = 6.')
+          () => mc('Best estimate for 1.9 × 3.1?', '6', [['60', '1.9 is near 2, not 20.'], ['2', 'Too small: 1.9 is about 2 and 3.1 is about 3, so the product is about 2 × 3.'], ['9', 'A little high: 2 × 3 = 6.']], '2 × 3 = 6.')
         ]
       },
       'Count decimal places too': {
-        viz: () => V.cycleSteps(['2.35 (2)', '× 1.2 (1)', '3 places → 2.820']),
+        viz: () => ixStep('mul', { a: '2.35', b: '1.2', focus: 'count' }),
         steps: ['Count the decimal places in both factors and add those counts.', '2.35 has 2, 1.2 has 1, so the product has 3 places.', '235 × 12 = 2820, so the product is 2.820 = 2.82.'],
         trap: 'Counting only one factor’s places leaves the point one place off (28.20 or 0.282).',
         aap: 'AAP: 0.25 × 0.4 = 0.100 = 0.1 (three places, with a trailing zero you can drop).',
@@ -822,7 +833,7 @@
     },
     u5L4: {
       'Point goes straight up': {
-        viz: () => V.placeValue('7.65'),
+        viz: () => ixStep('div', { a: '7.65', b: 3 }),
         steps: ['When you divide a decimal by a whole number, the point in the quotient sits straight above the point in the dividend.', '7.65 ÷ 3: 7.65 is 765 hundredths, 765 ÷ 3 = 255 hundredths, so 2.55.', 'Estimate: between 6 ÷ 3 = 2 and 9 ÷ 3 = 3.'],
         trap: 'Dropping the point and then guessing (765 ÷ 3 = 255, so the answer is 255) forgets the hundredths.',
         aap: 'AAP: 7.5 ÷ 5 = 1.5. Check: 5 × 1.5 = 7.5.',
@@ -832,7 +843,7 @@
         ]
       },
       'Annex a zero': {
-        viz: () => V.cycleSteps(['5.4', '5.40', '540 ÷ 4 = 135 → 1.35']),
+        viz: () => ixStep('div', { a: '5.4', b: 4, annex: true }),
         steps: ['Sometimes you need one more place: 5.4 ÷ 4.', 'Write 5.4 as 5.40. Then 540 ÷ 4 = 135, so 1.35.', 'Estimate: about 4 ÷ 4 = 1, or 8 ÷ 4 = 2, so 1.35 fits.'],
         trap: 'Stopping at 1.3 because “5.4 ended in one digit” leaves a remainder you could have kept dividing.',
         aap: 'AAP: 1 ÷ 8 = 0.125. Annex zeros until the remainder is 0 (or a pattern appears).',
@@ -844,7 +855,7 @@
     },
     u5L5: {
       'Make the divisor whole': {
-        viz: () => V.cycleSteps(['4.8 ÷ 0.6', '×10 both', '48 ÷ 6 = 8']),
+        viz: () => ix('placeShift', { mode: 'pair', a: '4.8', b: '0.6' }),
         steps: ['To divide by a decimal, multiply dividend and divisor by the same power of 10 until the divisor is whole.', '4.8 ÷ 0.6 → 48 ÷ 6 = 8.', 'The quotient does not change because both numbers were scaled the same way.'],
         trap: 'Moving the point in only one number (4.8 ÷ 0.6 → 4.8 ÷ 6 = 0.8) makes the answer 10 times too small.',
         aap: 'AAP: 0.84 ÷ 0.12 → 84 ÷ 12 = 7. Two places in each, so ×100 on both.',
@@ -854,7 +865,7 @@
         ]
       },
       'Why bigger?': {
-        viz: () => V.fractionBar(8, 8, { fill: '#0fb39c', label: '8 pieces of 0.6 fit in 4.8' }),
+        viz: () => ix('fitStrips', { whole: '4.8', piece: '0.6' }),
         steps: ['4.8 ÷ 0.6 asks how many 0.6s fit in 4.8.', 'Eight of them fit, so the quotient is 8 — larger than both numbers.', 'Dividing by a number less than 1 makes a larger result.'],
         trap: 'Expecting a smaller answer because “division makes smaller” — that is for divisors greater than 1.',
         aap: 'AAP: 3 ÷ 0.05 = 60. Think: how many nickels (0.05) fit in 3 dollars? 60.',
@@ -866,7 +877,7 @@
     },
     u5B1: {
       'Below zero': {
-        viz: () => V.numberLine(-8, 4, [{ pos: -8, label: '−8' }, { pos: -5, label: '−5' }, { pos: -3, label: '−3' }, { pos: 0, label: '0' }]),
+        viz: () => ix('lineLab', { mode: 'compare', pairs: [[-8, -3], [-2, -6], [-5, 1], [-10, -9]], min: -10, max: 5 }),
         steps: ['Negative numbers sit to the left of 0 on the number line.', '−8 is less than −3, because −8 is farther left.', 'The farther left you go, the smaller the number.'],
         trap: 'Thinking “8 is bigger than 3, so −8 is bigger than −3.” The sign flips the comparison.',
         aap: 'AAP: order −4, 1, −1, 0, −6 from least to greatest: −6, −4, −1, 0, 1.',
@@ -876,7 +887,7 @@
         ]
       },
       'Add on a number line': {
-        viz: () => V.numberLine(-6, 6, [{ pos: -4, label: 'start' }, { pos: 2, label: '−4 + 6' }]),
+        viz: () => ix('lineLab', { mode: 'hop', problems: [{ a: -4, op: '+', b: 6 }, { a: -3, op: '+', b: -2 }], min: -8, max: 8 }),
         steps: ['Start at the first number.', 'Adding a positive: move right. Adding a negative: move left.', '−4 + 6 = 2: start at −4, move 6 right.'],
         trap: 'Adding a negative is not the same as adding the absolute values. −4 + (−3) = −7, not −1.',
         aap: 'AAP: −2 + (−5) + 9 = 2. Combine the negatives first: −7 + 9 = 2.',
@@ -886,7 +897,7 @@
         ]
       },
       'Subtract = add the opposite': {
-        viz: () => V.numberLine(-6, 12, [{ pos: 3, label: '3' }, { pos: -4, label: '3−7' }, { pos: 10, label: '3−(−7)' }]),
+        viz: () => ix('lineLab', { mode: 'hop', problems: [{ a: 3, op: '−', b: 7 }, { a: 3, op: '−', b: -7 }], min: -6, max: 12 }),
         steps: ['Subtracting is adding the opposite.', '3 − 7 = 3 + (−7) = −4.', '3 − (−7) = 3 + 7 = 10. Two minuses in a row become a plus.'],
         trap: '3 − (−7) is not −4. The two minus signs make addition.',
         aap: 'AAP: −5 − (−8) = −5 + 8 = 3. Keep, change, flip.',
