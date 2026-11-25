@@ -466,7 +466,7 @@
         ]
       },
       'Powers of 10: count the zeros': {
-        viz: () => V.cycleSteps(['10 × 10 × 10', '10³', '1000']),
+        viz: () => ix('placeShift', { mode: 'shift', v: '1', max: 4 }),
         steps: ['Write the power of 10 as repeated multiplication.', 'The exponent is the number of zeros: 10⁴ has 4 zeros.', 'To multiply by 10³, move the digits 3 places (add 3 zeros).'],
         trap: '10³ is not 30. It is 1 followed by three zeros: 1000.',
         aap: 'Stretch: 10⁶ = 1000000 (one million). 10⁹ is one billion.',
@@ -487,7 +487,7 @@
         ]
       },
       'Remainder as a decimal': {
-        viz: () => V.cycleSteps(['357 ÷ 8', '44 R5', 'bring down 0s', '44.625']),
+        viz: () => ixStep('div', { a: '357', b: 8, annex: true }),
         steps: ['357 ÷ 8 = 44 with 5 left over.', 'Put a decimal point after the 44 and a 0 after 357. Now 50 ÷ 8 = 6 R2.', 'Bring down another 0: 20 ÷ 8 = 2 R4. Again: 40 ÷ 8 = 5, nothing left.', 'So 357 ÷ 8 = 44.625.'],
         trap: 'Writing 44.5 for 44 R5. The 5 left over is 5 whole units still to divide, not 5 tenths.',
         tries: [
@@ -1139,7 +1139,7 @@
     },
     u8L3: {
       'Groups of a fraction': {
-        viz: () => V.fractionBar(2, 3, { fill: '#0fb39c', label: '6 groups of 2/3 = 12/3 = 4' }),
+        viz: () => ix('lineLab', { mode: 'hop', problems: [{ groups: 6, step: { n: 2, d: 3 } }], min: 0, max: 5 }),
         steps: ['6 × ' + fr(2, 3) + ' means six groups of two thirds.', 'A whole times a fraction: multiply the whole by the numerator, keep the denominator.', '6 × ' + fr(2, 3) + ' = ' + fr(12, 3) + ' = 4.'],
         trap: 'Multiplying both the numerator and the denominator by the whole (6 × 2/3 = 12/18) makes the amount smaller, not larger.',
         aap: 'AAP: 10 × 3/5 = 30/5 = 6. A friendly denominator lets the whole cancel.',
@@ -1149,7 +1149,7 @@
         ]
       },
       'Your turn': {
-        viz: () => V.areaRect(3, 1),
+        viz: () => ix('lineLab', { mode: 'hop', problems: [{ groups: 3, step: { n: 2, d: 5 } }, { groups: 5, step: { n: 1, d: 2 } }], min: 0, max: 3 }),
         steps: ['Picture 3 groups of the fraction, or a jump on a number line.', 'Multiply, then rename as a mixed number if it is improper.', 'Check with an estimate: 3 × 2/5 is a little more than 3 × 1/2? No — 2/5 is a little less than 1/2, so a little less than 1 1/2.'],
         trap: 'Estimating 3 × 2/5 as 6 because 3 × 2 = 6, forgetting the fifths.',
         aap: 'AAP: 12 × 3/4 = 9. Think: 12 quarters is 3 wholes, times 3 is 9. Or (12 ÷ 4) × 3.',
@@ -1171,7 +1171,7 @@
         ]
       },
       'How many fit?': {
-        viz: () => V.cycleSteps(['3 ÷ 1/4', 'how many 1/4s', '4 in each whole × 3', '12']),
+        viz: () => ix('fitStrips', { whole: 3, piece: { n: 1, d: 4 } }),
         steps: ['Dividing by a fraction asks how many of those pieces fit.', '3 ÷ ' + fr(1, 4) + ' = 12, because four fourths fit in each of the 3 wholes.', 'A shortcut: multiply by the reciprocal. 3 ÷ 1/4 = 3 × 4/1 = 12.'],
         trap: '3 ÷ 1/4 is not 3/4 and not 3/5. Dividing by a unit fraction gives a whole number larger than 1.',
         aap: 'AAP: 3/4 ÷ 1/8 = 3/4 × 8/1 = 6. How many eighths fit in 3/4? Six of them.',
