@@ -479,7 +479,11 @@
 
   /* Column multiplication, top to bottom. stackMulModel(a, b) returns { steps, intro, render(upto) } so a widget can
      reveal one digit at a time; stackMul(a, b) draws the finished work. */
-  function stackMulModel(a, b) {
+  function stackMulModel(a, b, mo) {
+    mo = mo || {};
+    /* mo.dpA / mo.dpB: decimal places in each factor (a and b are the whole-number digits, 34 for 3.4).
+       render(upto, view): view.ghost draws the factor points grey ("ignore the point");
+       view.prodDp draws the product's point with that many places (leading zeros added if needed). */
     const A = String(a), B = String(b), prod = String(a * b);
     const ad = A.split('').reverse().map(Number), bd = B.split('').reverse().map(Number);
     const R = bd.length, nA = ad.length;
@@ -505,7 +509,7 @@
       });
     });
     steps.push({ kind: 'add', total: true, cap: `Add the ${R === 1 ? '' : R + ' '}rows: <b>${rowVals.join(' + ')} = ${a * b}</b>.` });
-    const L = Math.max(prod.length, nA + 1, ...bd.map((d, k) => String(a * d).length + k));
+    const L = Math.max(prod.length, nA + 1, (mo.dpA || 0) + (mo.dpB || 0) + 1, ...bd.map((d, k) => String(a * d).length + k));
     const colW = 44, padL = 34, annoW = 128;
     const W = padL + L * colW + 10 + annoW;
     const tints = ['#0fb39c', '#2f80ed', '#6c4ee0'].map(themeFill);
@@ -514,7 +518,8 @@
     const yBar2 = yP0 + R * rowH + barGap - 2, yTot = yBar2 + barGap, H = yTot + numH + 8;
     const cx = (c) => padL + (L - 1 - c) * colW + colW / 2;
 
-    function render(upto) {
+    function render(upto, view) {
+      view = view || {};
       const done = steps.slice(0, upto), now = upto > 0 ? steps[upto - 1] : null;
       const cells = {}, carries = [], started = {};
       let total = false;
@@ -570,6 +575,15 @@
       bar(yBar2);
       s.appendChild(el('rect', { x: padL - 2, y: yTot + 2, width: L * colW + 4, height: numH - 2, rx: 10, fill: themeFill('#ffc43d'), 'fill-opacity': total ? '0.4' : '0.08', stroke: 'var(--ink)', 'stroke-width': '2.5' }));
       if (total) prod.split('').reverse().forEach((ch, i) => digit(cx(i), yTot + 33, ch));
+      /* decimal points sit between column k and k - 1, on the baseline */
+      const dot = (k, y, o) => s.appendChild(el('circle', Object.assign({ cx: cx(k) + colW / 2, cy: y, r: 4.5, fill: 'var(--ink)' }, o || {})));
+      const ghostDot = (k, y) => dot(k, y, { fill: 'none', stroke: 'var(--muted)', 'stroke-width': '2', 'stroke-dasharray': '2 2' });
+      if (mo.dpA) (view.ghost ? ghostDot : dot)(mo.dpA, yA + 34);
+      if (mo.dpB) (view.ghost ? ghostDot : dot)(mo.dpB, yB + 34);
+      if (view.prodDp != null && total) {
+        for (let i = prod.length; i <= view.prodDp; i++) digit(cx(i), yTot + 33, '0', { fill: 'var(--viz-coral)' });
+        if (view.prodDp > 0) dot(view.prodDp, yTot + 35, { r: 5.5, fill: 'var(--viz-coral)' });
+      }
       return s;
     }
     return { steps, render, intro: `Press <b>Next</b> to multiply ${A} × ${B} one digit at a time.` };
@@ -583,6 +597,8 @@
   function longDivModel(a, b, opts) {
     opts = opts || {};
     const dp = opts.dp || 0; /* digits after the decimal point in the dividend (1000 with dp 3 is 1.000) */
+    const lift = !!opts.lift, annex = opts.annex || 0; /* annex: how many trailing digits of a are annexed zeros */
+    const shown0 = opts.label || String(a / Math.pow(10, dp));
     const D = String(a).split('').map(Number), n = D.length;
     let cur = 0, s0 = n - 1;
     for (let j = 0; j < n; j++) { cur = cur * 10 + D[j]; if (cur >= b) { s0 = j; break; } }
@@ -598,7 +614,11 @@
       steps.push({ kind: 'D', ci, cap: `<b>Divide:</b> ${lead}how many ${b}s fit in <b>${val}</b>? ${fits}` });
       steps.push({ kind: 'M', ci, cap: `<b>Multiply:</b> ${q} × ${b} = <b>${prod}</b>. Write it under ${val}.` });
       steps.push({ kind: 'S', ci, cap: `<b>Subtract:</b> ${val} − ${prod} = <b>${rem}</b>. ${rem < b ? rem + ' is smaller than ' + b + ', so the digit was right.' : 'That is too big, so the digit was too small.'}` });
-      if (next != null) {
+      if (next != null && j + 1 >= n - annex) {
+        const first = j + 1 === n - annex;
+        steps.push({ kind: 'A', ci, cap: first ? `<b>Annex a zero:</b> no digits are left, but the remainder is ${rem}. Write ${shown0} as <b>${shown0}0</b> (same value) and bring the 0 down. The new number is <b>${rem * 10}</b>.` : `<b>Annex another zero</b> and bring it down. The new number is <b>${rem * 10}</b>.` });
+        val = rem * 10 + next;
+      } else if (next != null) {
         steps.push({ kind: 'B', ci, cap: `<b>Bring down</b> the next digit, ${next}. The new number is <b>${rem * 10 + next}</b>.` });
         val = rem * 10 + next;
       }
@@ -610,12 +630,13 @@
       const qf = qd.slice(n - dp).join('');
       const shown = qi + '.' + qf + (last.rem ? '…' : '');
       const top = (a / Math.pow(10, dp));
-      steps.push({ kind: 'done', cap: last.rem ? `<b>${top} ÷ ${b} = ${shown}</b> The remainder is ${last.rem} again, so the same digit repeats forever. That is why ${top} ÷ ${b} is a repeating decimal.` : `<b>${top} ÷ ${b} = ${shown}</b> The remainder is 0, so the decimal stops.` });
+      steps.push({ kind: 'done', cap: last.rem ? `<b>${top} ÷ ${b} = ${shown}</b> The remainder is ${last.rem} again, so the same digit repeats forever. That is why ${top} ÷ ${b} is a repeating decimal.` : `<b>${shown0} ÷ ${b} = ${shown}.</b> The remainder is 0, so the decimal stops. Check: ${b} × ${shown} = ${shown0} ✓` });
     } else {
       const Q = cycles.map((c) => c.q).join('').replace(/^0+(?=\d)/, '');
       steps.push({ kind: 'done', cap: `<b>${a} ÷ ${b} = ${Q}${last.rem ? ' R' + last.rem : ''}.</b> Check: ${Q} × ${b}${last.rem ? ' + ' + last.rem : ''} = ${a} ✓` });
     }
 
+    if (lift) steps.unshift({ kind: 'P', cap: `<b>Point up:</b> put the decimal point in the quotient <b>straight above</b> the point in ${shown0}. Now divide like whole numbers.` });
     const colW = 44, rowH = 40, dLen = String(b).length, dw = dLen * 24 + 8;
     const bx = 8 + dw + 14, x0 = bx + 12, yQ = 30, yLine = 40, yD = 74;
     const rows = cycles.length * 2;
@@ -625,7 +646,7 @@
 
     function render(upto) {
       const done = steps.slice(0, upto), now = upto > 0 ? steps[upto - 1] : null;
-      const has = (kind, ci) => done.some((st) => st.kind === kind && st.ci === ci);
+      const has = (kind, ci) => done.some((st) => st.kind === kind && (ci == null || st.ci === ci));
       const s = svg(W, H);
       s.setAttribute('width', '100%'); s.removeAttribute('height'); s.setAttribute('style', 'width:100%;max-width:420px');
       const digit = (x, y, ch, o) => s.appendChild(el('text', Object.assign({ x, y, 'text-anchor': 'middle', 'font-family': 'var(--mono)', 'font-size': '28', 'font-weight': '800', fill: 'var(--ink)' }, o || {}), [ch]));
@@ -640,11 +661,15 @@
         if (now.ci === 0) box(c.j - len + 1, c.j, yD - 30, PH.D, 0.3, 2.5);
         else box(c.j - len + 1, c.j, yD + (now.ci * 2) * rowH - 2 - 30, PH.D, 0.3, 2.5);
       }
-      D.forEach((d, i) => digit(cx(i), yD - 2, String(d)));
+      const annexed = (i) => done.some((st) => st.kind === 'A' && cycles[st.ci].j + 1 === i);
+      D.forEach((d, i) => { if (i < n - annex) digit(cx(i), yD - 2, String(d)); else if (annexed(i)) digit(cx(i), yD - 2, String(d), { fill: 'var(--viz-coral)' }); });
       if (dp) {
-        const dx = x0 + (n - dp) * colW;
-        s.appendChild(el('circle', { cx: dx, cy: yD + 2, r: 3.5, fill: 'var(--ink)' }));
-        if (has('D', 0)) s.appendChild(el('circle', { cx: dx, cy: yQ + 2, r: 3.5, fill: 'var(--ink)' }));
+        const dx = x0 + (n - dp) * colW, hotP = now && now.kind === 'P';
+        s.appendChild(el('circle', { cx: dx, cy: yD + 2, r: hotP ? 5 : 3.5, fill: hotP ? 'var(--viz-coral)' : 'var(--ink)' }));
+        if (lift ? has('P') : has('D', 0)) {
+          if (hotP) s.appendChild(el('path', { d: `M ${dx} ${yD - 26} V ${yQ + 12}`, stroke: 'var(--viz-coral)', 'stroke-width': '3', 'stroke-dasharray': '4 4', fill: 'none' }));
+          s.appendChild(el('circle', { cx: dx, cy: yQ + 2, r: hotP ? 5 : 3.5, fill: hotP ? 'var(--viz-coral)' : 'var(--ink)' }));
+        }
         if (has('D', 0)) for (let c = 0; c < s0; c++) digit(cx(c), yQ, '0');
       }
       cycles.forEach((c, ci) => {
@@ -665,8 +690,8 @@
           box(c.j - rs.length + 1, c.j, yR - 30, PH.S, now && now.kind === 'S' && now.ci === ci ? 0.35 : 0.14, 0);
           rs.split('').forEach((ch, k) => digit(cx(c.j - rs.length + 1 + k), yR, ch));
         }
-        if (c.next != null && has('B', ci)) {
-          const hot = now && now.kind === 'B' && now.ci === ci;
+        if (c.next != null && (has('B', ci) || has('A', ci))) {
+          const hot = now && (now.kind === 'B' || now.kind === 'A') && now.ci === ci;
           box(c.j + 1, c.j + 1, yD - 32, PH.B, hot ? 0.35 : 0, hot ? 3 : 0);
           digit(cx(c.j + 1), yR, String(c.next), { fill: 'var(--viz-coral)' });
           if (hot) s.appendChild(el('path', { d: `M ${cx(c.j + 1)} ${yD + 6} V ${yR - 34}`, stroke: themeFill(PH.B), 'stroke-width': '3', 'stroke-dasharray': '4 4', fill: 'none' }));
@@ -678,6 +703,7 @@
       }
       return s;
     }
+    if (opts.intro) return { steps, render, kinds: PH, intro: opts.intro };
     return { steps, render, kinds: PH, intro: dp ? `Press <b>Next</b> to divide ${a / Math.pow(10, dp)} by ${b}. We add zeros after the decimal point so we can keep dividing.` : `Press <b>Next</b> to divide ${a} ÷ ${b}: Divide, Multiply, Subtract, Bring down.` };
   }
 

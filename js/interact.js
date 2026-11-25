@@ -425,59 +425,184 @@
 
   /* ---------------- Step-through paper work: multiplication and long division ----------------
      kind 'mul' (a × b, top to bottom) or 'div' (a ÷ b with Divide, Multiply, Subtract, Bring down).
-     Back / Next / Auto / Reset, plus "try your own numbers". */
+     Back / Next / Auto / Reset, plus "try your own numbers".
+     Decimals: pass a and b as strings ('3.4', '6').
+       mul: an "Ignore the point" step, the whole-number work, then a "Place the point" step where the student
+            taps the gap for the point. opts.focus 'estimate' (default) or 'count' picks the helper chip shown first.
+       div: '7.65' ÷ 3 lifts the point straight up first (a "Point up" step). opts.annex: true adds zeros to the
+            dividend when the digits run out ("Annex a zero" button, plus a "stop here" trap button).
+     Legacy: opts.dp (digits after the point in a whole-number a) still works for 1000 ÷ 3 style cards. */
   function stepper(kind, opts) {
     const isMul = kind === 'mul';
-    const o = Object.assign({ a: isMul ? 246 : 1554, b: isMul ? 35 : 42 }, opts || {});
-    let a = o.a, b = o.b, model = null, upto = 0, timer = null;
-    const dp = o.dp || 0;
+    const o = Object.assign({ a: isMul ? 246 : 1554, b: isMul ? 35 : 42, focus: 'estimate' }, opts || {});
+    const parse = (v) => { const t = String(v).trim(); const i = t.indexOf('.'); return { s: t, dp: i < 0 ? 0 : t.length - i - 1, n: +t.replace('.', '') }; };
+    const isDec = () => (isMul ? (A.dp + B.dp > 0) : (A.dp > 0 || !!o.annex));
+    let A = parse(o.a), B = parse(o.b), model = null, upto = 0, timer = null, placed = false;
+    let dec = isDec();
+    const legacyDp = !isMul && !dec ? (o.dp || 0) : 0;
     const root = h('div', 'viz ix ix-stepper');
     const chips = h('div', 'ix-chips');
-    const PH = [['D', 'Divide'], ['M', 'Multiply'], ['S', 'Subtract'], ['B', 'Bring down']];
     const chipEls = {};
-    if (!isMul) PH.forEach(([k, name]) => { const c = h('span', 'ix-chip ix-chip-' + k, `<b>${k}</b> ${name}`); chipEls[k] = c; chips.appendChild(c); });
     const host = h('div', 'ix-svg');
     const cap = h('div', 'ix-read ix-cap');
+    const place = h('div', 'ix-place');
     const prog = h('div', 'ix-prog');
     const ctl = h('div', 'ix-ctr ix-stepctl');
     const bBack = btn('◀ Back', () => { stop(); go(-1); }, 'ghost');
     const bNext = btn('Next ▶', () => { stop(); go(1); }, 'go');
+    const bStop = btn('', () => stopTrap(), 'ghost');
     const bAuto = btn('▶ Auto', () => { timer ? stop() : play(); }, '');
-    const bReset = btn('↺ Reset', () => { stop(); upto = 0; draw(); }, 'ghost');
-    [bBack, bNext, bAuto, bReset].forEach((x) => ctl.appendChild(x));
+    const bReset = btn('↺ Reset', () => { stop(); upto = 0; placed = false; draw(); }, 'ghost');
+    [bBack, bNext, bStop, bAuto, bReset].forEach((x) => ctl.appendChild(x));
+    const fb = h('div', 'ix-fb', '');
     const own = h('form', 'ix-own');
     own.setAttribute('novalidate', '');
-    const mk = (val, min, max, label) => { const i = h('input', 'ix-num'); i.type = 'number'; i.inputMode = 'numeric'; i.step = '1'; i.min = String(min); i.max = String(max); i.value = String(val); i.setAttribute('aria-label', label); return i; };
-    const inA = isMul ? mk(a, 10, 999, 'first number') : mk(a, 10, 9999, 'dividend');
-    const inB = isMul ? mk(b, 10, 999, 'second number') : mk(b, 2, 99, 'divisor');
+    const mk = (val, label) => { const i = h('input', 'ix-num'); i.type = 'text'; i.inputMode = 'decimal'; i.autocomplete = 'off'; i.value = String(val); i.setAttribute('aria-label', label); return i; };
+    const inA = mk(A.s, isMul ? 'first number' : 'dividend');
+    const inB = mk(B.s, isMul ? 'second number' : 'divisor');
     const goBtn = btn('Go', () => {}, 'go'); goBtn.type = 'submit';
     own.appendChild(h('span', 'ix-lab', 'Try your own'));
     own.appendChild(inA); own.appendChild(h('span', 'ix-op', isMul ? '×' : '÷')); own.appendChild(inB); own.appendChild(goBtn);
     const msg = h('div', 'ix-tip', '');
     own.onsubmit = (e) => {
       e.preventDefault();
-      const x = Math.floor(+inA.value), y = Math.floor(+inB.value);
-      const ok = isMul ? (x >= 10 && x <= 999 && y >= 10 && y <= 999) : (x >= 10 && x <= 9999 && y >= 2 && y <= 99);
-      if (!ok) { msg.textContent = isMul ? 'Use whole numbers from 10 to 999.' : 'Use a dividend from 10 to 9999 and a divisor from 2 to 99.'; return; }
-      msg.textContent = ''; stop(); a = x; b = y; build();
+      const ta = inA.value.trim(), tb = inB.value.trim();
+      const okNum = (t, dps) => new RegExp('^\\d+(\\.\\d{1,' + dps + '})?$').test(t);
+      const pa = parse(ta), pb = parse(tb);
+      let ok, why;
+      if (isMul) {
+        ok = okNum(ta, 2) && okNum(tb, 2) && pa.n >= 1 && pb.n >= 1 && pa.n <= 999 && pb.n <= 999 && (pa.n >= 10 || pb.n >= 10) && (dec || (pa.dp + pb.dp === 0 && pa.n >= 10 && pb.n >= 10));
+        why = dec ? 'Use numbers like 2.35 and 1.2 (up to 3 digits each, at most 2 decimal places).' : 'Use whole numbers from 10 to 999.';
+      } else {
+        ok = okNum(ta, dec ? 2 : 0) && /^\d+$/.test(tb) && pb.n >= 2 && pb.n <= 99 && pa.n >= 1 && pa.n <= 9999 && (dec || pa.n >= 10);
+        why = dec ? 'Use a dividend like 7.65 (up to 4 digits, at most 2 decimal places) and a whole divisor from 2 to 99.' : 'Use a dividend from 10 to 9999 and a divisor from 2 to 99.';
+      }
+      if (!ok) { msg.textContent = why; return; }
+      msg.textContent = ''; stop(); A = pa; B = pb; build();
     };
-    [chips, host, cap, prog, ctl, own, msg].forEach((x) => root.appendChild(x));
-    if (isMul) chips.style.display = 'none';
+    [chips, host, cap, place, prog, ctl, fb, own, msg].forEach((x) => root.appendChild(x));
     if (o.own === false) { own.style.display = 'none'; msg.style.display = 'none'; }
 
+    /* estimate: round each factor to one friendly number */
+    const friendly = (p) => { const v = p.n / Math.pow(10, p.dp); if (v >= 1) return Math.round(v); const k = Math.pow(10, Math.ceil(-Math.log10(v))); return Math.round(v * k) / k; };
+    const fmt = (v) => String(+v.toFixed(6));
+    function estMul() { const x = friendly(A), y = friendly(B); return { x, y, v: x * y, txt: `${fmt(x)} × ${fmt(y)} = ${fmt(x * y)}` }; }
+    function estDiv() {
+      const v = A.n / Math.pow(10, A.dp), b = B.n, lo = Math.floor(v / b) * b;
+      return lo === 0 ? `${A.s} is less than ${b}, so the answer is less than 1` : `between ${lo} ÷ ${b} = ${lo / b} and ${lo + b} ÷ ${b} = ${lo / b + 1}`;
+    }
+    function annexCount() { if (!o.annex) return 0; let k = 0; while (k < 3 && (A.n * Math.pow(10, k)) % B.n !== 0) k++; return k; }
+
+    function setChips(list) {
+      chips.innerHTML = '';
+      Object.keys(chipEls).forEach((k) => delete chipEls[k]);
+      list.forEach(([k, name]) => { const c = h('span', 'ix-chip ix-chip-' + k, `<b>${k}</b> ${name}`); chipEls[k] = c; chips.appendChild(c); });
+      chips.style.display = list.length ? '' : 'none';
+    }
+
+    function build() {
+      dec = isDec(); placed = false; fb.className = 'ix-fb'; fb.innerHTML = '';
+      if (isMul && dec) {
+        const base = V.stackMulModel(A.n, B.n, { dpA: A.dp, dpB: B.dp });
+        const e = estMul();
+        const steps = [{ kind: 'ignore', cap: `<b>Ignore the point.</b> ${A.s} × ${B.s} becomes <b>${A.n} × ${B.n}</b>. Multiply like whole numbers. The point comes back at the end.` }]
+          .concat(base.steps)
+          .concat([{ kind: 'place', cap: `<b>Place the point.</b> ${A.n} × ${B.n} = ${A.n * B.n}. Now tap the gap where the point goes.` }]);
+        model = {
+          steps, intro: `<b>Estimate first:</b> ${A.s} × ${B.s} is about ${e.txt}. Press <b>Next</b>.`,
+          render(u) {
+            if (u === 0) return base.render(0);
+            return base.render(Math.min(u - 1, base.steps.length), { ghost: true, prodDp: placed ? A.dp + B.dp : null });
+          }
+        };
+        setChips([]);
+      } else if (isMul) {
+        model = V.stackMulModel(A.n, B.n); setChips([]);
+      } else {
+        const PH = [['D', 'Divide'], ['M', 'Multiply'], ['S', 'Subtract'], ['B', 'Bring down']];
+        if (dec) {
+          const k = annexCount(), lift = o.lift !== false;
+          model = V.longDivModel(A.n * Math.pow(10, k), B.n, { dp: A.dp + k, lift, annex: k, label: A.s, intro: `<b>Estimate:</b> ${A.s} ÷ ${B.n} is ${estDiv()}. Press <b>Next</b>.` });
+          setChips((lift ? [['P', 'Point up']] : []).concat(PH).concat(k ? [['A', 'Annex a zero']] : []));
+        } else {
+          model = V.longDivModel(A.n, B.n, { dp: legacyDp });
+          setChips(PH);
+        }
+      }
+      upto = 0; draw();
+    }
+
     function stop() { if (timer) { clearInterval(timer); timer = null; } bAuto.textContent = '▶ Auto'; }
+    const nextKind = () => (model.steps[upto] ? model.steps[upto].kind : null);
     function play() {
-      if (upto >= model.steps.length) upto = 0;
+      if (upto >= model.steps.length) { upto = 0; placed = false; }
       bAuto.textContent = '⏸ Pause';
       const tick = () => {
         if (!document.body.contains(root) || upto >= model.steps.length) { stop(); return; }
         upto++; draw();
-        if (upto >= model.steps.length) stop();
+        if (upto >= model.steps.length || nextKind() === 'A' || (model.steps[upto - 1] && model.steps[upto - 1].kind === 'place')) stop();
       };
       tick(); timer = setInterval(tick, 1400);
     }
-    function go(d) { upto = Math.max(0, Math.min(model.steps.length, upto + d)); draw(); }
-    function build() { model = isMul ? V.stackMulModel(a, b) : V.longDivModel(a, b, { dp }); upto = 0; draw(); }
+    function go(d) {
+      upto = Math.max(0, Math.min(model.steps.length, upto + d));
+      if (d < 0) { placed = false; }
+      fb.className = 'ix-fb'; fb.innerHTML = '';
+      draw();
+    }
+    function stopTrap() {
+      const q = Math.floor(A.n / B.n), r = A.n % B.n, qs = fmt(q / Math.pow(10, A.dp));
+      fb.className = 'ix-fb no';
+      fb.innerHTML = `Stopping at <b>${qs} R${r}</b> leaves ${r} ${A.dp === 1 ? 'tenths' : 'hundredths'} not divided. A decimal answer keeps going: <b>annex a zero</b> (${A.s} = ${A.s}0) and divide again.`;
+    }
+
+    /* the tap-the-gap panel for placing the point in a product */
+    function drawPlace() {
+      place.innerHTML = '';
+      const st = upto > 0 ? model.steps[upto - 1] : null;
+      if (!st || st.kind !== 'place') { place.style.display = 'none'; return; }
+      place.style.display = '';
+      const P = A.dp + B.dp, prodInt = A.n * B.n, e = estMul();
+      let digs = String(prodInt);
+      while (digs.length < P + 1) digs = '0' + digs;
+      const pad = digs.length - String(prodInt).length;
+      const right = digs.length - P; /* gap index (0 = before the first digit) */
+      const val = (g) => prodInt / Math.pow(10, digs.length - g);
+      const show = (g) => { const k = digs.length - g; const s = k === 0 ? digs : digs.slice(0, g) + '.' + digs.slice(g); return (g === 0 ? '0' : '') + s.replace(/^0+(?=\d)/, ''); };
+      const helpE = `<span class="ix-hchip">Estimate: <b>${e.txt}</b></span>`;
+      const helpC = `<span class="ix-hchip">${A.s} has ${A.dp} place${A.dp === 1 ? '' : 's'} + ${B.s} has ${B.dp} = <b>${P} place${P === 1 ? '' : 's'}</b></span>`;
+      const help = h('div', 'ix-hchips', o.focus === 'count' ? helpC : helpE);
+      const more = btn(o.focus === 'count' ? 'Estimate it too' : 'Count places too', () => { help.innerHTML = helpE + helpC; more.remove(); }, 'ghost');
+      const row = h('div', 'ix-gaps');
+      row.setAttribute('role', 'group'); row.setAttribute('aria-label', 'Tap the gap where the decimal point goes');
+      for (let g = 0; g <= digs.length; g++) {
+        const gap = btn('<span class="ix-gapdot"></span>', () => pick(g), 'ix-gap' + (placed && g === right ? ' on' : ''));
+        gap.setAttribute('aria-label', 'Point here: ' + show(g));
+        row.appendChild(gap);
+        if (g < digs.length) row.appendChild(h('span', 'ix-gd' + (g < pad ? ' pad' : '') + (placed && g >= right && /^0+$/.test(digs.slice(g)) && P > 0 ? ' fade' : ''), digs[g]));
+      }
+      place.appendChild(row);
+      place.appendChild(help);
+      if (!placed) place.appendChild(more);
+      function pick(g) {
+        const v = val(g), shown = show(g);
+        if (g === right) {
+          placed = true;
+          const trimmed = fmt(v);
+          fb.className = 'ix-fb ok';
+          fb.innerHTML = `Yes! <b>${A.s} × ${B.s} = ${shown}</b>${trimmed !== shown ? ' = <b>' + trimmed + '</b> (drop the end zero)' : ''}. ${P} place${P === 1 ? '' : 's'} in the factors, ${P} in the product. Check: ${e.txt}, and ${trimmed} is close ✓`;
+          draw();
+          return;
+        }
+        const places = digs.length - g;
+        const size = v > e.v * 3 ? `way bigger than ${e.txt}` : v < e.v / 3 ? `way smaller than ${e.txt}` : `not quite ${e.txt}`;
+        fb.className = 'ix-fb no';
+        fb.innerHTML = `That gives <b>${shown}</b>: ${size}. ` + (o.focus === 'count'
+          ? `It has ${places} decimal place${places === 1 ? '' : 's'}. Count again: ${A.dp} + ${B.dp} = ${P}.`
+          : `Use the estimate: the answer should be near ${fmt(e.v)}.`);
+      }
+    }
+
     function draw() {
       host.innerHTML = '';
       host.appendChild(model.render(upto));
@@ -486,7 +611,13 @@
       prog.textContent = upto === 0 ? `${model.steps.length} steps` : `Step ${upto} of ${model.steps.length}`;
       Object.keys(chipEls).forEach((k) => chipEls[k].classList.toggle('on', !!st && st.kind === k));
       bBack.disabled = upto === 0;
+      const nk = nextKind();
+      const firstAnnex = nk === 'A' && !(st && st.kind === 'A');
+      bNext.innerHTML = nk === 'A' ? (firstAnnex ? 'Annex a zero ▶' : 'Annex another 0') : 'Next ▶';
       bNext.disabled = upto >= model.steps.length;
+      if (firstAnnex) { const q = Math.floor(A.n / B.n), r = A.n % B.n; bStop.innerHTML = `Stop: ${fmt(q / Math.pow(10, A.dp))} R${r}`; bStop.style.display = ''; }
+      else bStop.style.display = 'none';
+      drawPlace();
     }
     build();
     return root;
