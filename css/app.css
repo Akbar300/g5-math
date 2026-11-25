@@ -2189,3 +2189,16 @@ html[data-theme="dark"] .zp-n{background:#45201a;border-color:#ff8a70;color:#ffd
 /* Paper multiplication: given digits in full ink (were faded); carry boxes are scratch space */
 .paper input.cell.given{color:var(--ink);opacity:1;background:transparent;-webkit-text-fill-color:var(--ink)}
 .paper .carry input.cell{border-style:dashed}
+/* Paper method: bigger boxes (one size var keeps every row in step) */
+.paper{--pc:36px}
+.paper input.cell{width:var(--pc);height:calc(var(--pc) + 4px);font-size:22px}
+.paper .carry input.cell{height:28px;font-size:15px}
+.paper .lbl{font-size:16px}
+.paper .op{font-size:24px}
+.ldiv{--ldiv-cell:38px;--ldiv-gap:4px;font-size:22px}
+.ldiv-d{font-size:26px;line-height:40px}
+.ldiv-divisor{font-size:26px}
+.ldiv-minus{font-size:22px}
+.ldiv-r{font-size:18px}
+.ldiv-r input.cell{width:48px}
+@media (max-width:360px){.paper{--pc:32px}.ldiv{--ldiv-cell:34px}}

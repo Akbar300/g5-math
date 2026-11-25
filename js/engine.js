@@ -331,7 +331,7 @@
     const rowOf = (numStr, { prefix, carryRow, expect } = {}) => {
       const row = document.createElement('div');
       row.style.display = 'grid';
-      row.style.gridTemplateColumns = `24px repeat(${cols}, 28px)`;
+      row.style.gridTemplateColumns = `24px repeat(${cols}, var(--pc, 28px))`;
       row.style.justifyContent = 'center';
       row.style.gap = '0 2px';
       const lab = document.createElement('div'); lab.className = 'lbl'; lab.textContent = prefix || '';
@@ -340,7 +340,7 @@
       for (let i = 0; i < cols; i++) {
         const ch = i >= pad ? numStr[i - pad] : '';
         const cell = mkCell(carryRow ? 'carry' : '', expect ? { expect: ch } : { fixed: ch });
-        if (expect && !ch) { cell.style.visibility = 'hidden'; }
+        if (!ch) { cell.style.visibility = 'hidden'; }
         row.appendChild(cell);
       }
       return row;
@@ -350,7 +350,7 @@
     const carryRow = document.createElement('div');
     carryRow.className = 'carry';
     carryRow.style.display = 'grid';
-    carryRow.style.gridTemplateColumns = `24px repeat(${cols}, 28px)`;
+    carryRow.style.gridTemplateColumns = `24px repeat(${cols}, var(--pc, 28px))`;
     carryRow.style.justifyContent = 'center';
     carryRow.style.gap = '0 2px';
     carryRow.style.marginBottom = '2px';
@@ -368,7 +368,7 @@
     table.appendChild(rowOf(B, { prefix: '×' }));
     const bar1 = document.createElement('div');
     bar1.style.display = 'grid';
-    bar1.style.gridTemplateColumns = `24px repeat(${cols}, 28px)`;
+    bar1.style.gridTemplateColumns = `24px repeat(${cols}, var(--pc, 28px))`;
     bar1.style.justifyContent = 'center';
     bar1.style.gap = '0 2px';
     bar1.appendChild(document.createElement('div'));
@@ -493,7 +493,7 @@ function paperDivide(dividend, divisor) {
       const rbox = document.createElement('div');
       rbox.className = 'ldiv-r';
       rbox.appendChild(document.createTextNode('R'));
-      rbox.appendChild(mkCell(rem, { full: true, width: '40px' }));
+      rbox.appendChild(mkCell(rem, { full: true, width: '48px' }));
       place(rbox, n, 1);
     }
 
