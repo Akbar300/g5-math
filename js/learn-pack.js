@@ -51,7 +51,7 @@
       },
       'Read a plot': {
         viz: () => V.linePlot([2, 4, 4, 4, 6, 6, 8], { title: 'Jump lengths (feet)' }),
-        steps: ['To find “how many scored 4,” count the dots above 4.', 'To find “how many in all,” count every dot.', 'The range is the greatest value minus the least.'],
+        steps: ['To find “how many jumped 4 feet,” count the dots above 4: 3 dots.', 'To find “how many in all,” count every dot.', 'The range is the greatest value minus the least.'],
         trap: 'The height of a stack is a count of people, not the value on the number line.',
         aap: 'AAP: find the median of the jump-length plot. Order the seven values first.',
         tries: [
@@ -117,7 +117,7 @@
       },
       'From percent to a count': {
         watch: { id: 'pctof', p: 35, n: 20 },
-        viz: () => V.hundredGrid(35, { fill: '#ffc43d', label: '35% of the grid' }),
+        viz: () => V.hundredGrid(35, { fill: '#ffc43d', label: '35% of 20 students = 7' }),
         steps: ['35% means 35 per 100, or 0.35.', 'Multiply the percent (as a decimal) by the total: 0.35 × 20 = 7.', 'Check: 7 out of 20 is 35% because 7 ÷ 20 = 0.35.'],
         trap: 'Do not just drop the percent sign (35% of 20 is not 35).',
         aap: 'AAP: 15% of 80 students is 0.15 × 80 = 12. Try 12.5% of 80 as a stretch (10).',

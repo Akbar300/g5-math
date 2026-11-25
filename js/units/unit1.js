@@ -128,7 +128,7 @@
           cards: [
             { t: 'One dot, one value', html: `<p>A line plot (dot plot) sits on a number line. Each dot is one piece of data. Same value? Stack the dots.</p>` + V.linePlot([3, 3, 4, 5, 5, 5, 7], { title: 'Pencils in backpacks' }),
               remember: 'Always include a title. The number line must be labeled.' },
-            { t: 'Read a plot', html: `<p>To find how many scored 5, count the dots above 5. To find how many students in all, count every dot.</p>`, try: () => genLineRead() }
+            { t: 'Read a plot', html: `<p>To find how many jumped 4 feet, count the dots above 4: there are <b>3</b>. To find how many students in all, count every dot.</p>`, try: () => genLineRead() }
           ]
         },
         {
