@@ -147,6 +147,8 @@ window.G5I = (function () {
     mixmul: S(`<circle cx="14" cy="32" r="10" ${ink}/><path d="M36 22a10 10 0 0 1 0 20Z" ${ink}/><circle cx="36" cy="32" r="10"/><path d="M50 26l8 12M58 26l-8 12" stroke-width="4"/>`),
     /* bigger or smaller: one bar grows, one shrinks, from the same start */
     bigsmall: S(`<path d="M4 36h56" stroke-dasharray="4 5" stroke-width="2.5"/><rect x="8" y="8" width="20" height="48" rx="3" ${soft}/><path d="M18 30V16M12 22l6-6 6 6" stroke-width="3.5"/><rect x="36" y="44" width="20" height="12" rx="3" ${ink}/><path d="M46 18v16M40 28l6 6 6-6" stroke-width="3.5"/>`),
+    /* signed fractions: a number line with a half step left of 0 and a half step right */
+    signedfrac: S(`<path d="M6 40h52"/><path d="M32 32v16" stroke-width="4"/><path d="M14 36v8M50 36v8" stroke-width="2.5"/>${dot(23, 40, 5)}<path d="M38 22h12M44 16v12" stroke-width="3.5"/><path d="M14 22h12" stroke-width="3.5"/>`),
     /* ---- geometry ---- */
     angle: S(`<path d="M10 52h46M10 52L44 14"/><path d="M28 52a18 18 0 0 0-5.6-13" ${soft} stroke-width="3"/>${dot(10, 52, 4)}`),
     perimarea: S(`<rect x="8" y="14" width="48" height="36" rx="2" ${soft} stroke-dasharray="0"/><path d="M20 14v36M32 14v36M44 14v36M8 26h48M8 38h48" stroke-width="1.5" opacity=".5"/><rect x="8" y="14" width="48" height="36" rx="2" stroke-width="5"/>`),
@@ -180,7 +182,7 @@ window.G5I = (function () {
     u5L0: 'round', u5L1: 'lineup', u5L2: 'estimate', u5L3: 'areagrid', u5L4: 'divwhole', u5L5: 'tenthtiles',
     u6L1: 'ladder', u6L2: 'ruler', u6L3: 'steps', u6B1: 'rate',
     u7L1: 'percent', u7L2: 'convert', u7L3: 'compare', u7B1: 'pie', u7B2: 'piemake',
-    u8L1: 'unlike', u8L2: 'mixed', u8L3: 'wholefrac', u8B1: 'fracops', u8B2: 'mixmul', u8B3: 'bigsmall',
+    u8L1: 'unlike', u8L2: 'mixed', u8L3: 'wholefrac', u8B1: 'fracops', u8B2: 'mixmul', u8B3: 'bigsmall', u8B4: 'signedfrac',
     u9L1: 'angle', u9L4: 'perimarea', u9L2: 'triangle', u9L5: 'circle', u9L3: 'volume',
     u10L1: 'mean', u10L2: 'lineplot', u10L3: 'chance', u10B1: 'outlier', u10B2: 'meanshift',
     u11L1: 'plot', u11L2: 'story', u11B1: 'quadrants', u11B2: 'axisdist', u11B3: 'quadpoly', u11B4: 'reflect', u11B5: 'symmetry',

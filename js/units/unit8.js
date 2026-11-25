@@ -31,6 +31,7 @@ var bg = {
     var n = L.ri(2, 6), d = L.pick([2,3,4]);
     return mc(n + ' ÷ ' + f(1,d) + ' = ?', String(n*d), [[L.frs(n, d), 'That is ' + n + ' × ' + f(1,d) + '. Dividing by a fraction less than 1 makes MORE.'], [String(n + d), 'How many ' + f(1,d) + 's fit in ' + n + '?'], [f(1, n*d), 'Upside down.']], 'Each whole holds ' + d + ' pieces of size ' + f(1,d) + ', so ' + n + ' wholes hold ' + n*d + '.');
   }},
+  sfrac: {name:'Signed fractions (Go Further)', f:function(lv, kind){ for (var t = 0; t < 10; t++) { var it = sfQ(lv, kind); if (it) return it; } return null; }},
   mixmd: {name:'Mixed numbers × ÷', f:function(lv, kind){ for (var t = 0; t < 8; t++) { var it = mixQ(lv, kind); if (it) return it; } return null; }},
   bigsm: {name:'Bigger or smaller?', f:function(lv, kind){ for (var t = 0; t < 8; t++) { var it = bsQ(lv, kind); if (it) return it; } return null; }}
 };
@@ -99,6 +100,24 @@ function bsQ(lv, kind){
     [n + ' × ' + f(a1, b1), f(a1, b1) + ' is less than 1, so it shrinks ' + n + '. ' + f(a2, b2) + ' is more than 1, so it grows ' + n + '.'], ['They are equal', 'The two fractions are different sizes.']],
     f(a2, b2) + ' &gt; 1 makes the product greater than ' + n + '; ' + f(a1, b1) + ' &lt; 1 makes it less. So ' + n + ' × ' + f(a2, b2) + ' is greater.');
 }
+/* Go Further: signed fractions (Grade 7 preview): integer sign rules with fraction sizes. */
+function sfs(n, d){ return n === 0 ? '0' : (n < 0 ? '−' : '') + L.frs(Math.abs(n), d); }
+function sfQ(lv, kind){
+  var k = kind != null ? kind : L.pick([0, 1, 1, 2, 3]), d = L.pick([4, 5, 6, 8]), D = L.pick([2, 3, 4]);
+  if (k === 0) { var a = L.ri(1, d - 1), b = L.ri(1, d - 1); if (a === b || L.gcd(a, d) !== 1 || L.gcd(b, d) !== 1) return null;
+    var big = Math.min(a, b);
+    return mc('Which is <b>greater</b>: ' + sfs(-a, d) + ' or ' + sfs(-b, d) + '?', sfs(-big, d), [[sfs(-Math.max(a, b), d), sfs(-Math.max(a, b), d) + ' is farther left of 0, so it is smaller.'], ['They are equal', 'Different distances from 0.'], [sfs(Math.max(a, b), d), 'Pick one of the two numbers given.']], sfs(-big, d) + ' is closer to 0, so it is greater. With negatives, the smaller fraction size is the greater number.'); }
+  if (k === 1) { var p = L.ri(1, d - 1) * (Math.random() < .5 ? -1 : 1), q = L.ri(1, d - 1) * (Math.random() < .5 ? -1 : 1); if (p > 0 && q > 0) p = -p; var r = p + q;
+    var raw = function(n){ return (n < 0 ? '−' : '') + f(Math.abs(n), d); }, sub = Math.random() < .4, q2 = sub ? -q : q, shown = raw(p) + (sub ? ' − ' : ' + ') + (q2 < 0 ? '(' + raw(q2) + ')' : raw(q2));
+    return mc(shown + ' = ?', sfs(r, d), [[sfs(-r, d) === sfs(r, d) ? sfs(r + 1, d) : sfs(-r, d), 'Right size, wrong sign. Which side has more?'], [sfs(p - q, d) === sfs(r, d) ? sfs(r + 2, d) : sfs(p - q, d), sub ? 'Subtracting a number = adding its opposite.' : 'This is addition: move right for positive, left for negative.'], [sfs(r, 2 * d) === sfs(r, d) ? sfs(r - 1, d) : sfs(r, 2 * d), 'Keep the denominator ' + d + ': only the numerators combine.']],
+      (sub ? 'Subtract = add the opposite: ' + raw(p) + ' + ' + (q < 0 ? '(' + raw(q) + ')' : raw(q)) + '. ' : '') + 'Same denominator, so combine the numerators like integers: ' + L.sg(p) + ' + ' + L.par(q) + ' = ' + L.sg(r) + '. Answer <b>' + sfs(r, d) + '</b>.'); }
+  if (k === 2) { var n1 = 1, d1 = D, n2 = L.ri(1, 3), d2 = n2 + L.ri(1, 3), neg2 = Math.random() < .5, s1 = -1, s2 = neg2 ? -1 : 1, pr = s1 * s2;
+    return mc('(' + sfs(-n1, d1) + ') × ' + (neg2 ? '(' + sfs(-n2, d2) + ')' : sfs(n2, d2)) + ' = ?', sfs(pr * n1 * n2, d1 * d2), [[sfs(-pr * n1 * n2, d1 * d2), (pr > 0 ? 'Two negatives make a positive.' : 'Different signs make a negative.')], [sfs(pr * (n1 * d2 + n2 * d1), d1 * d2), 'That adds. Multiply tops and bottoms.'], [sfs(pr * n1 * d2, d1 * n2), 'That divides (flips). This is multiplication.']],
+      'Size: ' + f(n1, d1) + ' × ' + f(n2, d2) + ' = ' + L.frs(n1 * n2, d1 * d2) + '. Sign: ' + (pr > 0 ? 'two negatives → positive.' : 'one negative → negative.') + ' Answer <b>' + sfs(pr * n1 * n2, d1 * d2) + '</b>.'); }
+  var t0 = L.pick([1, 2, 3]), drop = t0 + L.ri(1, 3), den = 4, res = t0 * den - drop * den - 1;
+  return mc('The temperature was ' + t0 + '°. It fell ' + drop + ' ' + f(1, 4) + '°. What is the temperature now?', sfs(res, den) + '°', [[sfs(-res, den) + '°', 'It ended below 0, so the answer is negative.'], [sfs(res + 2, den) + '°', 'Recheck: ' + t0 + ' − ' + drop + ' ' + f(1, 4) + '.'], [sfs(t0 * den + drop * den + 1, den) + '°', 'It fell: subtract.']],
+    t0 + ' − ' + drop + ' ' + f(1, 4) + ' = <b>' + sfs(res, den) + '°</b>. Down to 0 takes ' + t0 + '°, then ' + (drop - t0) + ' ' + f(1, 4) + '° more below 0.');
+}
 var bridge = {
   title:'Go Further: multiply & divide fractions', tab:'🚀 Go Further',
   intro:'Advanced Unit 6 goes past add and subtract into <b>multiplying and dividing</b> fractions and mixed numbers.',
@@ -125,8 +144,15 @@ var bridge = {
     {t:'Why ÷ can grow', h:'<p>12 ÷ ' + f(1,2) + ' asks: how many halves fit in 12? Each whole holds 2 halves, so <b>24</b>. Small pieces → many of them.</p>',
      aap:'Scaling: a 10 cm photo printed at ' + f(3,2) + ' times the size is 15 cm; at ' + f(1,2) + ' the size it is 5 cm. The factor tells you bigger or smaller before you multiply.',
      tr:function(){ return bg.bigsm.f('adv', 2); }}
+  ]},{id:'u8B4', name:'Go Further: signed fractions', icon:'±', cards:[
+    {t:'Fractions below zero', h:'<p>Fractions can be negative too. ' + sfs(-3, 4) + ' sits three-fourths of the way from 0 to −1.</p>', viz:function(){ return (window.V && V.numberLine) ? V.numberLine(-2, 2, [{pos:-1.5, label:'−1 ' + '1/2'}, {pos:-0.75, label:'−3/4'}, {pos:0.5, label:'1/2'}]) : ''; },
+     trap:'Thinking ' + sfs(-3, 4) + ' is greater than ' + sfs(-1, 4) + ' because 3 &gt; 1. ' + sfs(-3, 4) + ' is farther left, so it is smaller.',
+     tr:function(){ return bg.sfrac.f('adv', 0); }},
+    {t:'Same sign rules, fraction sizes', h:'<div class="big">' + sfs(-1, 4) + ' + ' + f(3, 4) + ' = ' + f(2, 4) + ' = ' + f(1, 2) + '</div><div class="big">(' + sfs(-1, 2) + ') × (' + sfs(-2, 3) + ') = ' + f(1, 3) + '</div><p>Work out the size with fraction rules. Decide the sign with integer rules.</p>',
+     key:'Add and subtract: move on the number line. Multiply and divide: same signs positive, different signs negative.',
+     tries:[function(){ return bg.sfrac.f('adv', 1); }, function(){ return bg.sfrac.f('adv', 2); }, function(){ return bg.sfrac.f('adv', 3); }]}
   ]}],
-  gens:bg, repIds:['fmul','fdiv','mixmd','bigsm'],
+  gens:bg, repIds:['fmul','fdiv','mixmd','bigsm','sfrac'],
   next:'Stay in the Advanced (Go Further) path of this unit for more practice.'
 };
 window.V2 = {key:'u8', lessons:lessons, test:test, bridge:bridge};
