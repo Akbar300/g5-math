@@ -1895,3 +1895,4 @@ html[data-theme="dark"] .ix-btn.ps-unit.on{background:var(--teal);border-color:v
 /* treeBuilder */
 .xm-treebox{width:100%;max-width:520px}.xm-treesvg{width:100%;height:auto}.xm-outs{font-weight:700;font-size:15px}
 @media (prefers-reduced-motion:reduce){.xm-shake{animation:none}.xm-seg{transition:none}}
+.xm-bars{display:flex;flex-direction:column;gap:6px;width:100%;max-width:520px}

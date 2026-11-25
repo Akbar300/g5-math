@@ -694,7 +694,7 @@
         ]
       },
       'Mixed numbers greater than 100%': {
-        viz: () => V.fractionBar(3, 2, { fill: '#0fb39c', label: '3/2 = 1 1/2 = 150%' }),
+        viz: () => ix('percentBar', { whole: 100, parts: 2, cuts: [2, 4, 10], bars: 2, target: 150 }),
         steps: [mixed(1, 1, 2) + ' = 1.5 = 150%.', 'More than one whole is more than 100%.', 'Two wholes would be 200%.'],
         trap: mixed(1, 1, 2) + ' is not 1.12 and not 11%. The whole and the fraction both count.',
         aap: 'AAP: ' + mixed(2, 1, 4) + ' = 2.25 = 225%. A growth of 125% means you now have 225% of the start.',

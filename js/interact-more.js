@@ -38,11 +38,16 @@
     const cutRow = row(); root.appendChild(cutRow);
     const draw = () => {
       bar.innerHTML = ''; top.innerHTML = ''; bot.innerHTML = '';
-      for (let i = 0; i < parts; i++) {
-        const c = h('button', 'xm-cell' + (i < k ? ' on' : '')); c.type = 'button';
-        c.setAttribute('aria-label', `Shade ${i + 1} of ${parts} parts`);
-        c.onclick = () => { k = (k === i + 1) ? i : i + 1; draw(); read(); };
-        bar.appendChild(c);
+      const nb = o.bars || 1; bar.className = nb > 1 ? 'xm-bars' : 'xm-bar';
+      for (let j = 0; j < nb; j++) {
+        const one = nb > 1 ? h('div', 'xm-bar') : bar; if (nb > 1) { bar.appendChild(h('div', 'xm-cap', `whole ${j + 1}: ${j * 100}% to ${(j + 1) * 100}%`)); bar.appendChild(one); }
+        for (let q = 0; q < parts; q++) {
+          const i = j * parts + q;
+          const c = h('button', 'xm-cell' + (i < k ? ' on' : '')); c.type = 'button';
+          c.setAttribute('aria-label', `Shade ${i + 1} of ${parts * nb} parts`);
+          c.onclick = () => { k = (k === i + 1) ? i : i + 1; draw(); read(); };
+          one.appendChild(c);
+        }
       }
       top.appendChild(h('span', '', '0%')); top.appendChild(h('span', '', '50%')); top.appendChild(h('span', '', '100%'));
       bot.appendChild(h('span', '', '0')); bot.appendChild(h('span', '', nice(whole / 2))); bot.appendChild(h('span', '', String(whole)));
