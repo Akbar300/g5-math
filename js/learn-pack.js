@@ -592,7 +592,7 @@
       'Try the rename': {
         watch: { id: 'scale100', n: 4, d: 25 },
         viz: () => ixGrid({ start: 0, fill: '#ffc43d', challenges: [{ n: 2, d: 5 }, { n: 3, d: 4 }, { n: 7, d: 20 }, { n: 1, d: 4 }, { n: 9, d: 10 }, { n: 1, d: 2 }, { n: 11, d: 25 }] }),
-        steps: ['Write the fraction with a denominator of 100 when you can.', '75 hundredths is 0.75 and also ' + fr(3, 4) + '.', 'Check by simplifying or by multiplying back.'],
+        steps: ['Write the fraction with a denominator of 100 when you can.', '40 hundredths is 0.40 = 0.4 and also ' + fr(2, 5) + '.', 'Check by simplifying or by multiplying back.'],
         trap: '0.75 is not 75 and not ' + fr(75, 10) + '. The 75 sits in the hundredths.',
         aap: 'AAP: rename ' + fr(11, 25) + ' as a decimal. 25 × 4 = 100, so ' + fr(44, 100) + ' = 0.44.',
         tries: [
@@ -626,8 +626,8 @@
     },
     u4c4: {
       'A point has more than one name': {
-        viz: () => V.numberLine(0, 1, [{ pos: 0.5, label: '1/2 = 2/4 = 0.5' }]),
-        steps: ['The same point can be ' + fr(1, 2) + ', ' + fr(2, 4) + ', ' + fr(3, 6) + ', and 0.5.', 'Multiply or divide the numerator and denominator by the same number.', 'Select every name that sits on that same point.'],
+        viz: () => V.numberLine(0, 1, [{ pos: 0.75, label: '3/4' }]),
+        steps: ['The same point can be ' + fr(3, 4) + ', ' + fr(6, 8) + ', ' + fr(75, 100) + ', and 0.75.', 'Multiply or divide the numerator and denominator by the same number.', 'Select every name that sits on that same point.'],
         trap: 'Changing only the numerator (or only the denominator) moves the point. Both parts have to scale together.',
         aap: 'AAP: ' + mixed(1, 1, 2) + ' = 1.5 = ' + fr(3, 2) + ' = 150%. Mixed numbers, improper fractions, decimals, and percents can all match.',
         tries: [
@@ -638,18 +638,18 @@
     },
     u4a1: {
       'A ratio compares two amounts': {
-        viz: () => V.barGraph(['Juice', 'Water'], [2, 5], { title: '2 to 5 mix', color: '#0fb39c' }),
-        steps: ['A ratio 2 : 5 compares two amounts in order.', 'It can also be written 2 to 5 or ' + fr(2, 5) + '.', 'Order matters: 2 : 5 is not 5 : 2.'],
+        viz: () => V.barGraph(['Red', 'Blue'], [3, 5], { title: '3 to 5 jerseys', color: '#0fb39c' }),
+        steps: ['3 red jerseys to 5 blue jerseys is the ratio 3 : 5, two amounts in order.', 'It can also be written 3 to 5 or ' + fr(3, 5) + '.', 'Order matters: 3 : 5 is not 5 : 3.'],
         trap: 'Flipping the order changes the comparison. 3 : 5 is not the same as 5 : 3.',
         aap: 'AAP: a ratio can compare part to part or part to whole. 2 : 5 juice to water is not 2 : 7 unless you mean juice to the total mix.',
         tries: [
           () => mc('Which ratio matches 3 cups red to 5 cups blue?', '3 : 5', [['5 : 3', 'The order is red first, then blue.'], ['3 : 8', 'That would be red to the total.'], ['8 : 3', 'That adds the parts in the wrong order.']], 'Write the amounts in the same order as the words: 3 : 5.'),
-          () => num('In the ratio 2 : 5, how many parts are in the second amount?', 5, 'The second number in 2 : 5 is 5.')
+          () => num('In the ratio 3 : 5, how many parts are in the second amount?', 5, 'The second number in 3 : 5 is 5.')
         ]
       },
       'Equivalent ratios scale together': {
-        viz: () => V.barGraph(['2:5', '4:10', '6:15'], [2, 4, 6], { title: 'Both parts × 2, then × 3', color: '#0fb39c' }),
-        steps: ['2 : 5, 4 : 10, and 6 : 15 are equivalent.', 'Multiply (or divide) both parts by the same number.', 'A table of equal ratios is just this scaling, column by column.'],
+        viz: () => V.barGraph(['3:5', '6:10', '9:15'], [3, 6, 9], { title: 'Both parts × 2, then × 3', color: '#0fb39c' }),
+        steps: ['3 : 5, 6 : 10, and 9 : 15 are equivalent.', 'Multiply (or divide) both parts by the same number.', 'A table of equal ratios is just this scaling, column by column.'],
         trap: 'If you change only one part, the ratio is no longer equivalent.',
         aap: 'AAP: simplify 12 : 18 by dividing both parts by 6 to get 2 : 3, then build 8 : 12 as another equivalent.',
         tries: [
@@ -702,7 +702,7 @@
         aap: 'A ratio can compare part to part or part to whole. 3 : 5 red to blue is not 3 : 8 unless you mean red to all the tiles.',
         tries: [
           () => mc('Which ratio matches 3 cups red to 5 cups blue?', '3 : 5', [['5 : 3', 'The order is red first, then blue.'], ['3 : 8', 'That would be red to the total.'], ['8 : 3', 'That adds the parts in the wrong order.']], 'Write the amounts in the same order as the words: 3 : 5.'),
-          () => num('In the ratio 2 : 5, how many parts are in the second amount?', 5, 'The second number in 2 : 5 is 5.')
+          () => num('In the ratio 3 : 5, how many parts are in the second amount?', 5, 'The second number in 3 : 5 is 5.')
         ]
       },
       'Equivalent ratios scale together': {
