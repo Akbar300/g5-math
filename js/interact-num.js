@@ -667,7 +667,7 @@
      A place-value strip; the decimal point stays still and the DIGITS slide (× 10 = one place left).
      { mode:'pair', a:'4.8', b:'0.6' }  make the divisor whole: "× 10 both", plus a "× 10 only the divisor" trap.
      { mode:'shift', v:'3.5', max:3 }   × 10 / ÷ 10 buttons on one number (Unit 3 powers of 10; metric mode builds on it). */
-  const PS_NAMES = { 3: 'thous', 2: 'hund', 1: 'tens', 0: 'ones', '-1': 'tenths', '-2': 'hund-ths', '-3': 'thou-ths' };
+  const PS_NAMES = { 3: '1000s', 2: '100s', 1: 'tens', 0: 'ones', '-1': 'tenths', '-2': '100ths', '-3': '1000ths' };
   function psNum(t) { const p = pdec(t); let m = String(p.n), e = -p.dp; while (m.length > 1 && m[0] === '0') m = m.slice(1); return { m, e }; } /* value = m × 10^e */
   const psVal = (N) => { const v = +N.m * Math.pow(10, N.e); return trimDec(v.toFixed(Math.max(0, -N.e))); };
   function psStrip(N, hi, lo, label) {
@@ -691,7 +691,7 @@
       /* digits of m at places e .. e+len-1; placeholder zeros between the last digit and the ones; a leading 0 for values under 1 */
       const items = [];
       const len = Nn.m.length;
-      for (let i = 0; i < len; i++) items.push({ p: Nn.e + len - 1 - i, ch: Nn.m[i], key: 'd' + i });
+      for (let i = 0; i < len; i++) { const p = Nn.e + len - 1 - i; items.push({ p, ch: Nn.m[i], key: 'd' + i, cls: p < 0 && /^0+$/.test(Nn.m.slice(i)) ? 'trail' : '' }); }
       for (let p = Nn.e - 1; p >= 0; p--) items.push({ p, ch: '0', key: 'z' + p, cls: 'hold' });
       if (Nn.e + len - 1 < 0) items.push({ p: 0, ch: '0', key: 'lead', cls: 'lead' });
       tiles.forEach((t) => { t.style.opacity = '0'; t.dataset.on = ''; });
@@ -708,6 +708,31 @@
   function placeShift(opts) {
     const o = Object.assign({ mode: 'pair', a: '4.8', b: '0.6' }, opts || {});
     const root = h('div', 'viz ix ix-col ix-ps');
+    if (o.mode === 'metric') {
+      /* { mode:'metric', units:['m','cm'], v:'3.5', from:'m' }: tap a unit; the digits slide one place per power of 10 */
+      const EXP = { km: 3, m: 0, dm: -1, cm: -2, mm: -3, kg: 3, g: 0, mg: -3, L: 0, mL: -3 };
+      const units = o.units || ['m', 'cm'], from = o.from || units[0], N0 = psNum(o.v || '1');
+      let u = from, N = N0;
+      const top0 = N0.e + N0.m.length - 1, ups = units.map((x) => EXP[from] - EXP[x]);
+      const hi = Math.min(3, Math.max(0, top0 + Math.max(...ups))), lo = Math.max(-3, Math.min(-1, N0.e + Math.min(...ups)));
+      const ladder = h('div', 'ps-ladder');
+      const st = psStrip(N, hi, lo, '');
+      const read = h('div', 'ix-read ps-read');
+      [h('div', 'ix-q ps-ask', `Change <b>${o.v} ${from}</b> to another unit. Tap a unit.`), ladder, st.el, read].forEach((x) => root.appendChild(x));
+      function draw() {
+        ladder.innerHTML = '';
+        units.forEach((x, i) => {
+          if (i) { const g = EXP[units[i - 1]] - EXP[x]; ladder.appendChild(h('span', 'ps-rung', (g > 0 ? '× ' : '÷ ') + Math.pow(10, Math.abs(g)) + ' →')); }
+          ladder.appendChild(btn(x, () => { const k = EXP[u] - EXP[x]; N = { m: N.m, e: N.e + k }; u = x; draw(); }, 'ps-unit' + (x === u ? ' on' : '')));
+        });
+        st.set(N, ' ' + u);
+        const k = EXP[from] - EXP[u], f = Math.pow(10, Math.abs(k));
+        read.innerHTML = k === 0 ? `<div class="ix-note">A smaller unit needs more of them, so the digits slide left. A bigger unit needs fewer, so they slide right.</div>`
+          : `<div class="ix-eq">${o.v} ${from} = <b>${psVal(N)} ${u}</b></div><div class="ix-note">${k > 0 ? `Smaller unit → more of them → <b>multiply</b> by ${f}` : `Bigger unit → fewer of them → <b>divide</b> by ${f}`}. Every digit slid ${Math.abs(k)} place${Math.abs(k) === 1 ? '' : 's'} ${k > 0 ? 'left' : 'right'}.</div>`;
+      }
+      draw();
+      return root;
+    }
     if (o.mode === 'shift') {
       let N = psNum(o.v || '3.5'), times = 0;
       const max = o.max || 3;

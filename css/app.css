@@ -1782,3 +1782,8 @@ html[data-theme="dark"] .ix-col .ix-btn.on,html[data-theme="dark"] .ix-btn.ll-nb
 .ll-then{color:var(--muted);font-size:.7em;margin-left:6px}
 .ll-own{display:inline-flex;gap:6px;align-items:center}.ll-own .ix-num{width:4.2em;border:2.5px solid var(--line);border-radius:12px;padding:6px;font-size:18px;font-weight:800;font-family:var(--mono);background:var(--paper-cell);color:var(--ink);text-align:center}
 .ix-btn.ll-test{font-family:var(--mono);min-width:48px}
+.ps-ladder{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px}
+.ps-rung{font-size:13px;font-weight:800;color:var(--muted)}
+.ix-btn.ps-unit{font-family:var(--mono);font-size:20px;min-width:58px}
+html[data-theme="dark"] .ix-btn.ps-unit.on{background:var(--teal);border-color:var(--teal);color:#072821}
+.ps-tile.trail{background:transparent;border-style:dashed;color:var(--muted);opacity:.6}

@@ -921,7 +921,7 @@
         ]
       },
       'Big unit → small unit: multiply': {
-        viz: () => V.metricLadder('cm'),
+        viz: () => ix('placeShift', { mode: 'metric', units: ['m', 'cm', 'mm'], v: '3.5', from: 'm' }),
         steps: ['Going to a smaller unit means more of them, so you multiply.', '3.5 m = 3.5 × 100 = 350 cm (×100).', '2 km = 2000 m (×1000).'],
         trap: 'Dividing when you go to a smaller unit gives a tiny, impossible length (3 m is not 0.03 cm).',
         aap: 'AAP: 2.4 km = 2400 m = 240,000 cm. Keep the 2.4 and move the point with the zeros.',
@@ -931,7 +931,7 @@
         ]
       },
       'Small unit → big unit: divide': {
-        viz: () => V.metricLadder('km'),
+        viz: () => ix('placeShift', { mode: 'metric', units: ['kg', 'g'], v: '2400', from: 'g' }),
         steps: ['Going to a bigger unit means fewer of them, so you divide.', '2400 g = 2400 ÷ 1000 = 2.4 kg (÷1000).', '300 cm = 3 m (÷100).'],
         trap: 'Multiplying when you go to a bigger unit makes a huge, impossible length (300 cm is not 30,000 m).',
         aap: 'AAP: 450 cm = 4.5 m, not 45 m and not 0.45 m. Two places for × or ÷ 100.',
@@ -975,7 +975,7 @@
         ]
       },
       'Your turn': {
-        viz: () => V.metricLadder('m'),
+        viz: () => ix('placeShift', { mode: 'metric', units: ['km', 'm'], v: '1', from: 'km' }),
         steps: ['Underline the units in the problem.', 'Convert to one unit.', 'Compute, then (if asked) convert the answer back.'],
         trap: 'Converting only one of the two amounts, then subtracting, leaves the units mixed.',
         aap: 'AAP: a 1.2 km run plus a 300 m walk is 1500 m, or 1.5 km. Report both if the problem asks for two units.',

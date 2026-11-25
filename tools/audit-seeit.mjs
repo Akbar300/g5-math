@@ -92,8 +92,6 @@ const show = (set) => [...set].slice(0, 8).join(' ') + (set.size > 8 ? ' …' : 
 
 /* lesson|title|where → why the picture itself has to change. */
 const NEEDS_WIDGET = {
-  'u6L1|Big unit → small unit: multiply|See it': 'metricLadder has no amounts; needs 3.5 m moving to 350 cm on the ladder.',
-  'u6L1|Small unit → big unit: divide|See it': 'metricLadder shows length only; the example is 2400 g → 2.4 kg.',
   'u6L2|Benchmarks|See it': 'Bar graph used for benchmarks; needs real-object benchmark pictures.',
   'u9L5|Parts of a circle|See it': 'Big idea is the C = π × d rule with no example; a circle with d and C measured would match it.',
   'u10B1|Outliers|See it': 'A line plot of 30 to 80 is too wide for linePlot; needs a scaled plot that shows the mean and median shift.',
