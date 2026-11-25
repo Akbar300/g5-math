@@ -154,6 +154,8 @@ window.G5I = (function () {
     perimarea: S(`<rect x="8" y="14" width="48" height="36" rx="2" ${soft} stroke-dasharray="0"/><path d="M20 14v36M32 14v36M44 14v36M8 26h48M8 38h48" stroke-width="1.5" opacity=".5"/><rect x="8" y="14" width="48" height="36" rx="2" stroke-width="5"/>`),
     triangle: S(`<path d="M24 12H58L40 52" stroke-dasharray="4 5" stroke-width="3" opacity=".55"/><path d="M6 52L24 12L40 52Z" ${soft}/><path d="M24 12v40" stroke-dasharray="3 4" stroke-width="2.5"/><path d="M24 46h6v6" stroke-width="2.5"/>`),
     circle: S(`<circle cx="32" cy="32" r="24" ${soft}/><path d="M32 32h24"/>${dot(32, 32, 4)}`),
+    /* cylinder: base circle times height */
+    cylinder: S(`<path d="M12 16v32a20 7 0 0 0 40 0V16" ${soft}/><ellipse cx="32" cy="16" rx="20" ry="7" ${soft}/><path d="M32 16h20" stroke-width="3"/>${dot(32, 16, 2.5)}`),
     volume: S(`<path d="M10 22L32 12l22 10v24L32 56 10 46Z" ${soft}/><path d="M10 22l22 10 22-10M32 32v24"/><path d="M21 17l22 10M21 27v24M43 27v24M10 34l22 10 22-10" stroke-width="1.8" opacity=".55"/>`),
     /* ---- coordinates ---- */
     plot: '', /* filled below from the unit 11 icon */
@@ -185,7 +187,7 @@ window.G5I = (function () {
     u6L1: 'ladder', u6L2: 'ruler', u6L3: 'steps', u6B1: 'rate',
     u7L1: 'percent', u7L2: 'convert', u7L3: 'compare', u7B1: 'pie', u7B2: 'piemake',
     u8L1: 'unlike', u8L2: 'mixed', u8L3: 'wholefrac', u8B1: 'fracops', u8B2: 'mixmul', u8B3: 'bigsmall', u8B4: 'signedfrac',
-    u9L1: 'angle', u9L4: 'perimarea', u9L2: 'triangle', u9L5: 'circle', u9L3: 'volume',
+    u9L1: 'angle', u9L4: 'perimarea', u9L2: 'triangle', u9L5: 'circle', u9L3: 'volume', u9G1: 'cylinder',
     u10L1: 'mean', u10L2: 'lineplot', u10L3: 'chance', u10B1: 'outlier', u10B2: 'meanshift',
     u11L1: 'plot', u11L2: 'story', u11B1: 'quadrants', u11B2: 'axisdist', u11B3: 'quadpoly', u11B4: 'reflect', u11B5: 'symmetry', u11B6: 'dilate',
     u12L1: 'negative', u12L2: 'intorder', u12L3: 'zeropair', u12L4: 'addopp',

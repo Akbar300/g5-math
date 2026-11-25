@@ -47,6 +47,20 @@ var bg = {
     var rr = 2 * L.ri(1, 5), half = r2(3.14 * rr * rr / 2);
     return {type:'num', fmt:'TYPE IN', q:'A <b>half circle</b> has a radius of ' + rr + ' ' + u + '. What is its area in ' + u + '²? (π ≈ 3.14)', a:half, why:'Whole circle: 3.14 × ' + rr + ' × ' + rr + ' = ' + r2(3.14 * rr * rr) + '. Half of it: <b>' + half + ' ' + u + '²</b>.'};
   }},
+  cyl: {name:'Cylinder volume (Go Further)', f:function(lv, kind){
+    var k = kind != null ? kind : L.pick([0, 1, 1, 2]);
+    var r2 = function(x){ return Math.round(x * 100) / 100; }, r = L.ri(k === 1 ? 3 : 1, 5), h = L.ri(2, 10), u = k === 1 ? L.pick(['cm', 'in']) : L.pick(['cm', 'in', 'm']), V = r2(3.14 * r * r * h);
+    if (k === 0) return {type:'num', fmt:'TYPE IN', q:'A cylinder has a radius of ' + r + ' ' + u + ' and a height of ' + h + ' ' + u + '. Using π ≈ 3.14, what is its volume in ' + u + '³?', a:V, why:'Base area: 3.14 × ' + r + ' × ' + r + ' = ' + r2(3.14 * r * r) + ' ' + u + '². Volume = base area × height = ' + r2(3.14 * r * r) + ' × ' + h + ' = <b>' + V + ' ' + u + '³</b>.'};
+    if (k === 1) return mc('A can is ' + 2*r + ' ' + u + ' across (diameter) and ' + h + ' ' + u + ' tall. What is its volume? (π ≈ 3.14)', V + ' ' + u + '³', [
+      [r2(3.14 * 4 * r * r * h) + ' ' + u + '³', 'That uses the diameter in r × r. Halve it first: r = ' + r + '.'],
+      [r2(3.14 * r * r) + ' ' + u + '³', 'That is only the base (one circle). Multiply by the height, ' + h + '.'],
+      [r2(3.14 * 2 * r * h) + ' ' + u + '³', 'That uses the circumference. Volume needs the base AREA: π × r × r.']],
+      'r = ' + r + '. V = 3.14 × ' + r + ' × ' + r + ' × ' + h + ' = <b>' + V + ' ' + u + '³</b>.');
+    var e = 3 * r * r * h;
+    return mc('Estimate the volume of a cylinder with radius ' + r + ' ' + u + ' and height ' + h + ' ' + u + '. Use π ≈ 3.', 'about ' + e + ' ' + u + '³', [
+      ['about ' + 3 * r * r + ' ' + u + '³', 'That is the base only. Multiply by the height.'], ['about ' + 3 * 2 * r * h + ' ' + u + '³', 'That uses the diameter instead of r × r.'], ['about ' + r * r * h + ' ' + u + '³', 'Do not forget π (about 3).']],
+      '3 × ' + r + ' × ' + r + ' × ' + h + ' = <b>' + e + '</b>, so about ' + e + ' ' + u + '³ (exact: ' + V + ').');
+  }},
   anytri: {name:'Area of any triangle', f:function(lv){
     var b = L.ri(4, 16), h = L.ri(2, 12); if ((b * h) % 2) b++;
     var s = h + L.ri(1, 4);
@@ -136,11 +150,20 @@ var lessons = [
   {t:'Perimeter, area or volume?', h:GV.pav() + L.tbl(['Question asks about…','Use','Units'], [['a fence around a yard','perimeter','cm, m'],['carpet to cover a floor','area','cm², m²'],['water to fill a tank','volume','cm³, m³']]), tr:mc('Which measure tells how much sand fills a sandbox?', 'volume', [['area', 'Area covers a flat surface. Filling a box takes space in 3 directions.'], ['perimeter', 'Perimeter is the distance around.'], ['mass', 'Not one of the three measures here.']], 'Filling a 3-D space = volume.')}
  ]},
 ];
+var cylLesson = {id:'u9G1', name:'Go Further: cylinders', icon:'🥫', cards:[
+  {t:'A stack of circles', h:'<p>A cylinder is like a box with a <b>circle</b> for its base. Volume = base area × height.</p><div class="big">V = π × r × r × h</div>', viz:function(){ return '<svg viewBox="0 0 200 170" role="img" aria-label="A cylinder with radius r and height h" style="width:100%;max-width:230px;display:block;margin:0 auto"><path d="M40 40v90a60 18 0 0 0 120 0V40" fill="var(--ic-soft)" stroke="currentColor" stroke-width="3"/><ellipse cx="100" cy="40" rx="60" ry="18" fill="var(--ic-soft)" stroke="currentColor" stroke-width="3"/><path d="M40 130a60 18 0 0 1 120 0" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="5 5" opacity=".6"/><path d="M100 40H160" stroke="var(--ic)" stroke-width="3"/><text x="130" y="62" text-anchor="middle" font-size="18" font-weight="800" fill="var(--ic)">r</text><path d="M176 40v90M171 40h10M171 130h10" stroke="var(--ic)" stroke-width="3"/><text x="186" y="92" font-size="18" font-weight="800" fill="var(--ic)">h</text><circle cx="100" cy="40" r="3.5" fill="currentColor"/></svg>'; },
+   steps:['Radius 3, height 5: the base is 3.14 × 3 × 3 = 28.26.', 'Stack 5 layers: 28.26 × 5 = 141.3.', 'Volume ≈ 141.3 cubic units.'],
+   key:'Same rule as a box: (area of the base) × (height).',
+   tries:[function(){ return bg.cyl.f('adv', 0); }, function(){ return bg.cyl.f('adv', 2); }]},
+  {t:'Watch the radius', h:'<p>A can is 6 cm across and 10 cm tall. Across is the <b>diameter</b>, so r = 3.</p><div class="big">3.14 × 3 × 3 × 10 = 282.6 cm³</div>',
+   trap:'Using 6 for r: 3.14 × 6 × 6 × 10 = 1130.4 is 4 times too big. Or stopping at the base area (28.26) and forgetting the height.',
+   tr:function(){ return bg.cyl.f('adv', 1); }}
+]};
 var bridge = {
   title:'All shapes together', tab:'🚀 Go Further',
   intro:'Angles, perimeter and area, triangles and parallelograms, circles and volume, all in one path.',
-  lessons:lessons,
-  gens:bg, repIds:['circ','carea','para','anytri','cap','est','unit'],
+  lessons:lessons.concat([cylLesson]),
+  gens:bg, repIds:['circ','carea','cyl','para','anytri','cap','est','unit'],
   next:'Try the Geometry Lab tab to practice every shape with pictures.'
 };
 window.V2 = {key:'u9', lessons:lessons, test:test, bridge:bridge};
@@ -152,7 +175,7 @@ Adapt.fromV2({
 }, window.V2, { gUnit: 9, coreStds: ['5.MG.2', '5.MG.3'] });
 /* Unit 9 teaches every shape together: Core practice also gets circles, parallelograms and any triangle.
    Circle area practice stays Advanced (AAP; the Circles lesson cards show it to everyone). */
-UNIT.advanced.skills.filter(function (s) { return /^adv-/.test(s.id) && s.id !== 'adv-carea'; }).forEach(function (s) { UNIT.core.skills.push(s); });
+UNIT.advanced.skills.filter(function (s) { return /^adv-/.test(s.id) && s.id !== 'adv-carea' && s.id !== 'adv-cyl'; }).forEach(function (s) { UNIT.core.skills.push(s); });
 UNIT.core.intro = 'Angles, perimeter and area, triangles and parallelograms, circles and volume, all together.';
 
 
