@@ -30,16 +30,103 @@ var bg = {
   fdiv: {name:'Divide fractions', f:function(lv){
     var n = L.ri(2, 6), d = L.pick([2,3,4]);
     return mc(n + ' ÷ ' + f(1,d) + ' = ?', String(n*d), [[L.frs(n, d), 'That is ' + n + ' × ' + f(1,d) + '. Dividing by a fraction less than 1 makes MORE.'], [String(n + d), 'How many ' + f(1,d) + 's fit in ' + n + '?'], [f(1, n*d), 'Upside down.']], 'Each whole holds ' + d + ' pieces of size ' + f(1,d) + ', so ' + n + ' wholes hold ' + n*d + '.');
-  }}
+  }},
+  mixmd: {name:'Mixed numbers × ÷', f:function(lv, kind){ for (var t = 0; t < 8; t++) { var it = mixQ(lv, kind); if (it) return it; } return null; }},
+  bigsm: {name:'Bigger or smaller?', f:function(lv, kind){ for (var t = 0; t < 8; t++) { var it = bsQ(lv, kind); if (it) return it; } return null; }}
 };
+/* Mixed number helpers: m = [whole, num, den]; imp = improper numerator. */
+function mxs(w, n, d){ return n ? (w ? w + ' ' : '') + f(n, d) : String(w); }
+function fracAns(N, D){ var g = L.gcd(N, D), n = N / g, d = D / g, w = Math.floor(n / d), r = n - w*d;
+  var acc = [n / d, n + '/' + d]; if (w && r) acc.push(w + ' ' + r + '/' + d); if (!r) acc.push(String(w));
+  return {a:r ? acc[1] : String(w), acc:acc, html:L.frs(N, D), whole:!r}; }
+function mixQ(lv, kind){
+  var k = kind != null ? kind : L.pick([0, 0, 1, 1, 2, 3]);
+  var D1 = L.pick([2, 3, 4]), w1 = L.ri(1, 3), n1 = L.ri(1, D1 - 1); if (L.gcd(n1, D1) !== 1) return null;
+  var I1 = w1*D1 + n1;
+  if (k === 0) { /* mixed × mixed */
+    var D2 = L.pick([2, 3, 4, 5]), w2 = L.ri(1, 2), n2 = L.ri(1, D2 - 1); if (L.gcd(n2, D2) !== 1) return null;
+    var I2 = w2*D2 + n2, A = fracAns(I1*I2, D1*D2), parts = fracAns(w1*w2*D1*D2 + n1*n2, D1*D2);
+    if (parts.acc[0] === A.acc[0]) return null;
+    return mc(mxs(w1, n1, D1) + ' × ' + mxs(w2, n2, D2) + ' = ?', A.html, [
+      [parts.html, 'That multiplies wholes by wholes and parts by parts. Change both to improper fractions first: ' + f(I1, D1) + ' × ' + f(I2, D2) + '.'],
+      [L.frs(I1*D2 + I2*D1, D1*D2), 'That adds them. This is multiplication.'],
+      [L.frs(I1*I2, D1 + D2), 'Multiply the denominators too: ' + D1 + ' × ' + D2 + '.']],
+      'Improper first: ' + f(I1, D1) + ' × ' + f(I2, D2) + ' = ' + f(I1*I2, D1*D2) + ' = <b>' + A.html + '</b>. Estimate check: about ' + Math.round(I1 / D1) + ' × ' + Math.round(I2 / D2) + ' = ' + Math.round(I1 / D1) * Math.round(I2 / D2) + '.');
+  }
+  if (k === 1) { /* mixed × whole, typed */
+    var kk = L.ri(2, 6), B = fracAns(I1*kk, D1);
+    return {type:'num', fmt:'TYPE IN', q:'Find <b>' + mxs(w1, n1, D1) + ' × ' + kk + '</b>. Write a fraction or mixed number.', a:B.a, acc:B.acc, placeholder:'n/d', why:mxs(w1, n1, D1) + ' = ' + f(I1, D1) + '. ' + f(I1, D1) + ' × ' + kk + ' = ' + f(I1*kk, D1) + ' = <b>' + B.html + '</b>. (Or: ' + w1 + ' × ' + kk + ' = ' + w1*kk + ' and ' + f(n1, D1) + ' × ' + kk + ' = ' + L.frs(n1*kk, D1) + '.)'};
+  }
+  if (k === 2) { /* mixed ÷ mixed with a whole answer: how many fit? */
+    var D = L.pick([2, 3, 4]), wb = L.ri(1, 2), nb = L.ri(1, D - 1), Ib = wb*D + nb, q = L.ri(2, 4), Ia = Ib*q;
+    var wa = Math.floor(Ia / D), na = Ia - wa*D; if (!na) return null;
+    var g1 = L.gcd(na, D), g2 = L.gcd(nb, D);
+    return mc(mxs(wa, na / g1, D / g1) + ' ÷ ' + mxs(wb, nb / g2, D / g2) + ' = ?', String(q), [
+      [L.frs(Ib, Ia), 'That flips the first number. Keep the first, flip the second: ' + f(Ia, D) + ' × ' + f(D, Ib) + '.'],
+      [L.frs(Ia*Ib, D*D), 'That multiplies. To divide, multiply by the reciprocal.'],
+      [String(Math.max(1, wa - wb)), 'That subtracts the wholes. Ask: how many ' + mxs(wb, nb / g2, D / g2) + ' fit in ' + mxs(wa, na / g1, D / g1) + '?']],
+      'Improper first: ' + f(Ia, D) + ' ÷ ' + f(Ib, D) + ' = ' + f(Ia, D) + ' × ' + f(D, Ib) + ' = ' + Ia + ' ÷ ' + Ib + ' = <b>' + q + '</b>. Check: ' + q + ' × ' + mxs(wb, nb / g2, D / g2) + ' = ' + mxs(wa, na / g1, D / g1) + '.');
+  }
+  /* estimate first */
+  var D3 = L.pick([3, 4, 5, 8]), w3 = L.ri(2, 6), n3 = L.ri(1, D3 - 1), w4 = L.ri(2, 5), n4 = L.ri(1, D3 - 1);
+  if (L.gcd(n3, D3) !== 1 || L.gcd(n4, D3) !== 1 || 2*n3 === D3 || 2*n4 === D3) return null;
+  var r3 = n3 / D3 >= .5 ? w3 + 1 : w3, r4 = n4 / D3 >= .5 ? w4 + 1 : w4, e = r3 * r4;
+  return mc('Which is the best <b>estimate</b> for ' + mxs(w3, n3, D3) + ' × ' + mxs(w4, n4, D3) + '?', 'about ' + e, [
+    ['about ' + (r3 + r4), 'That adds the rounded numbers. Multiply them.'],
+    ['about ' + (w3 * w4 / 2 > 1 ? Math.round(w3 * w4 / 2) : e * 3), 'Round each number to the nearest whole, then multiply.'],
+    ['about ' + e * 10, 'Too big: ' + r3 + ' × ' + r4 + ' = ' + e + '.']],
+    'Round to the nearest whole: ' + mxs(w3, n3, D3) + ' ≈ ' + r3 + ' and ' + mxs(w4, n4, D3) + ' ≈ ' + r4 + '. ' + r3 + ' × ' + r4 + ' = <b>' + e + '</b>.');
+}
+function bsQ(lv, kind){
+  var k = kind != null ? kind : L.pick([0, 0, 1, 2]);
+  var n = L.ri(6, 40), d = L.pick([2, 3, 4, 5, 6, 8]), nu = L.ri(1, d - 1), less1 = Math.random() < .65;
+  if (!less1) nu = d + L.ri(1, d - 1);
+  if (L.gcd(nu, d) !== 1) return null;
+  var F = f(nu, d);
+  if (k === 0) { var op = L.pick(['×', '÷']), bigger = (op === '×') !== less1;
+    var why = op === '×' ? (less1 ? 'Multiplying by a fraction less than 1 takes only part of ' + n + ', so the answer is smaller.' : 'Multiplying by a number greater than 1 gives more than ' + n + '.') : (less1 ? 'Dividing by a fraction less than 1 asks how many small pieces fit in ' + n + ': more than ' + n + '.' : 'Dividing by a number greater than 1 splits ' + n + ' into bigger shares, so the answer is smaller.');
+    return mc('Without computing: is <b>' + n + ' ' + op + ' ' + F + '</b> greater than or less than ' + n + '?', bigger ? 'greater than ' + n : 'less than ' + n, [
+      [bigger ? 'less than ' + n : 'greater than ' + n, 'Is ' + F + ' less than 1 or more than 1? ' + why], ['equal to ' + n, 'Only × 1 or ÷ 1 keeps it the same.']], why); }
+  if (k === 1) {
+    var opts = L.shuffle([[1, 3, '×'], [5, 4, '×'], [2, 5, '×'], [1, 2, '÷'], [7, 3, '×'], [3, 4, '÷'], [3, 2, '÷']]).slice(0, 5);
+    var res = opts.map(function(o){ var lt = o[0] < o[1]; return {t:n + ' ' + o[2] + ' ' + f(o[0], o[1]), small:o[2] === '×' ? lt : !lt}; });
+    if (!res.some(function(r){ return r.small; }) || res.every(function(r){ return r.small; })) return null;
+    return {type:'ms', fmt:'SELECT ALL', q:'Select <b>all</b> the expressions that are <b>less than ' + n + '</b>. (No computing needed.)', ch:res.map(function(r){ return r.t; }), a:res.map(function(r, i){ return r.small ? i : -1; }).filter(function(i){ return i >= 0; }),
+      why:'× a fraction less than 1 → smaller. × a number greater than 1 → bigger. ÷ a fraction less than 1 → bigger. ÷ a number greater than 1 → smaller.'};
+  }
+  var a1 = L.ri(1, 3), b1 = a1 + L.ri(1, 3), a2 = L.ri(4, 7), b2 = L.ri(2, a2 - 1);
+  return mc('Which is greater: <b>' + n + ' × ' + f(a1, b1) + '</b> or <b>' + n + ' × ' + f(a2, b2) + '</b>?', n + ' × ' + f(a2, b2), [
+    [n + ' × ' + f(a1, b1), f(a1, b1) + ' is less than 1, so it shrinks ' + n + '. ' + f(a2, b2) + ' is more than 1, so it grows ' + n + '.'], ['They are equal', 'The two fractions are different sizes.']],
+    f(a2, b2) + ' &gt; 1 makes the product greater than ' + n + '; ' + f(a1, b1) + ' &lt; 1 makes it less. So ' + n + ' × ' + f(a2, b2) + ' is greater.');
+}
 var bridge = {
   title:'Go Further: multiply & divide fractions', tab:'🚀 Go Further',
   intro:'Advanced Unit 6 goes past add and subtract into <b>multiplying and dividing</b> fractions and mixed numbers.',
   lessons:[{id:'u8B1', name:'× and ÷ fractions', icon:'✖️', cards:[
     {t:'Fraction of a fraction', h:'<p>' + f(1,2) + ' × ' + f(3,4) + ' means "half of three-fourths".</p><div class="big">' + f(1,2) + ' × ' + f(3,4) + ' = ' + f(3,8) + '</div><p>Tops times tops, bottoms times bottoms. The answer is smaller than both, because you took part of a part.</p>'},
     {t:'How many fit?', h:'<p>3 ÷ ' + f(1,4) + ' asks: how many quarters fit in 3 wholes? 4 in each whole → <b>12</b>.</p>', trap:'Dividing by a fraction less than 1 makes the answer BIGGER.', tr:bg.fdiv.f()}
+  ]},{id:'u8B2', name:'Mixed numbers × ÷', icon:'🔢', cards:[
+    {t:'Improper first', h:'<div class="big">2 ' + f(1,2) + ' × 1 ' + f(1,3) + '</div><p>Change both to improper fractions, then multiply.</p>',
+     steps:['2 ' + f(1,2) + ' = ' + f(5,2) + ' and 1 ' + f(1,3) + ' = ' + f(4,3) + '.', f(5,2) + ' × ' + f(4,3) + ' = ' + f(20,6) + '.', f(20,6) + ' = 3 ' + f(2,6) + ' = <b>3 ' + f(1,3) + '</b>.'],
+     trap:'Multiplying wholes by wholes and parts by parts: 2 × 1 = 2 and ' + f(1,2) + ' × ' + f(1,3) + ' = ' + f(1,6) + ' gives 2 ' + f(1,6) + '. Too small! Make improper fractions first.',
+     tr:function(){ return bg.mixmd.f('adv', 0); }},
+    {t:'Estimate first', h:'<p>Round each mixed number to the nearest whole before you start: 2 ' + f(1,2) + ' ≈ 3 and 1 ' + f(1,3) + ' ≈ 1, so the answer is <b>about 3</b>.</p><p>3 ' + f(1,3) + ' is close to 3. ✓ The estimate catches big mistakes like 2 ' + f(1,6) + ' or 20.</p>',
+     key:'Estimate, then compute, then compare.',
+     tries:[function(){ return bg.mixmd.f('adv', 3); }, function(){ return bg.mixmd.f('adv', 1); }]},
+    {t:'Dividing mixed numbers', h:'<div class="big">3 ' + f(3,4) + ' ÷ 1 ' + f(1,4) + '</div><p>How many 1 ' + f(1,4) + 's fit in 3 ' + f(3,4) + '?</p>',
+     steps:['Improper: ' + f(15,4) + ' ÷ ' + f(5,4) + '.', 'Keep, change, flip: ' + f(15,4) + ' × ' + f(4,5) + ' = ' + f(60,20) + '.', f(60,20) + ' = <b>3</b>. Check: 3 × 1 ' + f(1,4) + ' = 3 ' + f(3,4) + ' ✓'],
+     trap:'Flipping the first number. Only the divisor (the second number) flips.',
+     tr:function(){ return bg.mixmd.f('adv', 2); }}
+  ]},{id:'u8B3', name:'Bigger or smaller?', icon:'↕️', cards:[
+    {t:'Predict before you compute', h:L.tbl(['Problem','The fraction is','Answer is'], [['12 × ' + f(3,4),'less than 1','<b>smaller</b> than 12 (9)'],['12 × ' + f(5,4),'more than 1','<b>bigger</b> than 12 (15)'],['12 ÷ ' + f(3,4),'less than 1','<b>bigger</b> than 12 (16)'],['12 ÷ ' + f(3,2),'more than 1','<b>smaller</b> than 12 (8)']]),
+     key:'× a fraction less than 1 shrinks. ÷ a fraction less than 1 grows.',
+     trap:'"Multiplying always makes bigger." That is only true when you multiply by more than 1.',
+     tries:[function(){ return bg.bigsm.f('adv', 0); }, function(){ return bg.bigsm.f('adv', 1); }]},
+    {t:'Why ÷ can grow', h:'<p>12 ÷ ' + f(1,2) + ' asks: how many halves fit in 12? Each whole holds 2 halves, so <b>24</b>. Small pieces → many of them.</p>',
+     aap:'Scaling: a 10 cm photo printed at ' + f(3,2) + ' times the size is 15 cm; at ' + f(1,2) + ' the size it is 5 cm. The factor tells you bigger or smaller before you multiply.',
+     tr:function(){ return bg.bigsm.f('adv', 2); }}
   ]}],
-  gens:bg, repIds:['fmul','fdiv'],
+  gens:bg, repIds:['fmul','fdiv','mixmd','bigsm'],
   next:'Stay in the Advanced (Go Further) path of this unit for more practice.'
 };
 window.V2 = {key:'u8', lessons:lessons, test:test, bridge:bridge};
