@@ -56,7 +56,8 @@ var bg = {
     var add = m + L.pick([-3, 4, 5]);
     return mc('The mean of ' + a.join(', ') + ' is ' + m + '. If ' + add + ' is added to the data, the mean will…', add > m ? 'go up' : 'go down', [[add > m ? 'go down' : 'go up', 'A value ' + (add > m ? 'above' : 'below') + ' the balance point tips it that way.'], ['stay the same', 'Only a value exactly equal to the mean keeps it the same.']], 'The mean is the balance point. A new value ' + (add > m ? 'above' : 'below') + ' it tips the balance.');
   }},
-  mchg: {name:'When the data changes', f:function(lv, kind){ for (var t = 0; t < 12; t++) { var it = mchgQ(lv, kind); if (it) return it; } return null; }}
+  mchg: {name:'When the data changes', f:function(lv, kind){ for (var t = 0; t < 12; t++) { var it = mchgQ(lv, kind); if (it) return it; } return null; }},
+  hist: {name:'Histograms', f:function(lv, kind){ for (var t = 0; t < 12; t++) { var it = histQ(lv, kind); if (it) return it; } return null; }}
 };
 /* Effect of a change on the mean (and median, range). Whole-number means only. */
 function sum(a){ return a.reduce(function(x, y){ return x + y; }, 0); }
@@ -86,9 +87,52 @@ function mchgQ(lv, kind){
   return mc('The mean of ' + a.join(', ') + ' is ' + m + '. What happens to the mean if <b>' + v + '</b> is added?', 'it ' + dir, ['it goes up', 'it goes down', 'it stays the same'].filter(function(x){ return x !== 'it ' + dir; }).map(function(x){ return [x, v === m ? 'A value equal to the mean keeps the balance.' : 'A value ' + (v > m ? 'above' : 'below') + ' the mean tips the balance that way.']; }),
     v === m ? 'Adding a value equal to the mean keeps the mean the same: ' + m + '.' : 'New mean: ' + sum(c) + ' ÷ ' + c.length + ' = ' + r1(mean2) + '. A value ' + (v > m ? 'above' : 'below') + ' the mean pulls it ' + (v > m ? 'up' : 'down') + '.');
 }
+
+/* Histograms (Grade 6 preview): equal intervals, bars touch, height = how many. */
+function histSvg(labels, cnt, xTitle){
+  var W = 320, H = 210, Lm = 34, B = 160, top = 14, mx = Math.max.apply(null, cnt), step = mx > 8 ? 2 : 1, ymax = Math.ceil(mx / step) * step;
+  var bw = (W - Lm - 12) / labels.length, py = function(v){ return B - (v / ymax) * (B - top); }, o = '';
+  for (var v = 0; v <= ymax; v += step) o += '<line x1="' + Lm + '" x2="' + (W - 12) + '" y1="' + py(v).toFixed(1) + '" y2="' + py(v).toFixed(1) + '" stroke="var(--line)" stroke-width="1"/><text x="' + (Lm - 6) + '" y="' + (py(v) + 4).toFixed(1) + '" font-size="12" text-anchor="end" fill="var(--ink)">' + v + '</text>';
+  cnt.forEach(function(c, i){ var x = Lm + i * bw;
+    if (c) o += '<rect x="' + x.toFixed(1) + '" y="' + py(c).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + (B - py(c)).toFixed(1) + '" fill="var(--viz-teal)" fill-opacity=".55" stroke="var(--ink)" stroke-width="1.5"/>';
+    o += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (B + 17) + '" font-size="12" text-anchor="middle" fill="var(--ink)">' + labels[i] + '</text>'; });
+  o += '<path d="M' + Lm + ' ' + top + 'V' + B + 'H' + (W - 12) + '" fill="none" stroke="var(--ink)" stroke-width="2"/>';
+  o += '<text x="' + ((W + Lm) / 2) + '" y="' + (B + 38) + '" font-size="12" font-weight="700" text-anchor="middle" fill="var(--ink)">' + xTitle + '</text>';
+  o += '<text x="12" y="' + ((B + top) / 2) + '" font-size="12" font-weight="700" text-anchor="middle" fill="var(--ink)" transform="rotate(-90 12 ' + ((B + top) / 2) + ')">How many</text>';
+  return '<svg class="g5v" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" role="img" aria-label="Histogram of ' + xTitle + '">' + o + '</svg>';
+}
+var HCTX = [['Minutes spent reading', 'students', 10, 0], ['Points scored', 'games', 10, 0], ['Height of plants (cm)', 'plants', 5, 10], ['Jump rope skips in 1 minute', 'students', 20, 20]];
+function hBins(c, n){ var out = []; for (var i = 0; i < n; i++){ var lo = c[3] + i * c[2]; out.push([lo, lo + c[2] - 1]); } return out; }
+function hLab(b){ return b[0] + '–' + b[1]; }
+function histQ(lv, kind){
+  var k = kind != null ? kind : L.pick([0, 0, 1, 2, 2, 3, 4, 5]);
+  var c = L.pick(HCTX), n = L.ri(4, 5), bins = hBins(c, n), cnt = bins.map(function(){ return L.ri(0, 7); });
+  if (cnt.filter(function(x){ return x > 0; }).length < 3) return null;
+  var labels = bins.map(hLab), tot = sum(cnt), vis = '<div class="g5vis">' + histSvg(labels, cnt, c[0]) + '</div>', who = c[1];
+  if (k === 0) { var i = L.ri(0, n - 1); if (!cnt[i]) return null;
+    return {type:'num', fmt:'TYPE IN', q:'How many ' + who + ' are in the <b>' + labels[i] + '</b> interval?' + vis, a:cnt[i], why:'Read the top of the ' + labels[i] + ' bar across to the scale: <b>' + cnt[i] + '</b>.'}; }
+  if (k === 1) return {type:'num', fmt:'TYPE IN', q:'How many ' + who + ' does the histogram show in all?' + vis, a:tot, why:'Add every bar: ' + cnt.join(' + ') + ' = <b>' + tot + '</b>.'};
+  if (k === 2) { var j = L.ri(1, n - 1), up = L.pick([true, false]), part = up ? cnt.slice(j) : cnt.slice(0, j), v = sum(part); if (!v) return null;
+    var cut = up ? bins[j][0] : bins[j][0];
+    return {type:'num', fmt:'TYPE IN', q:'How many ' + who + ' had ' + (up ? '<b>at least ' + cut + '</b>' : '<b>fewer than ' + cut + '</b>') + '?' + vis, a:v,
+      why:(up ? cut + ' and up' : 'Below ' + cut) + ' is ' + (up ? 'every bar from ' + labels[j] + ' on' : 'every bar before ' + labels[j]) + ': ' + part.join(' + ') + ' = <b>' + v + '</b>.'}; }
+  if (k === 3) { var mi = cnt.indexOf(Math.max.apply(null, cnt)); if (cnt.filter(function(x){ return x === cnt[mi]; }).length > 1) return null;
+    return mc('Which interval has the <b>most</b> ' + who + '?' + vis, labels[mi], labels.filter(function(_, q){ return q !== mi; }).map(function(h){ return [h, 'Find the tallest bar, then read the interval under it.']; }), 'The tallest bar is over ' + labels[mi] + ' (' + cnt[mi] + ' ' + who + ').'); }
+  if (k === 4) { var bi = L.ri(0, n - 1), data = [];
+    bins.forEach(function(b, q){ for (var t = 0; t < (q === bi ? L.ri(2, 4) : L.ri(0, 2)); t++) data.push(L.ri(b[0], b[1])); });
+    data = L.shuffle(data); if (data.length < 6 || data.length > 12) return null;
+    var inBin = data.filter(function(x){ return x >= bins[bi][0] && x <= bins[bi][1]; }).length;
+    return {type:'num', fmt:'TYPE IN', q:c[0] + ': ' + data.join(', ') + '<br>You make a histogram with intervals ' + labels.join(', ') + '. How tall is the <b>' + labels[bi] + '</b> bar?', a:inBin,
+      why:'Count the values from ' + bins[bi][0] + ' to ' + bins[bi][1] + ' (both ends count): ' + data.filter(function(x){ return x >= bins[bi][0] && x <= bins[bi][1]; }).join(', ') + ' → <b>' + inBin + '</b>.'}; }
+  return mc('Which of these can you find from this histogram?' + vis, 'how many ' + who + ' are in each interval', [
+    ['the exact greatest value', 'A bar only says how many values fall in its interval, not what they are.'],
+    ['the mode (the single value that appears most)', 'The values are grouped, so you cannot see single values.'],
+    ['the exact mean', 'To find the mean you need every value. The histogram hides them.']],
+    'A histogram trades exact values for a quick picture of the <b>shape</b>: how many fall in each interval.');
+}
 var bridge = {
   title:'Go Further: outliers & the balance point', tab:'🚀 Go Further',
-  intro:'Advanced Units 1 and 10 go deeper on the mean: it is the <b>balance point</b> of a line plot, and <b>outliers</b> can pull it far away. You will also find a new mean when a value is added or removed.',
+  intro:'Advanced Units 1 and 10 go deeper on the mean: it is the <b>balance point</b> of a line plot, and <b>outliers</b> can pull it far away. You will also find a new mean when a value is added or removed, and read <b>histograms</b> (a grade-6 preview).',
   lessons:[{id:'u10B1', name:'Balance & outliers', icon:'🎯', cards:[
     {t:'The mean balances the data', h:'<p>Put the data on a line plot like weights on a seesaw. The mean is where it balances.</p><p>2, 4, 6, 8, 10 → balance point 6.</p>'},
     {t:'Outliers', h:'<p>An <b>outlier</b> is far from the rest: 31, 33, 30, 34, <b>80</b>.</p>' + L.tbl(['','With 80','Without 80'], [['mean','41.6','32'],['median','33','32']]) + '<p>The mean jumped almost 10; the median moved 1.</p>', tr:bg.outl.f()}
@@ -102,8 +146,18 @@ var bridge = {
     {t:'Who moves the most?', h:L.tbl(['Change','Mean','Median','Range'], [['add a value equal to the mean','same','may shift a little','same or wider'],['add a value above the mean','up','up a little or same','may widen'],['add an outlier','pulled a lot','barely moves','jumps']]),
      aap:'Target mean: scores 85, 92 and 88 total 265. For a mean of 90 on 4 quizzes you need 360 in all, so the next score must be 360 − 265 = 95.',
      tries:[function(){ return bg.mchg.f('adv', 3); }, function(){ return bg.mchg.f('adv', 2); }]}
+  ]},{id:'u10B3', name:'Histograms', icon:'📊', cards:[
+    {t:'Bars for intervals', h:'<p>A grade-6 preview. A <b>histogram</b> groups the data into <b>equal intervals</b>, then draws one bar per interval. The height of the bar tells <b>how many</b> values fall in it.</p><p>Minutes reading: 3, 8, 12, 14, 15, 17, 21, 26, 33</p>' + L.tbl(['Interval','Values','How many'], [['0–9','3, 8','2'],['10–19','12, 14, 15, 17','4'],['20–29','21, 26','2'],['30–39','33','1']]) + '<div class="g5vis">' + histSvg(['0–9','10–19','20–29','30–39'], [2,4,2,1], 'Minutes spent reading') + '</div>',
+     key:'Equal intervals, bars touch, no gaps between them. Each value counts in exactly one bar.',
+     trap:'Is 20 in the 10–19 bar or the 20–29 bar? Read the labels: 20 starts the 20–29 interval.',
+     tr:function(){ return bg.hist.f('adv', 4); }},
+    {t:'Read a histogram', h:'<p>Read the top of a bar across to the scale. "At least 20" means the 20–29 bar <b>and every bar after it</b>.</p>',
+     tries:[function(){ return bg.hist.f('adv', 0); }, function(){ return bg.hist.f('adv', 2); }]},
+    {t:'Histogram or bar graph?', h:L.tbl(['','Bar graph','Histogram'], [['under each bar','a category (pizza, tacos)','an interval of numbers (10–19)'],['gaps between bars','yes','no, bars touch'],['shows exact values?','the category','no, only how many in each interval']]),
+     aap:'Same data, different intervals, different picture. With intervals of 5 instead of 10, the 10–19 bar splits into 10–14 (2 values) and 15–19 (2 values). Wider intervals hide detail; very narrow ones look bumpy.',
+     tries:[function(){ return bg.hist.f('adv', 5); }, function(){ return bg.hist.f('adv', 3); }]}
   ]}],
-  gens:bg, repIds:['outl','bal','mchg'],
+  gens:bg, repIds:['outl','bal','mchg','hist'],
   next:'Stay in the Advanced (Go Further) path of this unit for more practice.'
 };
 window.V2 = {key:'u10', lessons:lessons, test:test, bridge:bridge, gens:gens, repIds:['mean','median','count','prob']};
