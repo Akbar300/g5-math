@@ -1062,12 +1062,19 @@ function paperDivide(dividend, divisor) {
     }).map((s) => s.gen);
   }
 
+  /* Icon markup for a G5I key (js/icons.js); falls back to the emoji if icons.js is missing. */
+  function uiIcon(key, emoji) {
+    const svg = w.G5I && G5I.get(key);
+    return svg ? `<span class="ls-ico ls-svg" aria-hidden="true">${svg}</span>` : `<span class="ls-ico" aria-hidden="true">${emoji || ''}</span>`;
+  }
+
   function section(cls, icon, label) {
     const sec = document.createElement('section');
     sec.className = 'ls ' + cls;
     const hd = document.createElement('div');
     hd.className = 'ls-h';
-    hd.innerHTML = `<span class="ls-ico" aria-hidden="true">${icon}</span><span>${label}</span>`;
+    const ICON_KEY = { '💡': 'idea', '🎬': 'watch', '👀': 'see', '✏️': 'worked', '⚠️': 'trap', '🚀': 'stretch' };
+    hd.innerHTML = `${uiIcon(ICON_KEY[icon], icon)}<span>${label}</span>`;
     const bd = document.createElement('div');
     bd.className = 'ls-b';
     sec.appendChild(hd); sec.appendChild(bd);
@@ -1200,7 +1207,7 @@ function paperDivide(dividend, divisor) {
         prac.className = 'lesson-practice';
         const ph = document.createElement('div');
         ph.className = 'ls-h';
-        ph.innerHTML = `<span class="ls-ico" aria-hidden="true">🎯</span><span>${c.tries.length === 1 ? 'Try it' : 'Try these'}</span>`;
+        ph.innerHTML = `${uiIcon('tryit', '🎯')}<span>${c.tries.length === 1 ? 'Try it' : 'Try these'}</span>`;
         prac.appendChild(ph);
         c.tries.forEach((fn, k) => {
           const slot = document.createElement('div');
@@ -1276,26 +1283,34 @@ function paperDivide(dividend, divisor) {
     let M = store(key) || { xp: 0, lvl: 'core', les: {}, sk: {}, tab: 'learn' };
     const save = () => store(key, M);
 
+    /* Unit color and number come from the hub catalog (js/catalog.js) when it is loaded. */
+    const CAT = ((w.CATALOG && CATALOG.units) || []).find((u) => u.id === UNIT.id) || {};
+    const GI = (k) => (w.G5I && G5I.get(k)) || '';
+    const tabIco = (k) => { const svg = GI(k); return svg ? `<span class="tab-ico" aria-hidden="true">${svg}</span>` : ''; };
+    const unitIco = GI(UNIT.id);
+    const gameLbl = UNIT.game ? String(UNIT.game.tab).replace(/^(?:\p{Extended_Pictographic}|\uFE0F|\u200D)+\s*/u, '') : '';
     const shell = document.createElement('div');
-    shell.className = 'app-shell';
+    shell.className = 'app-shell ux c-' + (CAT.color || 'teal');
     shell.innerHTML = `
       <div class="app-bar">
-        <a class="back" href="../index.html">← Lab</a>
-        <h1><span>${UNIT.emoji}</span> ${UNIT.title}</h1>
+        <a class="back" href="../index.html" aria-label="All units">${GI('back') ? '<span class="back-ico" aria-hidden="true">' + GI('back') + '</span><span class="back-lbl">Units</span>' : '← Lab'}</a>
+        <h1>${unitIco ? '<span class="unit-ico" aria-hidden="true">' + unitIco + '</span>' : '<span>' + UNIT.emoji + '</span>'}<span class="unit-name">${CAT.num ? '<small>Unit ' + CAT.num + '</small>' : ''}<span>${UNIT.title}</span></span></h1>
         <div class="grow"></div>
-        <div class="lvl-toggle" title="Core or Advanced lessons and practice">
-          <button data-l="core" class="${M.lvl !== 'advanced' ? 'on' : ''}">Core</button>
-          <button data-l="advanced" class="${M.lvl === 'advanced' ? 'on' : ''}">Advanced</button>
+        <div class="bar-tools">
+          <div class="lvl-toggle" title="Core or Advanced lessons and practice">
+            <button data-l="core" class="${M.lvl !== 'advanced' ? 'on' : ''}">Core</button>
+            <button data-l="advanced" class="${M.lvl === 'advanced' ? 'on' : ''}">Advanced</button>
+          </div>
+          <button type="button" class="icon-btn theme-toggle" data-theme-toggle></button>
+          <button class="icon-btn print-btn" id="printBtn" aria-label="Print pack">${GI('print') ? '<span class="btn-ico" aria-hidden="true">' + GI('print') + '</span>' : ''}<span class="print-lbl">Print pack</span></button>
+          <div class="xp" id="xp">${GI('star') ? '<span class="xp-ico" aria-hidden="true">' + GI('star') + '</span>' : '⭐ '}<span id="xpN">${M.xp}</span> XP</div>
         </div>
-        <button type="button" class="icon-btn theme-toggle" data-theme-toggle></button>
-        <button class="icon-btn" id="printBtn">Print pack</button>
-        <div class="xp" id="xp">⭐ ${M.xp} XP</div>
       </div>
       <nav class="tabs" id="tabs">
-        <button data-tab="learn" class="on">Learn</button>
-        <button data-tab="practice">Practice</button>
-        <button data-tab="test">Test Lab</button>
-        ${UNIT.game ? '<button data-tab="game">' + UNIT.game.tab + '</button>' : ''}
+        <button data-tab="learn" class="on">${tabIco('learn')}<span>Learn</span></button>
+        <button data-tab="practice">${tabIco('practice')}<span>Practice</span></button>
+        <button data-tab="test">${tabIco('test')}<span>Test Lab</span></button>
+        ${UNIT.game ? '<button data-tab="game">' + (tabIco(UNIT.id === 'u9' ? 'angle' : 'game') || UNIT.game.tab.match(/^\S+/)[0] + ' ') + (tabIco('learn') ? '<span>' + gameLbl + '</span>' : gameLbl) + '</button>' : ''}
       </nav>
       <main class="stage" id="stage"></main>
       <button class="brain" id="brain">Brain break</button>
@@ -1306,7 +1321,7 @@ function paperDivide(dividend, divisor) {
     if (w.G5Theme) G5Theme.sync();
 
     const stage = shell.querySelector('#stage');
-    const setXP = () => { shell.querySelector('#xp').textContent = '⭐ ' + M.xp + ' XP'; };
+    const setXP = () => { const n = shell.querySelector('#xpN'); if (n) n.textContent = M.xp; else shell.querySelector('#xp').textContent = '⭐ ' + M.xp + ' XP'; };
     const track = () => (M.lvl === 'advanced' ? UNIT.advanced : UNIT.core);
 
     shell.querySelectorAll('.lvl-toggle button').forEach((b) => {
@@ -1349,11 +1364,18 @@ function paperDivide(dividend, divisor) {
         chips.innerHTML = '';
         T.lessons.forEach((L, i) => {
           const b = document.createElement('button');
-          b.className = 'chip' + (i === k ? ' on' : '');
-          b.innerHTML = `${L.icon || '📘'} ${L.name}` + (M.les[L.id] ? ' <span class="st">✓</span>' : '');
+          const svg = w.G5I ? G5I.forLesson(L) : '';
+          b.className = 'chip lchip' + (i === k ? ' on' : '') + (M.les[L.id] ? ' done' : '');
+          if (i === k) b.setAttribute('aria-current', 'step');
+          b.innerHTML = svg
+            ? `<span class="lchip-ico" aria-hidden="true">${svg}</span><span class="lchip-name">${L.name}</span>` + (M.les[L.id] ? `<span class="st" aria-label="done">${GI('check') || '✓'}</span>` : '')
+            : `${L.icon || '📘'} ${L.name}` + (M.les[L.id] ? ' <span class="st">✓</span>' : '');
           b.onclick = () => open(i);
           chips.appendChild(b);
         });
+        /* Keep the current lesson chip in view when the strip scrolls sideways (phones). */
+        const onChip = chips.querySelector('.on');
+        if (onChip && chips.scrollWidth > chips.clientWidth) chips.scrollLeft += onChip.getBoundingClientRect().left - chips.getBoundingClientRect().left - 16;
         playLesson(host, T.lessons[k], () => {
           M.les[T.lessons[k].id] = 1; M.xp += 15; save(); setXP();
           host.innerHTML = `<div class="remember">🎉 Lesson complete (+15 XP). ${k < T.lessons.length - 1 ? 'Next up: <b>' + T.lessons[k + 1].name + '</b>.' : 'All lessons in this level are done. Head to Practice.'}</div>`;

@@ -1973,7 +1973,7 @@ html[data-theme="dark"] .ix-btn.ps-unit.on{background:var(--teal);border-color:v
 
 /* ===================== Hub (index.html) — 2026-11-25 redesign =====================
    Scoped to .hb so unit pages are untouched. Unit colors: .c-<name> sets --ic (ink) + --ic-soft. */
-.c-blue{--ic:#1f63c6}.c-violet{--ic:#5a3cc9}.c-coral{--ic:#d23c1b}.c-gold{--ic:#a86f00}
+.c-blue{--ic:#1f63c6}.c-violet{--ic:#5a3cc9}.c-coral{--ic:#d23c1b}.c-gold{--ic:#8a5a00}
 .c-teal{--ic:#0a8574}.c-rose{--ic:#c9356b}.c-lime{--ic:#3d7f0c}
 html[data-theme="dark"] .c-blue{--ic:#7eb6ff}html[data-theme="dark"] .c-violet{--ic:#b3a2ff}
 html[data-theme="dark"] .c-coral{--ic:#ff8a70}html[data-theme="dark"] .c-gold{--ic:#ffd56a}
@@ -2080,3 +2080,69 @@ html[data-theme="dark"] .c-lime{--ic:#9be35a}
   .hb .hb-arena{flex-direction:row;align-items:center}
 }
 @media (prefers-reduced-motion:reduce){.hb .hb-hero-art{animation:none}}
+
+/* ===================== Unit pages: icon shell (2026-11-25) =====================
+   Scoped to .app-shell.ux (set by engine.js), so arenas and print pages are untouched.
+   The shell also carries .c-<unit color> from catalog.js, which sets --ic / --ic-soft. */
+.ux svg{display:block;width:100%;height:100%}
+.ux .app-bar{gap:8px 10px;padding:4px 0 6px}
+.ux .app-bar .back{min-height:44px;min-width:44px;justify-content:center;padding:0 12px 0 8px;border-radius:14px}
+.ux .back-ico{width:22px;height:22px}
+.ux .app-bar h1{gap:10px;white-space:normal}
+.ux .unit-ico{flex:0 0 auto;width:44px;height:44px;padding:7px;border-radius:14px;background:var(--ic-soft);color:var(--ic)}
+.ux .unit-name{display:flex;flex-direction:column;min-width:0;line-height:1.05}
+.ux .unit-name small{font-family:var(--font);font-size:13px;font-weight:800;color:var(--ic);letter-spacing:0}
+.ux .unit-name > span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ux .bar-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ux .lvl-toggle button{min-height:38px}
+.ux .theme-toggle,.ux .print-btn{min-height:42px;min-width:44px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.ux .btn-ico{width:20px;height:20px;color:var(--ic)}
+.ux .xp{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;background:var(--stat-bg);color:var(--ink)}
+.ux .xp-ico{width:18px;height:18px;color:var(--gold)}
+
+/* Tabs: icon + label; the open tab wears the unit color */
+.ux .tabs button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;height:auto;padding:4px 10px}
+.ux .tab-ico{flex:0 0 auto;width:22px;height:22px;color:var(--ic);--ic-soft:color-mix(in srgb,var(--ic) 22%,var(--btn-face))}
+.ux .tabs button.on{background:var(--ic);border-color:var(--ic);color:var(--on-fg)}
+.ux .tabs button.on .tab-ico{color:var(--on-fg);--ic-soft:color-mix(in srgb,var(--on-fg) 28%,var(--ic))}
+
+/* Lesson strip: icon tiles; scrolls sideways on phones, wraps on wide screens */
+.ux .lesson-chips{gap:8px}
+.ux .lchip{position:relative;display:inline-flex;align-items:center;gap:9px;min-height:52px;padding:6px 12px 6px 6px;border-radius:16px;
+  background:var(--btn-face);border:2px solid var(--line);color:var(--ink);text-align:left}
+.ux .lchip-ico{flex:0 0 auto;width:38px;height:38px;padding:6px;border-radius:12px;background:var(--ic-soft);color:var(--ic)}
+.ux .lchip-name{font-size:14.5px;font-weight:800;line-height:1.15}
+.ux .lchip.on{background:color-mix(in srgb,var(--ic) 12%,var(--card));border-color:var(--ic);color:var(--ink)}
+.ux .lchip.on .lchip-ico{background:var(--card);box-shadow:inset 0 0 0 2px var(--ic)}
+.ux .lchip .st{position:absolute;top:-6px;left:30px;width:20px;height:20px;padding:3px;margin:0;border-radius:50%;
+  background:var(--lime);color:#fff;box-shadow:0 0 0 2px var(--card)}
+html[data-theme="dark"] .ux .lchip .st{color:#121722}
+
+/* Card labels: drawn icons tinted with each card's own color */
+.ux .ls-h{--ic-soft:color-mix(in srgb,var(--sec,var(--violet)) 28%,var(--card))}
+.ux .ls-svg{flex:0 0 auto;width:24px;height:24px;font-size:0;color:color-mix(in srgb,var(--sec,var(--violet)) 72%,var(--ink))}
+.ux .lesson-practice > .ls-h .ls-svg{color:color-mix(in srgb,var(--teal) 72%,var(--ink));--ic-soft:color-mix(in srgb,var(--teal) 28%,var(--card))}
+
+@media screen and (max-width:819px){
+  .ux .app-bar h1{flex:1 1 0;font-size:20px}
+  .ux .unit-name > span{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .ux .back-lbl{display:none}
+  .ux .app-bar .back{padding:0}
+  .ux .app-bar .grow{display:none}
+  .ux .bar-tools{width:100%;flex-wrap:nowrap}
+  .ux .bar-tools .xp{margin-left:auto}
+  .ux .print-lbl{display:none}
+  .ux .tabs{gap:6px}
+  .ux .tabs button{flex-direction:column;gap:2px;font-size:14px;min-height:56px;padding:4px 2px}
+  .ux .lesson-chips{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x proximity;padding:8px 2px 6px;margin:0 -2px 8px;scrollbar-width:thin;overscroll-behavior-x:contain}
+  .ux .lchip{flex:0 0 auto;scroll-snap-align:start;max-width:200px}
+}
+@media screen and (min-width:1100px){
+  .ux .tabs button{justify-content:flex-start;padding:4px 14px;height:52px}
+  .ux .tab-ico{width:24px;height:24px}
+}
+/* Phones: long skill names in the Practice picker wrap instead of pushing the page sideways */
+@media screen and (max-width:600px){
+  .practice-top .seg{max-width:100%}
+  .practice-top .seg button{white-space:normal;text-align:left;max-width:100%}
+}
