@@ -665,7 +665,9 @@
   function nline(a, b, axis) {
     const lo = Math.min(a, b, 0) - 1, hi = Math.max(a, b, 0) + 1, W = 340, pad = 16, span = hi - lo;
     const sx = (v) => pad + (v - lo) * (W - 2 * pad) / span, Y = 74, cross = a * b < 0, dir = b > a ? 1 : -1, d = Math.abs(b - a);
-    const s = mk('svg', { viewBox: `0 0 ${W} 112`, class: 'sl-nl', role: 'img', 'aria-label': `Number line from ${a} to ${b}` });
+    /* Crop the empty band above the hops; keep it only when the 'a + b' labels sit up there. */
+    const top = cross ? 0 : 34;
+    const s = mk('svg', { viewBox: `0 ${top} ${W} ${112 - top}`, class: 'sl-nl', role: 'img', 'aria-label': `Number line from ${a} to ${b}` });
     s.appendChild(mk('line', { x1: pad - 6, y1: Y, x2: W - pad + 6, y2: Y, class: 'sl-nax' }));
     for (let v = lo; v <= hi; v++) {
       s.appendChild(mk('line', { x1: sx(v), y1: Y - 5, x2: sx(v), y2: Y + 5, class: 'sl-ntk' + (v === 0 ? ' z' : '') }));
