@@ -1174,23 +1174,34 @@
     /* ---------- Unit 9 ---------- */
     u9L1: {
       'Name the angle': {
-        viz: () => V.angle(90, { label: '90° right' }),
-        steps: ['Acute: less than 90°. Right: exactly 90°. Obtuse: between 90° and 180°. Straight: 180°.', 'A square corner is a right angle.', 'Use a protractor or a square-corner test when you can.'],
+        viz: () => (w.IX ? w.IX.angleLab({ modes: ['make', 'target'], start: 50 }) : V.angle(90, { label: '90° right' })),
+        steps: ['Acute: less than 90°. Right: exactly 90°. Obtuse: between 90° and 180°. Straight: 180°.', 'A square corner is a right angle. A protractor reads the opening in degrees: line the base up with 0°, then read where the other ray crosses the scale.', 'Use the tick marks: every long tick is 30° or 90°, every short tick is 10°, the tiniest are 5°.'],
         trap: 'Calling every “sharp-looking” angle acute, even when it is a little over 90° (obtuse).',
-        aap: 'AAP: angles in a triangle add to 180°. If two angles are 40° and 70°, the third is 70° (isosceles).',
+        aap: 'Stretch: angles on a straight line add to 180°. If one angle is 70°, the one next to it is 110°. See the next cards.',
         tries: [
           () => mc('What kind of angle is 90°?', 'right', [['acute', 'Acute is less than 90°.'], ['obtuse', 'Obtuse is more than 90° and less than 180°.'], ['straight', 'Straight is 180°.']], 'A right angle is exactly 90°.'),
           () => mc('What kind of angle is 130°?', 'obtuse', [['acute', '130° is greater than 90°.'], ['right', 'Right is exactly 90°.'], ['straight', 'Straight is 180°.']], '130° is between 90° and 180°.')
         ]
       },
       'Classify triangles two ways': {
-        viz: () => V.angle(60, { label: '60°' }),
-        steps: ['By sides: equilateral (3 equal), isosceles (at least 2 equal), scalene (no equal sides).', 'By angles: acute, right, or obtuse (named for the largest angle).', 'A triangle can be both isosceles and acute, for example.'],
+        viz: () => (w.IX ? w.IX.triangleLab() : V.angle(60, { label: '60°' })),
+        steps: ['By sides: equilateral (3 equal), isosceles (at least 2 equal), scalene (no equal sides).', 'By angles: acute, right, or obtuse (named for the largest angle).', 'A triangle can be both isosceles and acute, for example. The three angles always add to 180°.'],
         trap: 'Thinking isosceles cannot be equilateral. Equilateral is a special isosceles: all three sides equal.',
-        aap: 'AAP: a 7-7-7 triangle is equilateral, isosceles, and acute (all angles 60°). Select every name that fits.',
+        aap: 'Stretch: a 7-7-7 triangle is equilateral, isosceles, and acute (all angles 60°). Select every name that fits.',
         tries: [
           () => ms('A triangle has sides 7, 7, and 7. Select all names that fit.', ['equilateral', 'isosceles', 'scalene', 'acute', 'right'], [0, 1, 3], 'Three equal sides: equilateral and isosceles. All angles are 60°, so acute.'),
-          () => mc('A triangle has a 90° angle. What kind is it (by angles)?', 'right', [['acute', 'A 90° angle is not acute.'], ['obtuse', 'Obtuse would be greater than 90°.'], ['equilateral', 'That is a side name, and 90° cannot appear in an equilateral triangle.']], 'A 90° angle makes a right triangle.')
+          () => mc('A triangle has a 90° angle. What kind is it (by angles)?', 'right', [['acute', 'A 90° angle is not acute.'], ['obtuse', 'Obtuse would be greater than 90°.'], ['equilateral', 'That is a side name, and 90° cannot appear in an equilateral triangle.']], 'One 90° angle makes it a right triangle.')
+        ]
+      },
+      'Angle pairs (a grade up)': {
+        viz: () => (w.IX ? w.IX.angleLab({ modes: ['pair'], mode: 'pair', start: 65 }) : V.angle(65, { label: '65°' })),
+        steps: ['Two angles that fill a <b>straight line</b> add to 180° (supplementary). If one is 65°, the other is 180 − 65 = 115°.', 'Two angles that fill a <b>square corner</b> add to 90° (complementary). If one is 35°, the other is 90 − 35 = 55°.', 'When two straight lines cross, the angles directly across from each other (vertical angles) are equal, and neighbors add to 180°.'],
+        trap: 'Mixing up the two totals. Corner = 90° = complementary. Straight line = 180° = supplementary. (C comes before S, and 90 comes before 180.)',
+        aap: 'Stretch: algebra with angles. Two supplementary angles are x and 2x. Then x + 2x = 180, so x = 60° and 2x = 120°.',
+        tries: [
+          () => num('Two angles make a straight line. One is 65°. How many degrees is the other?', 115, '180 − 65 = 115°.'),
+          () => mc('Two angles make a square corner. One is 35°. What is the other?', '55°', [['145°', 'That uses 180°. A square corner is 90°.'], ['65°', '90 − 35 = 55, not 65.'], ['35°', 'They would be equal only if each were 45°.']], '90 − 35 = 55°.'),
+          () => num('Two straight lines cross. One angle is 40°. How many degrees is the angle directly across from it?', 40, 'Vertical angles (across from each other) are equal.')
         ]
       }
     },

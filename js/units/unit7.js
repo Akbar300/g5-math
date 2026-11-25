@@ -5,7 +5,7 @@ var L = V2L, f = L.fr, mc = L.mc;
 var lessons = [
  {id:'u7L1', name:'What percent means', icon:'💯', cards:[
   {t:'Per hundred', h:'<div class="big">40 out of 100 = ' + f(40,100) + ' = 0.40 = 40%</div><p>"Percent" literally means "per hundred" (cent = 100, like a century).</p>'},
-  {t:'Benchmarks to know cold', h:L.tbl(['Percent','Fraction','Decimal'], [['100%','1 whole','1.0'],['50%',f(1,2),'0.5'],['25%',f(1,4),'0.25'],['75%',f(3,4),'0.75'],['10%',f(1,10),'0.1'],['20%',f(1,5),'0.2']]), trap:'5% is 0.05, not 0.5. 50% is 0.5.', tr:mc('Which is equal to 30%?', '0.3', [['0.03', '0.03 is 3%. 30% = 30 hundredths.'], ['3.0', 'That is 300%.'], [f(1,3), f(1,3) + ' ≈ 33%.']], '30% = ' + f(30,100) + ' = 0.30.')}
+  {t:'Benchmarks to know cold', h:'<p>These few percents, fractions and decimals show up everywhere. Know them by heart and you can compare and estimate fast.</p>' + L.tbl(['Percent','Fraction','Decimal'], [['100%','1 whole','1.0'],['50%',f(1,2),'0.5'],['25%',f(1,4),'0.25'],['75%',f(3,4),'0.75'],['10%',f(1,10),'0.1'],['20%',f(1,5),'0.2']]), trap:'5% is 0.05, not 0.5. 50% is 0.5.', tr:mc('Which is equal to 30%?', '0.3', [['0.03', '0.03 is 3%. 30% = 30 hundredths.'], ['3.0', 'That is 300%.'], [f(1,3), f(1,3) + ' ≈ 33%.']], '30% = ' + f(30,100) + ' = 0.30.')}
  ]},
  {id:'u7L2', name:'Convert all three', icon:'🔁', cards:[
   {t:'The triangle of names', h:'', steps:['<p><b>Fraction → decimal:</b> rename to tenths or hundredths. ' + f(3,20) + ' = ' + f(15,100) + ' = 0.15</p>', '<p><b>Decimal → percent:</b> how many hundredths? 0.15 = 15%</p>', '<p><b>Percent → fraction:</b> put it over 100 and simplify. 15% = ' + f(15,100) + ' = ' + f(3,20) + '</p>']},

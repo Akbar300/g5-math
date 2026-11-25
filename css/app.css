@@ -732,6 +732,15 @@ ol.steps li{margin:6px 0}
 .v2-tbl{border-collapse:collapse;margin:8px 0;font-size:16px}
 .v2-tbl th,.v2-tbl td{border:2px solid var(--line);padding:4px 10px;text-align:center}
 .v2-tbl td.q{background:var(--highlight);font-weight:800}
+/* Step boxes (V.cycleSteps) */
+.viz.viz-free.fx{display:flex;flex-direction:column;align-items:center;gap:12px;padding:6px 0}
+.fx-row{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px 8px}
+.fx-box{font:inherit;font-weight:800;font-size:clamp(17px,1.9vw,24px);line-height:1.25;color:var(--ink);background:var(--btn-face);border:3px solid var(--ink);border-radius:14px;padding:12px 18px;min-width:90px;text-align:center;opacity:.5;cursor:pointer;touch-action:manipulation;text-wrap:balance;transition:opacity .15s,transform .15s,background .15s}
+.fx-box.nw{white-space:nowrap}
+.fx-box.on{opacity:1;background:color-mix(in srgb,var(--teal) 24%,var(--btn-face));box-shadow:0 3px 0 var(--ink)}
+.fx-box:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.fx-arrow{font-size:24px;font-weight:800;color:var(--muted)}
+.fx-ctl{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 /* Squares gallery (Unit 3 Perfect squares) */
 .viz.viz-free{max-height:none;display:block;width:100%}
 .viz.viz-free.sq-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}
@@ -825,6 +834,21 @@ svg.g5v,.g5vis svg{max-width:100%;height:auto;background:var(--viz-empty);border
 .ix-own .ix-num{width:5.2em;border:2.5px solid var(--line);border-radius:12px;padding:6px 8px;font-size:18px;font-weight:800;font-family:var(--mono);background:var(--paper-cell);color:var(--ink);text-align:center}
 .ix-own .ix-op{font-weight:800;font-size:20px}
 .ix-own .ix-lab{font-weight:800;font-size:14px;color:var(--muted)}
+/* Angle lab + triangle lab */
+.viz.ix.ix-al,.viz.ix.ix-tl{flex-direction:column;align-items:stretch;gap:10px}
+.ix-al .ix-ctr,.ix-tl .ix-ctr{justify-content:center}
+.ix-al-stage{display:block;width:100%}
+.ix-al-svg{width:100%;max-width:500px;height:auto;display:block;margin:0 auto;cursor:grab;outline:none;user-select:none;-webkit-user-select:none}
+.ix-al-svg:focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:8px}
+.ix-al-svg:active{cursor:grabbing}
+.ix-al-goal{justify-content:center;text-align:center;font-size:19px}
+.ix-al-big{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+.ix-al-deg{font-family:var(--display);font-size:40px;line-height:1}
+.ix-al-chip{border:2px solid var(--ink);border-radius:12px;padding:3px 14px;font-weight:800;font-size:19px;color:#1b2437;background:#e5ecf6}
+.ix-al-chip.c-acute{background:#7fe3d3}.ix-al-chip.c-right{background:#ffd45c}.ix-al-chip.c-obtuse{background:#ff9d84}.ix-al-chip.c-straight{background:#9cc4ff}.ix-al-chip.c-closed{background:#dbe2ee}.ix-al-chip.c-side{background:#d9ccff}
+.ix-al .ix-read,.ix-tl .ix-read{text-align:center}
+.ix-al .ix-eq,.ix-tl .ix-eq{justify-content:center}
+.ix-al .ix-fb:empty{display:none}
 /* Pattern builder + mystery machine */
 .viz.ix.ix-pb,.viz.ix.ix-mach{flex-direction:column;align-items:stretch;gap:10px}
 .ix-pb .ix-step{align-items:center;justify-content:center}

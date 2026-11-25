@@ -29,7 +29,7 @@ var gens = {
 var lessons = [
  {id:'u10L1', name:'Mean as fair share', icon:'⚖️', cards:[
   {t:'Even it out', h:'<p>Four friends have 3, 7, 5 and 9 stickers. If they share fairly, everyone gets the same number. That number is the <b>mean</b>.</p>', steps:['<p>Total: 3 + 7 + 5 + 9 = 24.</p>', '<p>Share among 4: 24 ÷ 4 = <b>6</b> each.</p>', '<p>Check: 3 gets 3 more, 9 gives 3 away. Balanced!</p>'], key:'Mean = total ÷ number of values.'},
-  {t:'Median, mode, range', h:L.tbl(['Measure','How'], [['median','order the values, take the middle (average the 2 middles if even)'],['mode','the value that appears most (could be "no mode")'],['range','greatest − least']]), trap:'Finding the median without putting the numbers in order first.', tr:gens.median.f()}
+  {t:'Median, mode, range', h:'<p>Each measure answers a different question about a data set: what is in the middle (median), what is most common (mode), and how spread out is it (range)?</p>' + L.tbl(['Measure','How'], [['median','order the values, take the middle (average the 2 middles if even)'],['mode','the value that appears most (could be "no mode")'],['range','greatest − least']]), trap:'Finding the median without putting the numbers in order first.', tr:gens.median.f()}
  ]},
  {id:'u10L2', name:'Line plots & stem-and-leaf', icon:'📈', cards:[
   {t:'Stem-and-leaf plots', h:L.tbl(['Stem','Leaf'], [['2','1 4 4 8'],['3','0 5'],['4','2']]) + '<p>Key: 2 | 1 = 21. The data: 21, 24, 24, 28, 30, 35, 42.</p>', trap:'"At least 30" includes 30. Count 30, 35 and 42 → 3 values.'},

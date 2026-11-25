@@ -13,7 +13,7 @@ var lessons = [
   {t:'Try one', h:'<p>Show your work on paper, then type the answer.</p>', tr:{type:'num', q:'Find 318 × 24. (Estimate first: about 300 × 25.)', a:7632, why:'318 × 4 = 1272; 318 × 20 = 6360; 1272 + 6360 = 7632. Estimate 7500 ✓.'}}
  ]},
  {id:'u3L3', name:'Divide by 2 digits', icon:'➗', cards:[
-  {t:'Estimate each digit of the quotient', h:'<div class="big">1554 ÷ 42</div>', steps:['<p>How many 42s in 155? Think 40 into 150 → about <b>3</b>. 3 × 42 = 126. 155 − 126 = 29.</p>', '<p>Bring down 4 → 294. Think 40 into 290 → about 7. 7 × 42 = 294 exactly.</p>', '<p>Answer: <b>37</b>. Check: 37 × 42 = 1554 ✓</p>'], key:'Divide, Multiply, Subtract, Bring down. If the subtraction is bigger than the divisor, your digit was too small.'},
+  {t:'Estimate each digit of the quotient', h:'<p>Long division is one short loop, repeated for every digit: <b>Divide, Multiply, Subtract, Bring down</b>. Each time you only ask: how many of the divisor fit into this part of the number?</p>' + '<div class="big">1554 ÷ 42</div>', steps:['<p>How many 42s in 155? Think 40 into 150 → about <b>3</b>. 3 × 42 = 126. 155 − 126 = 29.</p>', '<p>Bring down 4 → 294. Think 40 into 290 → about 7. 7 × 42 = 294 exactly.</p>', '<p>Answer: <b>37</b>. Check: 37 × 42 = 1554 ✓</p>'], key:'Divide, Multiply, Subtract, Bring down. If the subtraction is bigger than the divisor, your digit was too small.'},
   {t:'Try one', h:'', tr:{type:'num', q:'Find 1932 ÷ 23.', a:84, why:'23 × 84 = 1932. Estimate: 2000 ÷ 25 = 80 ✓.'}}
  ]},
  {id:'u3L4', name:'What to do with remainders', icon:'🧩', cards:[

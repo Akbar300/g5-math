@@ -63,7 +63,7 @@ var lessons = [
   {t:'Fill in zeros', h:'', steps:['<div class="big">8 − 2.46</div><p>8 has no decimal places showing.</p>', '<div class="big">8.00 − 2.46</div><p>Write the whole number with a decimal point and zeros. Same value!</p>', '<div class="big">= 5.54</div><p>Now regroup like whole numbers.</p>'], tr:{type:'num', nocalc:true, q:'Find 6.3 − 2.85', a:3.45, why:'6.30 − 2.85 = 3.45.'}}
  ]},
  {id:'u5L2', name:'Multiply: estimate first', icon:'✖️', cards:[
-  {t:'Ignore the point, then place it', h:'<div class="big">3.4 × 6</div>', steps:['<p>Estimate: 3.4 is about 3, and 3 × 6 = 18. So the answer is near <b>18</b>.</p>', '<p>Multiply like whole numbers: 34 × 6 = 204.</p>', '<p>Place the point so it matches the estimate: 2.04? 20.4? 204? The answer near 18 is <b>20.4</b>.</p>'], key:'Estimate before you place the decimal point. It catches most mistakes.'},
+  {t:'Ignore the point, then place it', h:'<p>Multiplying decimals is whole-number multiplying with one extra step. Multiply as if the decimal points are not there, then put the point back: the answer has as many decimal places as both factors have together.</p>' + '<div class="big">3.4 × 6</div>', steps:['<p>Estimate: 3.4 is about 3, and 3 × 6 = 18. So the answer is near <b>18</b>.</p>', '<p>Multiply like whole numbers: 34 × 6 = 204.</p>', '<p>Place the point so it matches the estimate: 2.04? 20.4? 204? The answer near 18 is <b>20.4</b>.</p>'], key:'Estimate before you place the decimal point. It catches most mistakes.'},
   {t:'Count decimal places too', h:'<p>Another check: count the decimal places in the factors.</p><div class="big">2.35 × 1.2 → 2 + 1 = 3 places</div><p>235 × 12 = 2820, so the product is <b>2.820</b> = 2.82.</p>', tr:{type:'num', nocalc:true, q:'Find 4.6 × 3. Estimate first!', a:13.8, why:'Estimate 5 × 3 = 15. 46 × 3 = 138 → 13.8.'}}
  ]},
  {id:'u5L3', name:'Decimal × decimal', icon:'🟦', cards:[
@@ -75,7 +75,7 @@ var lessons = [
   {t:'Annex a zero', h:'<p>Sometimes you need one more place: 5.4 ÷ 4.</p><p>5.4 → 5.40. Then 540 ÷ 4 = 135, so the answer is <b>1.35</b>.</p>', tr:{type:'num', nocalc:true, q:'Find 9.6 ÷ 4', a:2.4, why:'96 ÷ 4 = 24, point above → 2.4. Estimate: about 10 ÷ 4 = 2.5 ✓.'}}
  ]},
  {id:'u5L5', name:'Divide by tenths', icon:'🔟', cards:[
-  {t:'Make the divisor whole', h:'<div class="big">4.8 ÷ 0.6</div>', steps:['<p>Multiply BOTH numbers by 10. The quotient does not change.</p><div class="big">48 ÷ 6</div>', '<div class="big">= 8</div><p>Check: 0.6 × 8 = 4.8 ✓</p>'], trap:'Dividing by a number less than 1 makes the answer BIGGER. 4.8 ÷ 0.6 is 8, not 0.8.'},
+  {t:'Make the divisor whole', h:'<p>Dividing by a decimal is awkward, so make the divisor a whole number. Multiply <b>both</b> numbers by 10 (or 100): the decimal points slide the same distance and the answer does not change, just like doubling a recipe and the number of guests.</p>' + '<div class="big">4.8 ÷ 0.6</div>', steps:['<p>Multiply BOTH numbers by 10. The quotient does not change.</p><div class="big">48 ÷ 6</div>', '<div class="big">= 8</div><p>Check: 0.6 × 8 = 4.8 ✓</p>'], trap:'Dividing by a number less than 1 makes the answer BIGGER. 4.8 ÷ 0.6 is 8, not 0.8.'},
   {t:'Why bigger?', h:'<p>"How many 0.6s fit in 4.8?" Many! Small pieces mean more of them.</p>', tr:mc('3.5 ÷ 0.5 = ?', '7', [['0.7', 'Dividing by a number less than 1 makes the answer bigger.'], ['1.75', 'That is 3.5 ÷ 2.'], ['70', 'Multiply BOTH numbers by 10: 35 ÷ 5.']], '35 ÷ 5 = 7.')}
  ]}
 ];

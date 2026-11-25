@@ -723,6 +723,15 @@ S('pfa1_grow',{std:'5.PFA.1',cat:'PFA',unit:[2],name:'Growing jumps (enrichment)
   const shown=t.slice(0,5);
   return num(`Look at how much the pattern grows each step.<br><b>${shown.join(', ')}, …</b><br>What is the next number?`,t[5],{why:`The jumps are +${j}, +${j+1}, +${j+2}, +${j+3}: they grow by 1 each time. The next jump is +${j+4}, so ${t[4]} + ${j+4} = ${t[5]}.`});
 });
+/* ---- angle pairs (a grade up): Advanced only ---- */
+S('mg3_pairs',{std:'5.MG.3',cat:'MG',unit:[9],name:'Angle pairs (a grade up)',enrich:1},H=>{
+  const k=ri(0,4);
+  if(k===0){const A=5*ri(3,32);return num(`Two angles make a straight line. One angle is ${A}°. How many degrees is the other angle?`,180-A,{post:'°',acc:[String(180-A)],why:`A straight line is 180°. 180 − ${A} = ${180-A}.`});}
+  if(k===1){const A=5*ri(2,17);return num(`Two angles make a square corner (a right angle). One angle is ${A}°. How many degrees is the other angle?`,90-A,{post:'°',acc:[String(90-A)],why:`A square corner is 90°. 90 − ${A} = ${90-A}.`});}
+  if(k===2){const A=5*ri(3,32);return num(`Two straight lines cross. One of the angles is ${A}°. How many degrees is the angle directly across from it?`,A,{post:'°',acc:[String(A)],why:`Angles directly across from each other (vertical angles) are equal, so it is also ${A}°.`});}
+  if(k===3){const A=5*ri(3,32);return num(`Two straight lines cross. One of the angles is ${A}°. How many degrees is the angle right next to it (on the same straight line)?`,180-A,{post:'°',acc:[String(180-A)],why:`Neighbors on a straight line add to 180°. 180 − ${A} = ${180-A}.`});}
+  const d=2*ri(5,30);return num(`Two angles on a straight line differ by ${d}°. What is the measure of the smaller angle?`,90-d/2,{post:'°',acc:[String(90-d/2)],why:`Together they make 180°. Take away the ${d}° difference: 180 − ${d} = ${180-d}. Split that evenly: ${180-d} ÷ 2 = ${90-d/2}°.`});
+});
 /* ---- PFA.2 variables & equations ---- */
 const jsOf=s=>s.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-').replace(/(\d)\s*([a-z])/g,'$1*$2');
 function eqHolds(eq,v,val){const [L,R]=eq.split('=');const f=x=>Function(v,`return (${jsOf(x)})`)(val);return Math.abs(f(L)-f(R))<1e-9;}

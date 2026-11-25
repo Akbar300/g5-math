@@ -9,7 +9,7 @@ var lessons = [
   {t:'Small unit → big unit: divide', h:'<div class="big">2400 g = 2400 ÷ 1000 = 2.4 kg</div><p>Fewer of the big units, so the number gets smaller.</p>', tr:{type:'num', q:'1 kilogram = 1000 grams. How many kilograms is 3750 grams?', a:3.75, why:'Small → big: divide. 3750 ÷ 1000 = 3.75 kg.'}}
  ]},
  {id:'u6L2', name:'Choose the unit', icon:'📏', cards:[
-  {t:'Benchmarks', h:L.tbl(['About…','is'], [['1 millimeter','the thickness of a dime'],['1 centimeter','the width of a fingernail'],['1 meter','a big step / a doorknob\'s height'],['1 kilometer','a 12-minute walk'],['1 gram','a paper clip'],['1 kilogram','a textbook'],['1 milliliter','a few drops'],['1 liter','a big water bottle']])},
+  {t:'Benchmarks', h:'<p>A benchmark is a real thing you already know the size of. Use it to judge whether an answer is reasonable and to pick the right unit.</p>' + L.tbl(['About…','is'], [['1 millimeter','the thickness of a dime'],['1 centimeter','the width of a fingernail'],['1 meter','a big step / a doorknob\'s height'],['1 kilometer','a 12-minute walk'],['1 gram','a paper clip'],['1 kilogram','a textbook'],['1 milliliter','a few drops'],['1 liter','a big water bottle']])},
   {t:'Pick the best unit', h:'', tr:mc('Which unit is best for the mass of a dog?', 'kilograms', [['grams', 'A dog is much heavier than a paper clip. Grams would be a huge number.'], ['liters', 'Liters measure liquid volume, not mass.'], ['centimeters', 'That measures length.']], 'A dog weighs about as much as 10-30 textbooks, so kilograms.')}
  ]},
  {id:'u6L3', name:'Multi-step problems', icon:'🧩', cards:[

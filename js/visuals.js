@@ -403,43 +403,45 @@
     return wrap(s);
   }
 
+  /* Step boxes in a row: tap a box or press Next to light them up one at a time. Plain HTML, so it fits the card
+     and a short expression like "54 ÷ 3 = 18" never breaks in the middle. */
   function cycleSteps(labels) {
-    /* Big, readable boxes: the picture is drawn at 340 wide so a phone shows it near 1:1. */
-    const n = labels.length, gap = 22, W = 340;
-    const bw = (W - 8 - (n - 1) * gap) / n;
-    /* Split long labels onto two lines at the best space so the text can stay large. */
-    const lines = labels.map((lab) => {
-      const t = String(lab);
-      if (t.indexOf(' ') < 0 || t.length * 9.8 <= bw - 8) return [t];
-      let best = -1, bd = 1e9;
-      for (let i = 0; i < t.length; i++) if (t[i] === ' ' && Math.abs(i - t.length / 2) < bd) { bd = Math.abs(i - t.length / 2); best = i; }
-      return [t.slice(0, best), t.slice(best + 1)];
-    });
-    const maxLen = Math.max.apply(null, lines.map((l) => Math.max.apply(null, l.map((x) => x.length))));
-    const fs = Math.max(12, Math.min(24, Math.floor((bw - 8) / (maxLen * 0.58))));
-    const multi = lines.some((l) => l.length > 1);
-    const bh = multi ? Math.max(64, fs * 2 + 26) : Math.max(56, fs + 34), H = bh + 24;
-    const s = svg(W, H);
-    s.setAttribute('width', '100%');
-    s.removeAttribute('height');
-    s.setAttribute('style', 'width:100%;max-width:480px');
+    const root = document.createElement('div');
+    root.className = 'viz viz-free fx';
+    const row = document.createElement('div'); row.className = 'fx-row';
     labels.forEach((lab, i) => {
-      const x = 4 + i * (bw + gap), mid = 12 + bh / 2;
-      s.appendChild(el('rect', { x, y: 12, width: bw, height: bh, rx: '12', fill: 'var(--why-bg)', stroke: 'var(--ink)', 'stroke-width': '2.5' }));
-      const ls = lines[i];
-      ls.forEach((ln, k) => {
-        const y = mid + fs * 0.35 + (k - (ls.length - 1) / 2) * (fs * 1.15);
-        s.appendChild(el('text', { x: x + bw / 2, y, 'text-anchor': 'middle', 'font-size': String(fs), 'font-weight': '800', fill: 'var(--ink)' }, [ln]));
-      });
-      if (i < n - 1) {
-        const ax = x + bw + 4, ay = mid;
-        s.appendChild(el('path', { d: `M ${ax} ${ay} L ${ax + gap - 8} ${ay}`, stroke: 'var(--ink)', 'stroke-width': '2.5', 'stroke-linecap': 'round' }));
-        s.appendChild(el('path', { d: `M ${ax + gap - 15} ${ay - 7} L ${ax + gap - 8} ${ay} L ${ax + gap - 15} ${ay + 7}`, fill: 'none', stroke: 'var(--ink)', 'stroke-width': '2.5', 'stroke-linecap': 'round' }));
-      }
+      if (i > 0) { const ar = document.createElement('span'); ar.className = 'fx-arrow'; ar.setAttribute('aria-hidden', 'true'); ar.textContent = '→'; row.appendChild(ar); }
+      const bx = document.createElement('button');
+      bx.type = 'button';
+      bx.className = 'fx-box' + (i === 0 ? ' on' : '') + (String(lab).length <= 16 ? ' nw' : '');
+      bx.dataset.i = String(i);
+      bx.textContent = String(lab);
+      row.appendChild(bx);
     });
-    return wrap(s);
+    root.appendChild(row);
+    const ctl = document.createElement('div'); ctl.className = 'fx-ctl';
+    ctl.innerHTML = '<button type="button" class="ix-btn go fx-next">Next step ▶</button><button type="button" class="ix-btn ghost fx-reset">↺ Reset</button>';
+    root.appendChild(ctl);
+    return root.outerHTML;
   }
-
+  if (typeof document !== 'undefined' && !w.__fxBound) {
+    w.__fxBound = true;
+    document.addEventListener('click', (e) => {
+      const t = e.target;
+      const fx = t && t.closest ? t.closest('.fx') : null;
+      if (!fx) return;
+      const boxes = [].slice.call(fx.querySelectorAll('.fx-box'));
+      const shown = boxes.filter((x) => x.classList.contains('on')).length;
+      const nextBtn = fx.querySelector('.fx-next');
+      const set = (k) => {
+        boxes.forEach((x, i) => x.classList.toggle('on', i < k));
+        if (nextBtn) nextBtn.textContent = k >= boxes.length ? '↻ Replay' : 'Next step ▶';
+      };
+      if (t.closest('.fx-next')) set(shown >= boxes.length ? 1 : shown + 1);
+      else if (t.closest('.fx-reset')) set(1);
+      else { const bx = t.closest('.fx-box'); if (bx) set(+bx.dataset.i + 1); }
+    });
+  }
 
   /* ---------- Unit 3 visuals ---------- */
   const PVN = ['Ones', 'Tens', 'Hundreds', 'Thousands', 'Ten thous.', 'Hund. thous.', 'Millions'];
