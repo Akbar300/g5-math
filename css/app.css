@@ -2146,3 +2146,5 @@ html[data-theme="dark"] .ux .lchip .st{color:#121722}
   .practice-top .seg{max-width:100%}
   .practice-top .seg button{white-space:normal;text-align:left;max-width:100%}
 }
+/* Phones: wide input/output tables (6+ columns) fit without sideways scroll */
+@media screen and (max-width:600px){.g5t th,.g5t td{padding:6px 9px}}
