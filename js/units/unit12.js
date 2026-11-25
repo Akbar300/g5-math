@@ -181,13 +181,22 @@ function iopsQ(lv, kind){
       b + ' × ' + P(c) + ' = ' + sg(b*c) + ' first. Then ' + sg(a) + ' + ' + P(b*c) + ' = <b>' + sg(v) + '</b>.');
   }
   if (k === 1) {
-    var n = L.ri(2, 9), inside = Math.random() < .5;
-    if (inside) return {type:'num', fmt:'TYPE IN', q:'Find <b>(−' + n + ')<sup>2</sup></b>', a:n*n, why:'The exponent is on the whole (−' + n + '): (−' + n + ') × (−' + n + ') = ' + n*n + '. Same signs → positive.'};
-    return mc('What is <b>−' + n + '<sup>2</sup></b>? (No parentheses.)', sg(-n*n), [
-      [String(n*n), 'Without parentheses, the exponent belongs to the ' + n + ' only: −(' + n + ' × ' + n + '). (−' + n + ')<sup>2</sup> would be ' + n*n + '.'],
-      [sg(-2*n), 'An exponent of 2 means ' + n + ' × ' + n + ', not ' + n + ' × 2.'],
-      [String(2*n), n + '<sup>2</sup> is ' + n + ' × ' + n + '.']],
-      'Exponents come before the minus sign in front: ' + n + '<sup>2</sup> = ' + n*n + ', then the minus makes it <b>' + sg(-n*n) + '</b>. Compare: (−' + n + ')<sup>2</sup> = ' + n*n + '.');
+    var pw = L.pick([2, 2, 3]), n = pw === 2 ? L.ri(2, 9) : L.ri(2, 4), inside = Math.random() < .5, sup = '<sup>' + pw + '</sup>', pv = Math.pow(n, pw);
+    var spell = Array(pw).fill(n).join(' × '), spellN = Array(pw).fill('(−' + n + ')').join(' × ');
+    if (pw === 2) {
+      if (inside) return {type:'num', fmt:'TYPE IN', q:'Find <b>(−' + n + ')' + sup + '</b>', a:pv, why:'The exponent is on the whole (−' + n + '): ' + spellN + ' = ' + pv + '. Two negatives → positive.'};
+      return mc('What is <b>−' + n + sup + '</b>? (No parentheses.)', sg(-pv), [
+        [String(pv), 'Without parentheses, the exponent belongs to the ' + n + ' only: −(' + spell + '). (−' + n + ')' + sup + ' would be ' + pv + '.'],
+        [sg(-2*n), 'An exponent of 2 means ' + spell + ', not ' + n + ' × 2.'],
+        [String(2*n), n + sup + ' is ' + spell + '.']],
+        'Exponents come before the minus sign in front: ' + n + sup + ' = ' + pv + ', then the minus makes it <b>' + sg(-pv) + '</b>. Compare: (−' + n + ')' + sup + ' = ' + pv + '.');
+    }
+    if (inside) return {type:'num', fmt:'TYPE IN', q:'Find <b>(−' + n + ')' + sup + '</b>', a:-pv, why:spellN + ': three negatives, an odd number, so the answer is negative: <b>' + sg(-pv) + '</b>.'};
+    return mc('Which is true about <b>(−' + n + ')' + sup + '</b> and <b>−' + n + sup + '</b>?', 'Both equal ' + sg(-pv), [
+      ['(−' + n + ')' + sup + ' = ' + pv + ' and −' + n + sup + ' = ' + sg(-pv), '(−' + n + ')' + sup + ' has three negatives: odd → negative.'],
+      ['Both equal ' + pv, 'Count the negatives in ' + spellN + ': three, so negative.'],
+      ['(−' + n + ')' + sup + ' = ' + sg(-3*n) + ' and −' + n + sup + ' = ' + sg(-pv), 'An exponent of 3 means ' + spell + ', not ' + n + ' × 3.']],
+      '(−' + n + ')' + sup + ' = ' + spellN + ' = ' + sg(-pv) + ' (odd number of negatives). −' + n + sup + ' = −(' + spell + ') = ' + sg(-pv) + '. With an odd exponent they match; with an even one they do not.');
   }
   if (k === 2) {
     var x = L.ri(1, 6), y = x + L.ri(2, 8), z = L.ri(2, 5), r = (x - y)*z;
@@ -277,7 +286,14 @@ var lessons = [
   {t:'Least to greatest', h:'<p>Order −1, 5, −6, 0, 3 from least to greatest.</p>', viz:function(){ return nl(-7, 6, [-6, -1, 0, 3, 5]); },
    steps:['Put each number on the line.', 'Read from left to right: −6, −1, 0, 3, 5.', 'The negative farthest from 0 comes first.'],
    trap:'Writing −1, −6 because 1 &lt; 6. −6 is farther left, so it comes first.',
-   tries:[function(){ for (var t = 0; t < 8; t++) { var it = gens.icmp.f(); if (it && it.type === 'order') return it; } return gens.icmp.f(); }]}
+   tries:[function(){ for (var t = 0; t < 8; t++) { var it = gens.icmp.f(); if (it && it.type === 'order') return it; } return gens.icmp.f(); }]},
+  {t:'The x-axis is a number line', h:'<p>On a coordinate grid, the <b>x-axis</b> is a number line lying down: negatives go <b>left</b> of 0. The <b>y-axis</b> is a number line standing up: negatives go <b>down</b>.</p><p>(−4, 0) is 4 steps left of 0. (0, −3) is 3 steps down. Plot points in all four quadrants in <b>Coordinate Quest</b> (Advanced level).</p>',
+   viz:function(){ return (window.V && V.plane) ? V.plane([{x:-4, y:0, label:'(−4, 0)'}, {x:3, y:0, label:'(3, 0)'}, {x:0, y:-3, label:'(0, −3)'}], {quad:true, n:5}) : ''; },
+   trap:'Going right for a negative x. On the x-axis, −4 is 4 steps LEFT of 0, just like on a number line.',
+   tries:[function(){ var a = -L.ri(2, 6), b = L.pick([-1, 1]) * L.ri(1, 6); if (a === b) b = a + 2; var lft = Math.min(a, b);
+      return mc('Which point is farther <b>left</b> on the x-axis?', '(' + sg(lft) + ', 0)', [['(' + sg(Math.max(a, b)) + ', 0)', 'Farther left means the smaller x: ' + sg(lft) + ' &lt; ' + sg(Math.max(a, b)) + '.'], ['(0, ' + sg(lft) + ')', 'That point is on the y-axis.'], ['(0, 0)', 'The origin is at 0. ' + sg(lft) + ' is to its left.']], sg(lft) + ' is less than ' + sg(Math.max(a, b)) + ', so (' + sg(lft) + ', 0) is farther left.'); },
+    function(){ var c = -L.ri(1, 6), d = L.ri(1, 6);
+      return mc('Which point is <b>lower</b> on the y-axis?', '(0, ' + sg(c) + ')', [['(0, ' + d + ')', d + ' is above 0. Negative y-values are below 0.'], ['(' + sg(c) + ', 0)', 'That point is on the x-axis.'], ['(0, 0)', '(0, 0) is the origin, above any negative y.']], 'On the y-axis, ' + sg(c) + ' is below 0, so (0, ' + sg(c) + ') is lower.'); }]}
  ]},
  {id:'u12L3', name:'Add integers', icon:'➕', cards:[
   {t:'Zero pairs', h:'<p>A <b>+1</b> chip and a <b>−1</b> chip cancel: together they make <b>0</b>. That is a zero pair.</p><p>To add, put out both groups of chips, take away the zero pairs, and count what is left.</p>', viz:function(){ return zeroPairs(); },
@@ -330,7 +346,7 @@ var bridge = {
     {t:'Same order, signs ride along', h:'<div class="big">−3 + 4 × (−2)</div><p>Multiply first: 4 × (−2) = −8. Then −3 + (−8) = <b>−11</b>.</p>',
      trap:'Going left to right: (−3 + 4) × (−2) = −2. Multiply before you add, even with negatives.',
      tr:function(){ return bg.iops.f('adv', 0); }},
-    {t:'Exponents and negatives', h:L.tbl(['Write','Means','Value'], [['(−3)<sup>2</sup>','(−3) × (−3)','9'],['−3<sup>2</sup>','−(3 × 3)','−9']]) + '<p>Parentheses tell you the minus is part of the number being squared.</p>',
+    {t:'Exponents and negatives', h:L.tbl(['Write','Means','Value'], [['(−3)<sup>2</sup>','(−3) × (−3)','9'],['−3<sup>2</sup>','−(3 × 3)','−9'],['(−2)<sup>3</sup>','(−2) × (−2) × (−2)','−8'],['−2<sup>3</sup>','−(2 × 2 × 2)','−8']]) + '<p>Parentheses tell you the minus is part of the number being multiplied. With an odd exponent the two come out the same; with an even one they do not.</p>',
      trap:'Reading −3<sup>2</sup> as 9. Exponents come first, so the minus waits: −(3 × 3) = −9.',
      tr:function(){ return bg.iops.f('adv', 1); }},
     {t:'Parentheses first', h:'<div class="big">(2 − 7) × 3 = (−5) × 3 = −15</div><div class="big">(−12) ÷ 4 + 5 = −3 + 5 = 2</div>',
