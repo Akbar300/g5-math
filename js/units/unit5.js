@@ -88,34 +88,12 @@ var test = [
  mc('Which is the best estimate of 19.8 × 3.1?', '60', [['6', 'Estimate: 20 × 3 = 60.'], ['600', 'Check the size: about 20 groups of 3.'], ['23', 'That is about the sum, not the product.']], '19.8 ≈ 20 and 3.1 ≈ 3, so about 60.'),
  {type:'num', fmt:'TYPE IN', nocalc:true, q:'Find 15 − 6.38', a:8.62, why:'15.00 − 6.38 = 8.62.'}
 ];
-/* bridge: decimals operations → integer operations (Advanced Unit 5) */
-var bg = {
-  iadd: {name:'Add integers', f:function(lv){
-    var a = nz(-12, 12), b = nz(-12, 12); if(a > 0 && b > 0) b = -b; var r = a + b;
-    return mc(sg(a) + ' + ' + P(b) + ' = ?', sg(r), [[sg(-r), 'Right size, wrong sign: which side has more?'], [sg(a - b), 'That subtracts. This is addition.'], [sg(r + (r > 0 ? 2 : -2)), 'Recheck: different signs → subtract the sizes.']], 'Start at ' + sg(a) + ' and move ' + Math.abs(b) + (b < 0 ? ' left' : ' right') + ': ' + sg(r) + '.');
-  }},
-  isub: {name:'Subtract integers', f:function(lv){
-    var a = nz(-10, 10), b = nz(-10, 10), r = a - b;
-    return mc(sg(a) + ' − ' + P(b) + ' = ?', sg(r), [[sg(a + b), 'Subtracting = adding the opposite: ' + sg(a) + ' + ' + P(-b) + '.'], [sg(-r), 'Check the sign.'], [sg(r + 1), 'Recheck the arithmetic.']], sg(a) + ' + ' + P(-b) + ' = ' + sg(r) + '.');
-  }},
-  inl: {name:'Integer number line', f:function(lv){
-    var a = nz(-8, 8), blo = Math.max(-8, -10 - a), bhi = Math.min(8, 10 - a);
-    var b = nz(blo, bhi), r = a + b, guard = 0;
-    while ((r < -10 || r > 10 || b === 0) && guard++ < 40) { b = nz(blo, bhi); r = a + b; }
-    if (r < -10 || r > 10) { b = a <= 0 ? 1 : -1; r = a + b; }
-    return {type:'nline', q:'Slide to the value of <b>' + sg(a) + ' + ' + P(b) + '</b>.', min:-10, max:10, step:1, labels:{0:'−10',10:'0',20:'10'}, a:r, why:'Start at ' + sg(a) + ', move ' + Math.abs(b) + (b < 0 ? ' left' : ' right') + ': ' + sg(r) + '.'};
-  }}
-};
+/* Advanced: the same decimal lessons with challenge practice. Integers moved to the Integers Lab (Unit 12, js/units/unit12.js). */
 var bridge = {
-  title:'Go Further: integer computation', tab:'🚀 Go Further',
-  intro:'The Advanced class does this unit with <b>negative numbers</b> (Advanced Unit 5: Integer Computation). Same idea as decimals: know the place you start, which way you move, and how far.',
-  lessons:[{id:'u5B1', name:'Negative numbers', icon:'🌡️', cards:[
-    {t:'Below zero', h:'<p>A thermometer goes below 0: −5° is 5 degrees below zero. On a number line, negatives sit to the <b>left</b> of 0.</p><p>−8 &lt; −3, because −8 is farther left. (Colder!)</p>', trap:'−8 is LESS than −3, even though 8 is bigger than 3.'},
-    {t:'Add on a number line', h:'<p>Adding a positive: move right. Adding a negative: move left.</p><div class="big">−4 + 6 = 2</div><p>Start at −4, move 6 right.</p>', tr:function(){ return bg.inl.f(); }},
-    {t:'Subtract = add the opposite', h:'<div class="big">3 − 7 = 3 + (−7) = −4</div><div class="big">3 − (−7) = 3 + 7 = 10</div><p>Keep, change, flip.</p>', tr:function(){ return bg.isub.f(); }}
-  ]}],
-  gens:bg, repIds:['iadd','isub','inl'],
-  next:'Stay in the Advanced (Go Further) path of this unit for more practice.'
+  title:'Advanced: decimals, challenge level', tab:'🚀 Go Further',
+  intro:'Advanced: the same decimal lessons with harder practice. Negative numbers now live in their own unit, the Integers Lab (Unit 12).',
+  lessons:lessons,
+  next:'For negative numbers, open the Integers Lab (Unit 12) from the home page.'
 };
 window.V2 = {key:'u5', lessons:lessons, test:test, bridge:bridge};
 })();

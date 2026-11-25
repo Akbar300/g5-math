@@ -53,6 +53,9 @@ All 11 class units and both paper arenas are live. This is a static site: open `
 9. Shape & Measure Lab (5.MG.2, 5.MG.3)
 10. Data & Chance Lab (5.PS.1–3)
 11. Coordinate Quest (Grade 6 standard)
+12. Integers Lab (AAP bridge, Grade 6: 6.NS.2, 6.CE.2), listed after the class units on the home page (`CATALOG.bridge`)
+
+- **Integers Lab (Unit 12, Nov 25):** Core: what negatives mean, opposites, absolute value, compare and order (tap-to-order), add and subtract with **zero-pair chips** and the number line (moved here from Unit 5 Advanced). Advanced: multiply and divide (why − × − = +), order of operations with negatives and exponents, integer stories. Go Further: negative powers of 10 and scientific notation. Typed answers that are negative get a **−** key (phone number pads have none), and typed answers accept "−" or "-". Unit 5 Advanced is now the decimal lessons at challenge level.
 
 ## Test Lab and review (Nov 24)
 - Test Lab holds all feedback until **Submit test**. Each question has a 🚩 flag; Submit warns once about unanswered or flagged questions. Optional ⏱ timer (off by default, counts up).

@@ -26,6 +26,8 @@ window.HUB_ICONS = (function () {
     u10: S(`<rect x="6" y="20" width="30" height="30" rx="7" ${soft} transform="rotate(-8 21 35)"/><g fill="currentColor" stroke="none" transform="rotate(-8 21 35)"><circle cx="14" cy="28" r="3"/><circle cx="21" cy="35" r="3"/><circle cx="28" cy="42" r="3"/></g><circle cx="47" cy="22" r="11"/><path d="M47 11v22M36 22h22" stroke-width="2.5"/><path d="M47 22l6-7" stroke-width="3.5"/>`),
     /* Coordinate Quest: axes with a plotted point */
     u11: S(`<path d="M10 6v48h48"/><path d="M10 42h44M10 30h44M10 18h44M22 6v48M34 6v48M46 6v48" stroke-width="1.5" opacity=".45"/><path d="M34 54V30H10" stroke-width="2.5" stroke-dasharray="3 4"/><circle cx="34" cy="30" r="6" fill="currentColor" stroke="var(--card)" stroke-width="3"/>`),
+    /* Integers Lab (AAP bridge): a minus chip and a plus chip on either side of 0 */
+    u12: S(`<path d="M6 50h52"/><path d="M14 46v8M50 46v8" stroke-width="3"/><path d="M32 42v16"/><circle cx="18" cy="24" r="11" ${soft}/><path d="M12 24h12"/><circle cx="46" cy="24" r="11" fill="currentColor" stroke="none"/><path d="M46 18v12M40 24h12" stroke="var(--card)"/>`),
     /* Arenas */
     mul: S(`<path d="M18 18l28 28M46 18L18 46" stroke-width="7"/>`),
     div: S(`<path d="M14 32h36" stroke-width="7"/><circle cx="32" cy="16" r="5" fill="currentColor" stroke="none"/><circle cx="32" cy="48" r="5" fill="currentColor" stroke="none"/>`)
@@ -113,6 +115,12 @@ window.G5I = (function () {
     divwhole: S(`<rect x="4" y="30" width="10" height="16" rx="3" ${soft}/><path d="M20 22h38"/><path d="M20 22c5 7 5 26 0 32"/><rect x="26" y="30" width="10" height="16" rx="2" ${soft}/><rect x="46" y="30" width="12" height="16" rx="2" ${soft}/>${dot(41, 44, 3)}<rect x="30" y="6" width="9" height="12" rx="2" ${ink} opacity=".6"/>${dot(44, 16, 3)}<rect x="49" y="6" width="9" height="12" rx="2" ${ink} opacity=".6"/>`),
     tenthtiles: S(`<rect x="6" y="14" width="10" height="36" rx="3" ${soft}/><rect x="20" y="14" width="10" height="36" rx="3" ${soft}/><rect x="34" y="14" width="10" height="36" rx="3" ${soft}/><rect x="48" y="14" width="10" height="36" rx="3" stroke-dasharray="3 4"/>`),
     negative: S(`<path d="M26 10a6 6 0 0 1 12 0v30a11 11 0 1 1-12 0Z" fill="var(--card)"/><path d="M29 36h6v8h-6Z" ${ink} opacity=".7"/><circle cx="32" cy="48" r="6" ${ink} opacity=".7"/><path d="M26 10a6 6 0 0 1 12 0v30a11 11 0 1 1-12 0Z"/><path d="M42 24h14" stroke-width="3"/><path d="M8 30h12" stroke-width="5"/><path d="M42 14h8M42 34h8" stroke-width="2.5"/>`),
+    /* ---- integers (Unit 12) ---- */
+    intorder: S(`<path d="M6 44h52"/><path d="M32 37v14"/><path d="M14 40v8M50 40v8" stroke-width="2.5"/>${dot(12, 44, 4)}${dot(22, 44, 4)}${dot(46, 44, 4)}<path d="M12 22h38M44 16l6 6-6 6" stroke-width="3.5"/>`),
+    zeropair: S(`<rect x="7" y="6" width="26" height="52" rx="13" stroke-dasharray="4 5" stroke-width="2.5"/><circle cx="20" cy="20" r="9" ${ink}/><circle cx="44" cy="20" r="9" ${ink}/><path d="M20 15v10M15 20h10M44 15v10M39 20h10" stroke="var(--card)" stroke-width="3"/><circle cx="20" cy="44" r="9" ${soft}/><path d="M15 44h10" stroke-width="3"/>`),
+    addopp: S(`<rect x="4" y="18" width="22" height="28" rx="6" ${soft}/><path d="M10 32h10"/><path d="M30 32h10M35 26l6 6-6 6" stroke-width="3"/><rect x="40" y="18" width="20" height="28" rx="6" ${ink}/><path d="M50 26v12M44 32h12" stroke="var(--card)"/>`),
+    intmul: S(`<circle cx="15" cy="20" r="10" ${soft}/><path d="M10 20h10" stroke-width="3"/><circle cx="49" cy="20" r="10" ${soft}/><path d="M44 20h10" stroke-width="3"/><path d="M29 16l6 8M35 16l-6 8" stroke-width="3"/><rect x="16" y="38" width="32" height="20" rx="10" ${ink}/><path d="M32 42v12M26 48h12" stroke="var(--card)" stroke-width="3.5"/>`),
+    elevation: S(`<path d="M6 36h52" stroke-width="3" opacity=".55"/><path d="M8 36L22 12l14 24Z" ${soft}/><path d="M48 42v14M42 50l6 6 6-6" stroke-width="3.5"/>${dot(48, 42, 4)}`),
     /* ---- measurement ---- */
     ladder: S(`<path d="M16 6v52M48 6v52"/><path d="M16 14h32M16 28h32M16 42h32M16 56h32" stroke-width="3"/><rect x="18" y="16" width="28" height="10" ${soft} stroke="none"/><path d="M56 22l4-6M56 22l-4-6M56 22V8" stroke-width="2.5"/>`),
     ruler: S(`<rect x="4" y="22" width="56" height="20" rx="4" ${soft}/><path d="M12 22v8M20 22v5M28 22v8M36 22v5M44 22v8M52 22v5" stroke-width="2.5"/>`),
@@ -145,13 +153,15 @@ window.G5I = (function () {
     u3B1: 'bigcalc', u3B2: 'square', u3B3: 'exponent',
     u4c1: 'tenths', u4c2: 'hundred', u4c3: 'eighthsthirds', u4c4: 'samename', u4c5: 'ratio', u4c6: 'percent',
     u4a1: 'ratio', u4a2: 'ratiotable', u4a3: 'percent', u4a4: 'percentof',
-    u5L0: 'round', u5L1: 'lineup', u5L2: 'estimate', u5L3: 'areagrid', u5L4: 'divwhole', u5L5: 'tenthtiles', u5B1: 'negative',
+    u5L0: 'round', u5L1: 'lineup', u5L2: 'estimate', u5L3: 'areagrid', u5L4: 'divwhole', u5L5: 'tenthtiles',
     u6L1: 'ladder', u6L2: 'ruler', u6L3: 'steps', u6B1: 'rate',
     u7L1: 'percent', u7L2: 'convert', u7L3: 'compare', u7B1: 'pie',
     u8L1: 'unlike', u8L2: 'mixed', u8L3: 'wholefrac', u8B1: 'fracops',
     u9L1: 'angle', u9L4: 'perimarea', u9L2: 'triangle', u9L5: 'circle', u9L3: 'volume',
     u10L1: 'mean', u10L2: 'lineplot', u10L3: 'chance', u10B1: 'outlier',
-    u11L1: 'plot', u11L2: 'story', u11B1: 'quadrants'
+    u11L1: 'plot', u11L2: 'story', u11B1: 'quadrants',
+    u12L1: 'negative', u12L2: 'intorder', u12L3: 'zeropair', u12L4: 'addopp',
+    u12B1: 'intmul', u12B2: 'orderops', u12B3: 'elevation', u12B4: 'exponent'
   };
 
   const unit = Object.assign({}, H);

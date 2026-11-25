@@ -962,7 +962,8 @@
         ]
       }
     },
-    u5B1: {
+    /* ---------- Unit 12 Integers Lab (moved from Unit 5 Advanced u5B1; split across u12L1, u12L3, u12L4 below) ---------- */
+    u12L1: {
       'Below zero': {
         viz: () => ix('lineLab', { mode: 'compare', pairs: [[-8, -3], [-2, -6], [-5, 1], [-10, -9]], min: -10, max: 5 }),
         steps: ['Negative numbers sit to the left of 0 on the number line.', '−8 is less than −3, because −8 is farther left.', 'The farther left you go, the smaller the number.'],
@@ -1519,6 +1520,11 @@
     }
 
   };
+
+  /* Unit 12: the add and subtract cards moved with their lessons. */
+  pack.u12L3 = { 'Add on a number line': pack.u12L1['Add on a number line'] };
+  pack.u12L4 = { 'Subtract = add the opposite': pack.u12L1['Subtract = add the opposite'] };
+  delete pack.u12L1['Add on a number line']; delete pack.u12L1['Subtract = add the opposite'];
 
   /* Unit 9 teaches every shape in one path: circles and parallelograms moved out of u9B1. */
   pack.u9L5 = pack.u9B1;

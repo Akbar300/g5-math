@@ -40,10 +40,11 @@
     strip(s) { return String(s).replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(); },
     today() { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); },
     eqNum(got, want) {
-      const g = String(got).trim().toLowerCase().replace(/,/g, '').replace(/\s+/g, ' ');
+      /* The real minus sign "−" (and an en dash) count as "-", so "−3" matches -3. */
+      const g = String(got).trim().toLowerCase().replace(/,/g, '').replace(/[\u2212\u2013]/g, '-').replace(/\s+/g, ' ').replace(/^-\s+/, '-');
       const acc = Array.isArray(want) ? want : [want];
       return acc.some((w) => {
-        const t = String(w).trim().toLowerCase().replace(/,/g, '');
+        const t = String(w).trim().toLowerCase().replace(/,/g, '').replace(/[\u2212\u2013]/g, '-');
         if (g === t) return true;
         const ng = Number(g), nw = Number(t);
         if (!isNaN(ng) && !isNaN(nw) && Math.abs(ng - nw) < 1e-9) return true;
@@ -823,6 +824,21 @@ function paperDivide(dividend, divisor) {
           try { inp.focus(); inp.setSelectionRange(a + 1, a + 1); } catch (e) {}
         });
       }
+      /* Negative answers: the iPhone decimal pad has no minus key, so add a "−" button (toggles a leading minus). */
+      const wantList = [].concat(item.acc != null ? item.acc : [], item.a != null ? item.a : []);
+      const isNeg = item.neg || wantList.some((v) => (typeof v === 'number' && v < 0) || /^\s*[-\u2212]/.test(String(v)));
+      let minus = null;
+      if (isNeg) {
+        minus = document.createElement('button'); minus.type = 'button'; minus.className = 'btn ghost slash-key minus-key'; minus.textContent = '−';
+        minus.setAttribute('aria-label', 'Type a minus sign');
+        minus.addEventListener('pointerdown', (e) => e.preventDefault());
+        minus.addEventListener('click', () => {
+          if (inp.readOnly) return;
+          const v = inp.value;
+          inp.value = /^\s*[-\u2212]/.test(v) ? v.replace(/^\s*[-\u2212]\s*/, '') : '−' + v.replace(/^\s+/, '');
+          try { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); } catch (e) {}
+        });
+      }
       const chk = document.createElement('button'); chk.className = 'btn teal'; chk.textContent = 'Check';
       const go = () => {
         if (done) return;
@@ -831,17 +847,17 @@ function paperDivide(dividend, divisor) {
         else { tries++; fb.className = 'fb no'; fb.textContent = 'Not yet — try a different form or re-check the work.'; if (tries >= 2) why.classList.add('show'); offerAdvance(false); }
       };
       if (opts.exam) {
-        row.appendChild(inp); if (slash) row.appendChild(slash); body.appendChild(row);
+        row.appendChild(inp); if (minus) row.appendChild(minus); if (slash) row.appendChild(slash); body.appendChild(row);
         ex.answered = () => String(inp.value).trim() !== '';
         ex.grade = () => {
           const ok = U.eqNum(inp.value, item.a != null ? (item.acc || item.a) : item.acc);
           inp.readOnly = true;
-          return examReveal(ok, ok || item.a == null ? '' : 'answer: ' + formatHTML(String(item.a)));
+          return examReveal(ok, ok || item.a == null ? '' : 'answer: ' + formatHTML(String(item.a).replace(/^-/, '−')));
         };
       } else {
         bindTap(chk, go);
         inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
-        row.appendChild(inp); if (slash) row.appendChild(slash); row.appendChild(chk);
+        row.appendChild(inp); if (minus) row.appendChild(minus); if (slash) row.appendChild(slash); row.appendChild(chk);
         body.appendChild(row);
       }
     } else if (item.type === 'nline') {
@@ -1304,7 +1320,7 @@ function paperDivide(dividend, divisor) {
     const save = () => store(key, M);
 
     /* Unit color and number come from the hub catalog (js/catalog.js) when it is loaded. */
-    const CAT = ((w.CATALOG && CATALOG.units) || []).find((u) => u.id === UNIT.id) || {};
+    const CAT = ((w.CATALOG && CATALOG.units) || []).concat((w.CATALOG && CATALOG.bridge) || []).find((u) => u.id === UNIT.id) || {};
     const GI = (k) => (w.G5I && G5I.get(k)) || '';
     /* Small inline icon inside a sentence; keeps the old emoji if icons.js is missing. */
     const inIco = (k, emoji) => (GI(k) ? '<span class="in-ico" aria-hidden="true">' + GI(k) + '</span>' : emoji);

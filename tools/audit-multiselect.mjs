@@ -207,7 +207,7 @@ const stats = { generators: 0, items: 0, ms: 0, mc: 0, other: 0, promotedWouldCa
 const unitFiles = [
   'js/units/unit1.js', 'js/units/unit2.js', 'js/units/unit3.js', 'js/units/unit4.js',
   'js/units/unit5.js', 'js/units/unit6.js', 'js/units/unit7.js', 'js/units/unit8.js',
-  'js/units/unit9.js', 'js/units/unit10.js', 'js/units/unit11.js'
+  'js/units/unit9.js', 'js/units/unit10.js', 'js/units/unit11.js', 'js/units/unit12.js'
 ];
 
 /* Load the explainer files the unit's page loads (js/explainers/*.js), so helpers they define
@@ -223,7 +223,10 @@ for (const uf of unitFiles) {
   for (const ex of pageExplainers(uf)) load(ctx, ex);
   load(ctx, uf);
   const UNIT = ctx.UNIT;
-  if (ctx.WP && UNIT) ctx.WP.attach(UNIT);
+  /* Word problems are attached only on pages that load js/wordprob.js (Unit 12 does not). */
+  const pageHtml = path.join(root, 'units', path.basename(uf, '.js') + '.html');
+  const loadsWP = !fs.existsSync(pageHtml) || /src="\.\.\/js\/wordprob\.js"/.test(fs.readFileSync(pageHtml, 'utf8'));
+  if (ctx.WP && UNIT && loadsWP) ctx.WP.attach(UNIT);
   if (!UNIT) {
     issues.push({ kind: 'unit-missing', source: uf });
     continue;

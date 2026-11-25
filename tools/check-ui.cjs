@@ -9,7 +9,7 @@ const { chromium } = require('playwright');
 (async () => {
   const b = await chromium.launch({ executablePath: CHROME });
   let bad = 0, chipsNoSvg = 0, labelsNoSvg = 0;
-  for (const w of [390, 1500]) for (let n = 1; n <= 11; n++) for (const lvl of ['core', 'advanced']) {
+  for (const w of [390, 1500]) for (let n = 1; n <= 12; n++) for (const lvl of ['core', 'advanced']) {
     const ctx = await b.newContext({ viewport: { width: w, height: 900 } });
     await ctx.addInitScript(([n, lvl]) => localStorage.setItem('g5lab_u' + n, JSON.stringify({ xp: 0, lvl, les: {}, sk: {}, tab: 'learn' })), [n, lvl]);
     const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));

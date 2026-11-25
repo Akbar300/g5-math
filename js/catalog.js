@@ -15,6 +15,10 @@ window.CATALOG = {
     { num: 10, id: 'u10', color: 'coral', short: 'Probability and the counting principle', file: 'units/unit10.html', emoji: '🎲', title: 'Data & Chance Lab',         blurb: 'Probability, the counting principle, and a fresh look at center and range.', sol: '5.PS.1-3', dates: ['2027-05-03', '2027-05-14'] },
     { num: 11, id: 'u11', color: 'teal', short: 'Plot and read points on a grid', file: 'units/unit11.html', emoji: '📍', title: 'Coordinate Quest',          blurb: 'Plot and read points in Quadrant I. (Grade 6 standard.)', sol: '6.MG', dates: ['2027-05-17', '2027-06-16'] }
   ],
+  /* AAP bridge units: not in the class calendar (Advanced pulls Grade 6 content into Grade 5). Shown after the class units. */
+  bridge: [
+    { num: 12, id: 'u12', color: 'rose', aap: true, short: 'Negative numbers, absolute value, and integer operations', file: 'units/unit12.html', emoji: '🌡️', title: 'Integers Lab', blurb: 'Opposites, absolute value, compare and order, then add, subtract, multiply, and divide integers.', sol: '6.NS.2 · 6.CE.2' }
+  ],
   games: [
     { num: '×', id: 'mul', short: 'Multi-digit multiplication, one step at a time. Calm Lab version inside.', file: 'arenas/multiply.html', emoji: '🤖', title: 'Multiply Arena', blurb: 'The original neon ninja arena: tap through each step. A calm Lab version (paper method) is one tap away.' },
     { num: '÷', id: 'div', short: 'Long division, one step at a time. Calm Lab version inside.', file: 'arenas/division.html', emoji: '🤖', title: 'Division Arena', blurb: 'The original neon ninja arena for long division. A calm Lab version (paper tableau) is one tap away.' }

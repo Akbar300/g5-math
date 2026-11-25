@@ -20,6 +20,11 @@
     <section class="hb-hero" id="hero" aria-label="In class now"></section>
     <h2 class="hb-h2">Your year, unit by unit</h2>
     <ol class="hb-trail" id="units"></ol>
+    <section class="hb-bridge" id="bridgeSec" aria-labelledby="bridgeH" hidden>
+      <h2 class="hb-h2" id="bridgeH">AAP bridge</h2>
+      <p class="hb-bridge-sub">Grade 6 topics that the Advanced class pulls into Grade 5. Not on the class calendar: open any time.</p>
+      <ol class="hb-trail hb-trail-bridge" id="bridge"></ol>
+    </section>
     <section class="hb-arenas" aria-labelledby="arenasH">
       <h2 class="hb-h2" id="arenasH">Paper-method arenas</h2>
       <p class="hb-arenas-sub">Step-by-step practice on paper-style problems.</p>
@@ -70,6 +75,17 @@
         ${tag ? `<span class="hb-tag">${tag}</span>` : ''}
       </a></li>`;
     }).join('');
+
+    /* AAP bridge units (CATALOG.bridge): after the class units, so the class-order trail and the "Unit N of 11" count are unchanged. */
+    const B = C.bridge || [];
+    if (B.length) {
+      document.getElementById('bridgeSec').hidden = false;
+      document.getElementById('bridge').innerHTML = B.map(u => `<li class="hb-unit c-${u.color || 'teal'} is-aap"><a href="${u.file}">
+        <span class="hb-node">${icon(u.id, u.emoji)}</span>
+        <span class="hb-txt"><span class="hb-num">Unit ${u.num} · AAP</span><b>${u.title}</b><span class="hb-short">${u.short || u.blurb}</span></span>
+        <span class="hb-tag">Advanced</span>
+      </a></li>`).join('');
+    }
 
     document.getElementById('games').innerHTML = C.games.map(g =>
       `<a class="hb-arena" href="${g.file}"><span class="hb-arena-ico">${icon(g.id, g.emoji)}</span><span><b>${g.title}</b><span>${g.short || g.blurb}</span></span></a>`

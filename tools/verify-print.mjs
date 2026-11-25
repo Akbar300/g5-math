@@ -16,7 +16,7 @@ fs.mkdirSync(OUT, { recursive: true });
 
 const units = [
   [1, 'unit1'], [2, 'unit2'], [3, 'unit3'], [4, 'unit4'], [5, 'unit5'],
-  [6, 'unit6'], [7, 'unit7'], [8, 'unit8'], [9, 'unit9'], [10, 'unit10'], [11, 'unit11']
+  [6, 'unit6'], [7, 'unit7'], [8, 'unit8'], [9, 'unit9'], [10, 'unit10'], [11, 'unit11'], [12, 'unit12']
 ];
 
 function pdfInfo(pdfPath) {

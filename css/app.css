@@ -2160,3 +2160,28 @@ html[data-theme="dark"] .ux .lchip .st{color:#121722}
 
 /* Fraction answers: "/" key next to the box (phone number pads have no slash) */
 .num-in .slash-key{min-width:48px;min-height:48px;padding:6px 0;font-size:24px;font-weight:800;font-family:var(--mono);line-height:1}
+
+/* ---------- Unit 12 Integers Lab: zero-pair chips (2026-11-25) ----------
+   + chips are green, − chips are coral, in light and dark. Chips are 44 px tap targets. */
+.zp{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.zp-q{font-family:var(--mono);font-size:22px;font-weight:800}
+.zp-row{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.zp-chip{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;font:800 24px/1 var(--mono);font-style:normal;border:2.5px solid;cursor:pointer;touch-action:manipulation;transition:opacity .25s,transform .25s;padding:0}
+.zp-static .zp-chip{width:34px;height:34px;font-size:19px;cursor:default}
+.zp-p{background:#d6f5e6;border-color:#0a8574;color:#065a4e}
+.zp-n{background:#ffe1d9;border-color:#d23c1b;color:#9c2a10}
+html[data-theme="dark"] .zp-p{background:#103d33;border-color:#4fd1b0;color:#b9f3e2}
+html[data-theme="dark"] .zp-n{background:#45201a;border-color:#ff8a70;color:#ffd2c6}
+.zp-chip.on{transform:scale(1.12);box-shadow:0 0 0 3px var(--ic,#1f63c6)}
+.zp-chip.gone,.zp-chip.zp-z{opacity:.28;transform:scale(.85);cursor:default}
+.zp-chip.zp-z{position:relative}
+.zp-chip.zp-z::after{content:"";position:absolute;left:4px;right:4px;top:50%;border-top:2.5px solid currentColor;transform:rotate(-35deg)}
+.zp-ctl{display:flex;flex-wrap:wrap;gap:8px}
+.zp-fb{min-height:1.4em}
+@media (prefers-reduced-motion: reduce){.zp-chip{transition:none}}
+
+/* Home: AAP bridge units (Unit 12 Integers Lab), after the class-order trail. */
+.hb .hb-bridge{margin-top:8px}
+.hb .hb-bridge-sub{margin:0 0 8px;color:var(--muted);font-size:14px;max-width:70ch}
+.hb .hb-trail-bridge::before{display:none}
+.hb .is-aap a{border:2px dashed var(--ic);background:color-mix(in srgb,var(--ic-soft) 45%,transparent)}

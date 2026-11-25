@@ -96,7 +96,7 @@ const NEEDS_WIDGET = {
 const browser = await chromium.launch();
 const warnings = [];
 const errors = [];
-for (let u = 1; u <= 11; u++) {
+for (let u = 1; u <= 12; u++) {
   const page = await browser.newPage();
   page.on('pageerror', (e) => errors.push(`unit${u}: ${e.message}`));
   await page.goto(`${base}/units/unit${u}.html`);
