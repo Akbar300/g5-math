@@ -84,6 +84,8 @@ window.G5I = (function () {
     venn: S(`<circle cx="24" cy="32" r="16" ${soft}/><circle cx="40" cy="32" r="16"/><path d="M32 18.1a16 16 0 0 1 0 27.8 16 16 0 0 1 0-27.8Z" ${ink} opacity=".6"/>`),
     compare: S(`<path d="M26 16L10 32l16 16"/><path d="M38 16l16 16-16 16" opacity=".35"/><rect x="38" y="44" width="18" height="0" />`, 6),
     jump: S(`<path d="M6 50h52"/><path d="M8 50c2-14 14-14 16 0M24 50c2-14 14-14 16 0M40 50c2-20 16-20 18 0" ${soft}/><path d="M54 40l4 10-10-2" stroke-width="3"/>${dot(8, 50, 4)}${dot(24, 50, 4)}${dot(40, 50, 4)}`),
+    /* two-step equation: two steps forward (faded), undone backward (bold) */
+    twostep: S(`<path d="M12 12h38M44 7l6 5-6 5" stroke-width="3" opacity=".4"/><rect x="6" y="22" width="22" height="20" rx="5" ${soft}/><rect x="36" y="22" width="22" height="20" rx="5" ${soft}/><path d="M13 28l8 8M21 28l-8 8M47 26v12M41 32h12" stroke-width="3"/><path d="M52 52H12M18 46l-6 6 6 6"/>`),
     /* ---- whole-number operations ---- */
     estimate: S(`<circle cx="32" cy="32" r="24" ${soft}/><path d="M20 28c4-4 8-4 12 0s8 4 12 0M20 38c4-4 8-4 12 0s8 4 12 0" stroke-width="4"/>`),
     multiply: S(`<rect x="6" y="10" width="36" height="28" rx="5" ${soft}/><g ${ink}><circle cx="14" cy="18" r="3"/><circle cx="24" cy="18" r="3"/><circle cx="34" cy="18" r="3"/><circle cx="14" cy="30" r="3"/><circle cx="24" cy="30" r="3"/><circle cx="34" cy="30" r="3"/></g><path d="M44 42l12 12M56 42L44 54" stroke-width="5"/>`),
@@ -138,7 +140,7 @@ window.G5I = (function () {
   /* Lesson id -> concept. Lessons with the same id in Core and Advanced share one icon. */
   const lesson = {
     u1c1: 'cycle', u1c2: 'lineplot', u1c3: 'stemleaf', u1c4: 'balance', u1c5: 'bargraph', u1a1: 'pie',
-    u2L1: 'orderops', u2L2: 'prime', u2L3: 'machine', u2L4: 'variable', u2B1: 'venn', u2B2: 'compare', u2B3: 'jump',
+    u2L1: 'orderops', u2L2: 'prime', u2L3: 'machine', u2L4: 'variable', u2B1: 'venn', u2B2: 'compare', u2B3: 'jump', u2B4: 'twostep',
     u3L1: 'estimate', u3L2: 'multiply', u3L3: 'divide', u3L4: 'remainder', u3L5: 'divisible', u3L6: 'exponent',
     u3B1: 'bigcalc', u3B2: 'square', u3B3: 'exponent',
     u4c1: 'tenths', u4c2: 'hundred', u4c3: 'eighthsthirds', u4c4: 'samename', u4c5: 'ratio', u4c6: 'percent',
