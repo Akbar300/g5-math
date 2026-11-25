@@ -49,8 +49,10 @@
           one.appendChild(c);
         }
       }
-      top.appendChild(h('span', '', '0%')); top.appendChild(h('span', '', '50%')); top.appendChild(h('span', '', '100%'));
-      bot.appendChild(h('span', '', '0')); bot.appendChild(h('span', '', nice(whole / 2))); bot.appendChild(h('span', '', String(whole)));
+      if ((o.bars || 1) === 1) {
+        top.appendChild(h('span', '', '0%')); top.appendChild(h('span', '', '50%')); top.appendChild(h('span', '', '100%'));
+        bot.appendChild(h('span', '', '0')); bot.appendChild(h('span', '', nice(whole / 2))); bot.appendChild(h('span', '', String(whole)));
+      }
       cutRow.innerHTML = '';
       cuts.forEach((n) => cutRow.appendChild(btn(`${n} parts`, () => { parts = n; k = 0; draw(); read(); }, n === parts ? 'on' : '')));
     };
