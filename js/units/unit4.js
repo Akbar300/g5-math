@@ -1099,3 +1099,61 @@
     { id: 'buy', name: 'Better buy', gen: function () { return gens.buy.f('adv'); } });
   adv.intro = 'Go Further: equivalent ratios, ratio tables, proportions and the better buy, percent of a number, and fraction–decimal–percent conversions.';
 })();
+
+/* Graphs of rates (Advanced, after Proportions & better buy). Tier 2, rev 4: a ratio table plotted on the
+   grid makes a straight line through (0, 0); the point (1, r) shows the unit rate. */
+(function () {
+  if (!window.UNIT || !window.V2L) return;
+  var L = V2L, mc = L.mc;
+  /* Quadrant I grid with optional rays from (x0, y0) through slope m. Returns HTML (the audit stubs V). */
+  function graph(pts, lines, n) {
+    var s = V.planeSVG(pts.map(function (p) { return { x: p[0], y: p[1], label: p[2] }; }), { n: n || 10 });
+    if (typeof s === 'string' || !s || !s.__geo) return typeof s === 'string' ? s : '';
+    var G = s.__geo, NS = 'http://www.w3.org/2000/svg', top = s.querySelector('.cp-pts');
+    (lines || []).forEach(function (l) {
+      var x1 = l.x2 != null ? l.x2 : Math.min(G.n, (G.n - l.b) / l.m), y1 = l.b + l.m * x1;
+      var e = document.createElementNS(NS, 'line');
+      [['x1', G.px(0)], ['y1', G.py(l.b)], ['x2', G.px(x1)], ['y2', G.py(y1)], ['stroke', l.color || 'var(--ic)'], ['stroke-width', '3.5'], ['stroke-linecap', 'round']].concat(l.dash ? [['stroke-dasharray', '7 6']] : []).forEach(function (a) { e.setAttribute(a[0], a[1]); });
+      s.insertBefore(e, top);
+    });
+    return '<div class="viz">' + s.outerHTML + '</div>';
+  }
+  function rgraphQ(lv, kind) {
+    var k = kind != null ? kind : L.pick([0, 0, 1, 1, 2, 3]);
+    var m = L.ri(2, 4), C = L.pick([['hours', 'miles'], ['packs', 'stickers'], ['minutes', 'laps'], ['tickets', 'dollars']]);
+    var xs = [1, 2, 3].map(function (x) { return x; }), pts = xs.map(function (x) { return [x, m * x, '(' + x + ', ' + m * x + ')']; });
+    if (k === 0) return { type: 'num', fmt: 'TYPE IN', q: 'The graph shows ' + C[1] + ' for ' + C[0] + '. How many ' + C[1] + ' for <b>1</b> ' + C[0].replace(/s$/, '') + '? (the unit rate)' + graph(pts, [{ m: m, b: 0 }], 10), a: m, why: 'Find x = 1 on the line: the point is (1, ' + m + '). That is <b>' + m + ' ' + C[1] + ' per ' + C[0].replace(/s$/, '') + '</b>. Every step right 1 goes up ' + m + '.' };
+    if (k === 1) { var X = L.ri(5, 9);
+      return mc('The points (1, ' + m + '), (2, ' + 2 * m + '), (3, ' + 3 * m + ') lie on a straight line through (0, 0). Which point is also on the line?', '(' + X + ', ' + m * X + ')', [
+        ['(' + X + ', ' + (m * 3 + (X - 3)) + ')', 'That adds 1 each step. Each step right 1 goes up ' + m + '.'],
+        ['(' + m * X + ', ' + X + ')', 'x comes first, then y.'],
+        ['(' + X + ', ' + (m * X + m) + ')', 'Check: ' + X + ' × ' + m + ' = ' + m * X + '.']],
+        'y = ' + m + ' × x on this line. For x = ' + X + ': y = ' + m * X + '.'); }
+    if (k === 2) { var prop = Math.random() < .5, b = prop ? 0 : L.ri(1, 3), pp = [1, 2].map(function (x) { return [x, m * x + b, '']; });
+      return mc('Is the relationship in this graph <b>proportional</b>?' + graph(pp, [{ m: m, b: b }], 12), prop ? 'Yes: a straight line through (0, 0)' : 'No: the line does not start at (0, 0)', [
+        [prop ? 'No: the line does not start at (0, 0)' : 'Yes: a straight line through (0, 0)', prop ? 'Look where the line starts: it starts at the origin.' : 'At x = 0 the line is at y = ' + b + ', not 0.'],
+        ['Yes: it is a straight line', 'Straight is not enough. A proportional graph also goes through (0, 0).'],
+        ['No: it goes up', 'Going up is fine. Check the start and the straightness.']].filter(function (w) { return !(prop && w[0] === 'Yes: it is a straight line'); }),
+        prop ? 'Straight line through (0, 0): proportional, y = ' + m + ' × x.' : 'The line starts at (0, ' + b + '), so y ÷ x is not the same for every point: not proportional.'); }
+    var X2 = L.ri(4, 8);
+    return { type: 'num', fmt: 'TYPE IN', q: 'A straight line goes through (0, 0) and (2, ' + 2 * m + '). What is y when x = ' + X2 + '?', a: m * X2, why: 'Unit rate: ' + 2 * m + ' ÷ 2 = ' + m + ' per 1. So y = ' + m + ' × ' + X2 + ' = <b>' + m * X2 + '</b>.' };
+  }
+  var gens = { rgraph: { name: 'Graphs of rates', f: function (lv, kind) { for (var t = 0; t < 6; t++) { var it = rgraphQ(lv, kind); if (it) return it; } return null; } } };
+  var lesson = { id: 'u4a6', name: 'Graphs of rates', icon: '📈', cards: [
+    { t: 'Plot a ratio table', html: L.tbl(['hours', '0', '1', '2', '3'], [['miles', '0', '3', '6', '9']]) + '<p>Each column is a point: (1, 3), (2, 6), (3, 9). Plot them and they line up.</p>',
+      viz: function () { return graph([[1, 3, '(1, 3)'], [2, 6, '(2, 6)'], [3, 9, '(3, 9)']], [{ m: 3, b: 0 }], 10); },
+      steps: ['Each pair (x, y) from the table becomes a point.', '0 hours means 0 miles, so the line starts at (0, 0).', 'Every step right 1 goes up 3: the unit rate.'],
+      trap: 'Starting the line at (1, 3). A ratio table includes (0, 0): no time, no miles.',
+      tries: [function () { return gens.rgraph.f('adv', 0); }, function () { return gens.rgraph.f('adv', 1); }] },
+    { t: 'Proportional means through (0, 0)', html: '<p>Two plans: Plan A costs $2 per game. Plan B costs $2 per game <b>plus</b> a $3 sign-up fee.</p>',
+      viz: function () { return graph([[2, 4, 'A'], [2, 7, 'B']], [{ m: 2, b: 0 }, { m: 2, b: 3, dash: true }], 12); },
+      steps: ['Plan A (solid) is a straight line through (0, 0): proportional, y = 2 × x.', 'Plan B (dashed) is straight but starts at (0, 3): not proportional.', 'Test any point: on A, y ÷ x is always 2. On B it changes.'],
+      remember: 'Proportional graph = straight line through (0, 0). Both parts matter.',
+      tries: [function () { return gens.rgraph.f('adv', 2); }, function () { return gens.rgraph.f('adv', 3); }] }
+  ] };
+  var adv = UNIT.advanced, at = adv.lessons.findIndex(function (x) { return x.id === 'u4a5'; });
+  adv.lessons.splice(at >= 0 ? at + 1 : adv.lessons.length, 0, lesson);
+  var sk = adv.skills.findIndex(function (x) { return x.id === 'buy'; });
+  adv.skills.splice(sk >= 0 ? sk + 1 : adv.skills.length, 0, { id: 'rgraph', name: 'Graphs of rates', gen: function () { return gens.rgraph.f('adv'); } });
+  adv.intro = 'Go Further: equivalent ratios, ratio tables, proportions and the better buy, graphs of rates, percent of a number, and fraction–decimal–percent conversions.';
+})();
