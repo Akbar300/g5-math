@@ -735,7 +735,7 @@
         : `What is ${p}% of ${n}?`;
       return {
         type: 'num', fmt: 'TYPE IN', sol: '5.NS.1',
-        q, a: [String(ans), ans + ' students'], placeholder: String(ans),
+        q, a: [String(ans), ans + ' students'],
         why: `${p}% = ${p / 100}. ${p / 100} × ${n} = <b>${ans}</b>. Or think ${fr(p, 100)} of ${n}.`
       };
     }

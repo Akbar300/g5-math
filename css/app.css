@@ -2157,3 +2157,6 @@ html[data-theme="dark"] .ux .lchip .st{color:#121722}
 .ux .modal .emo-svg{display:flex;justify-content:center}
 .ux .brk-ico{display:block;width:72px;height:72px;padding:10px;border-radius:20px;background:var(--ic-soft);color:var(--ic)}
 .print-uico{display:inline-block;width:1.25em;height:1.25em;vertical-align:-.26em;margin-right:6px;color:var(--print-accent);--ic-soft:color-mix(in srgb,var(--print-accent) 22%,#fff);--card:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+/* Fraction answers: "/" key next to the box (phone number pads have no slash) */
+.num-in .slash-key{min-width:48px;min-height:48px;padding:6px 0;font-size:24px;font-weight:800;font-family:var(--mono);line-height:1}

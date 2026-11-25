@@ -802,7 +802,27 @@ function paperDivide(dividend, divisor) {
       const row = document.createElement('div'); row.className = 'num-in';
       const inp = document.createElement('input'); inp.type = 'text'; inp.inputMode = item.inputMode || 'decimal';
       inp.setAttribute('aria-label', 'Your answer');
-      if (item.placeholder) inp.placeholder = item.placeholder;
+      /* The grey hint shows the answer format only. Never show it when it equals the answer (that gives it away). */
+      if (item.placeholder) {
+        let same = false;
+        try { same = U.eqNum(item.placeholder, item.a != null ? (item.acc || item.a) : item.acc); } catch (e) {}
+        inp.placeholder = same ? '?' : item.placeholder;
+      }
+      /* Fraction answers: phone number pads have no "/" key, so add a "/" button that types one at the cursor. */
+      const isFrac = /\//.test(String(item.placeholder || '')) || /\//.test(String(item.a != null ? item.a : ''));
+      let slash = null;
+      if (isFrac) {
+        slash = document.createElement('button'); slash.type = 'button'; slash.className = 'btn ghost slash-key'; slash.textContent = '/';
+        slash.setAttribute('aria-label', 'Type a fraction bar');
+        slash.addEventListener('pointerdown', (e) => e.preventDefault());
+        slash.addEventListener('click', () => {
+          if (inp.readOnly) return;
+          const a = inp.selectionStart != null ? inp.selectionStart : inp.value.length;
+          const b = inp.selectionEnd != null ? inp.selectionEnd : a;
+          inp.value = inp.value.slice(0, a) + '/' + inp.value.slice(b);
+          try { inp.focus(); inp.setSelectionRange(a + 1, a + 1); } catch (e) {}
+        });
+      }
       const chk = document.createElement('button'); chk.className = 'btn teal'; chk.textContent = 'Check';
       const go = () => {
         if (done) return;
@@ -811,7 +831,7 @@ function paperDivide(dividend, divisor) {
         else { tries++; fb.className = 'fb no'; fb.textContent = 'Not yet — try a different form or re-check the work.'; if (tries >= 2) why.classList.add('show'); offerAdvance(false); }
       };
       if (opts.exam) {
-        row.appendChild(inp); body.appendChild(row);
+        row.appendChild(inp); if (slash) row.appendChild(slash); body.appendChild(row);
         ex.answered = () => String(inp.value).trim() !== '';
         ex.grade = () => {
           const ok = U.eqNum(inp.value, item.a != null ? (item.acc || item.a) : item.acc);
@@ -821,7 +841,7 @@ function paperDivide(dividend, divisor) {
       } else {
         bindTap(chk, go);
         inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
-        row.appendChild(inp); row.appendChild(chk);
+        row.appendChild(inp); if (slash) row.appendChild(slash); row.appendChild(chk);
         body.appendChild(row);
       }
     } else if (item.type === 'nline') {
