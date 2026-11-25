@@ -1217,7 +1217,7 @@
         ]
       },
       'Your turn': {
-        viz: () => GV.triHalf(10, 6, 'cm'),
+        viz: () => GV.triHalf(6, 9, 'cm'),
         steps: ['Identify the two legs (the sides that meet at the right angle).', 'They are the base and the height.', 'Multiply, then take half.'],
         trap: 'Using a slanted side as the height. The height must be perpendicular to the base.',
         aap: 'AAP: a triangle with base 9 and height 4 has area 18, even if it is not a right triangle.',
@@ -1229,12 +1229,12 @@
     },
     u9L3: {
       'Layers of cubes': {
-        viz: () => GV.prism(6, 4, 5, { hl: 'top', note: '5 layers of 6 × 4 = 24 cubes → 120' }),
-        steps: ['Volume of a rectangular prism is length × width × height, or base area × height.', 'A 6 cm by 4 cm by 5 cm box: base 24 cm², times 5 = 120 cm³.', 'You can picture 5 layers of 24 cubes.'],
-        trap: 'Adding the three edges (6+4+5=15) or finding only the surface. Volume is a fill, in cubic units.',
+        viz: () => GV.prism(4, 3, 2, { hl: 'top', note: '2 layers of 4 × 3 = 12 cubes → 24' }),
+        steps: ['Volume of a rectangular prism is length × width × height, or base area × height.', 'A 4 by 3 by 2 box: base 4 × 3 = 12 square units, times 2 = 24 cubic units.', 'You can picture 2 layers of 12 cubes.'],
+        trap: 'Adding the three edges (4+3+2=9) or finding only the surface. Volume is a fill, in cubic units.',
         aap: 'AAP: if one edge doubles, the volume doubles. If all three edges double, the volume is 8 times as big.',
         tries: [
-          () => num('A box is 6 cm by 4 cm by 5 cm. What is the volume in cubic centimeters?', 120, '6 × 4 × 5 = 120.'),
+          () => num('A box is 4 cm by 3 cm by 2 cm. What is the volume in cubic centimeters?', 24, '4 × 3 × 2 = 24.'),
           () => num('The base of a box is 10 cm² and the height is 3 cm. What is the volume in cubic centimeters?', 30, 'Base area × height: 10 × 3 = 30.')
         ]
       },
