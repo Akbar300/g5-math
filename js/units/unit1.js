@@ -118,7 +118,8 @@
             { t: 'Four steps, every time', html: `<p>A data detective follows one cycle:</p>
               <ol><li><b>Formulate</b> a question that needs data.</li><li><b>Collect</b> counts or measurements (usually 30 or fewer points).</li>
               <li><b>Organize and represent</b> with a line plot or stem-and-leaf plot — title, labels, and a key.</li>
-              <li><b>Analyze and communicate</b> what the data shows, and solve problems from it.</li></ol>`,
+              <li><b>Analyze and communicate</b> what the data shows, and solve problems from it.</li></ol>
+              <p>Example: 7 students count the pencils in their backpacks: 3, 3, 4, 5, 5, 5, 7. Most have 5.</p>`,
               remember: 'A good question cannot be answered with one remembered fact. It needs counts or measures from a group.' },
             { t: 'Which questions need data?', html: `<p>"How many minutes do students in our class spend on homework?" needs a survey. "How many minutes are in an hour?" does not — that is a known fact.</p>`, try: () => genQuestion() }
           ]
