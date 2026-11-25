@@ -64,6 +64,21 @@ function symQ(lv, kind){
     [ax === 'y' ? P2(x, -y) : P2(-x, y), 'That is the mirror image across the other axis.'], [P2(-x, -y), 'Only one coordinate changes sign.'], [P2(y, x), 'Do not swap x and y.']],
     'The matching corner is the reflection across the ' + ax + '-axis: ' + (ax === 'y' ? 'x changes sign' : 'y changes sign') + '. ' + P2(x, y) + ' → <b>' + P2(M[0], M[1]) + '</b>.');
 }
+/* Go Further: dilations from the origin (Grade 8 preview): multiply both coordinates by the scale factor. */
+function dilQ(lv, kind){
+  var k = kind != null ? kind : L.pick([0, 0, 1, 2, 3]), sf = L.pick([2, 3]), x = L.ri(1, 3), y = L.ri(1, 3) * (Math.random() < .3 ? -1 : 1);
+  if (Math.abs(x * sf) > 6 || Math.abs(y * sf) > 6) { sf = 2; }
+  if (k === 0) return mc('Dilate ' + P2(x, y) + ' from the origin by a scale factor of <b>' + sf + '</b>. Where does it land?', P2(sf * x, sf * y), [
+    [P2(x + sf, y + sf), 'A dilation multiplies, it does not add.'], [P2(sf * x, y), 'Multiply BOTH coordinates.'], [P2(sf * y, sf * x), 'Do not swap x and y.']],
+    'Multiply both coordinates by ' + sf + ': ' + P2(x, y) + ' → <b>' + P2(sf * x, sf * y) + '</b>.');
+  if (k === 1) return {type:'num', fmt:'TYPE IN', q:'A point ' + P2(x, y) + ' is dilated from the origin and lands on ' + P2(sf * x, sf * y) + '. What is the scale factor?', a:sf, why:sf * x + ' ÷ ' + x + ' = ' + sf + ' (and ' + L.sg(sf * y) + ' ÷ ' + L.sg(y) + ' = ' + sf + '). The scale factor is <b>' + sf + '</b>.'};
+  if (k === 2) { var side = L.ri(2, 5);
+    return {type:'num', fmt:'TYPE IN', q:'A square with sides of ' + side + ' units is dilated by a scale factor of ' + sf + '. How long is each new side?', a:side * sf, why:'Every length is multiplied by the scale factor: ' + side + ' × ' + sf + ' = <b>' + side * sf + '</b> units.'}; }
+  var w = L.ri(1, 3), h = L.ri(1, 3), A0 = w * h;
+  return mc('A ' + w + ' by ' + h + ' rectangle (area ' + A0 + ') is dilated by a scale factor of 2. What is the new area?', String(A0 * 4), [
+    [String(A0 * 2), 'Both the length and the width double, so the area is 2 × 2 = 4 times as big.'], [String(A0 + 2), 'A dilation multiplies.'], [String((w + h) * 4), 'That is the new perimeter, not the area.']],
+    'New sides: ' + 2 * w + ' and ' + 2 * h + '. New area: ' + 2 * w + ' × ' + 2 * h + ' = <b>' + A0 * 4 + '</b>, 4 times the old area.');
+}
 var gens = {
   read: {name:'Read a point', f:function(lv){
     var x = L.ri(1, 8), y = L.ri(1, 8); if(x === y) y = (y % 8) + 1;
@@ -155,11 +170,12 @@ var bg = {
     return {type:'ms', fmt:'SELECT ALL', q:'Select <b>all</b> the points that are reflections of ' + P2(x, y) + ' over the <b>x-axis or the y-axis</b>.', ch:cands.map(function(p){ return P2(p[0], p[1]); }), a:cands.map(function(p, i){ return (p[2] === 'B' || p[2] === 'C') ? i : -1; }).filter(function(i){ return i >= 0; }),
       why:'Over the y-axis: ' + P2(-x, y) + '. Over the x-axis: ' + P2(x, -y) + '. ' + P2(-x, -y) + ' changes both signs (that is a turn through the origin), and ' + P2(x, y) + ' is the point itself.'};
   }},
-  symm: {name:'Symmetry & regular polygons', f:function(lv, kind){ for (var t = 0; t < 8; t++) { var it = symQ(lv, kind); if (it) return it; } return null; }}
+  symm: {name:'Symmetry & regular polygons', f:function(lv, kind){ for (var t = 0; t < 8; t++) { var it = symQ(lv, kind); if (it) return it; } return null; }},
+  dil: {name:'Dilations (Go Further)', f:function(lv, kind){ for (var t = 0; t < 8; t++) { var it = dilQ(lv, kind); if (it) return it; } return null; }}
 };
 var bridge = {
   title:'Go Further: all four quadrants', tab:'🚀 Go Further',
-  intro:'Advanced Unit 4 uses the <b>whole</b> coordinate plane, with negative numbers on both axes: distance across an axis, polygons in all four quadrants, reflections, and symmetry.',
+  intro:'Advanced Unit 4 uses the <b>whole</b> coordinate plane, with negative numbers on both axes: distance across an axis, polygons in all four quadrants, reflections, and symmetry. Go Further: dilations.',
   lessons:[{id:'u11B1', name:'Four quadrants', icon:'🗺️', cards:[
     {t:'Negatives go left and down', h:V.plane([{x:3, y:2, label:'A'}, {x:-3, y:2, label:'B'}, {x:-3, y:-4, label:'C'}, {x:5, y:-3, label:'D'}], {quad:true, n:6, qlabels:true}) + '<p class="cp-qnote">Start in the top right with <b>I</b> and go <b>counterclockwise</b>: II, III, IV.</p>' + L.tbl(['Quadrant','Signs'], [['I','(+, +)'],['II','(−, +)'],['III','(−, −)'],['IV','(+, −)']])},
     {t:'Your turn', h:'', tr:bg.quad.f()}
@@ -198,8 +214,16 @@ var bridge = {
      tries:[function(){ return bg.symm.f('adv', 1); }, function(){ return bg.symm.f('adv', 2); }]},
     {t:'Symmetry on the grid', h:'<p>A shape that is symmetric across the y-axis has matching corners like (−3, 2) and (3, 2): the same as a reflection.</p>', viz:function(){ return planeDraw([[-3, 2, '(−3, 2)'], [3, 2, '(3, 2)'], [0, 5, ''], [-2, -2, ''], [2, -2, '']], {poly:[[0, 5], [3, 2], [2, -2], [-2, -2], [-3, 2]], mirror:'y'}); },
      tr:function(){ return bg.symm.f('adv', 3); }}
+  ]},{id:'u11B6', name:'Go Further: dilations', icon:'🔍', cards:[
+    {t:'Grow from the origin', h:'<p>A <b>dilation</b> makes a shape bigger or smaller from a center point. From the origin, multiply <b>both</b> coordinates by the <b>scale factor</b>.</p>', viz:function(){ return planeDraw([[3, 2, 'A (3, 2)'], [6, 4, 'A′ (6, 4)']], {poly:[[2, 2], [6, 2], [6, 4], [2, 4]], segs:[[1, 1, 3, 1], [3, 1, 3, 2], [3, 2, 1, 2], [1, 2, 1, 1]]}); },
+     steps:['Scale factor 2: (1, 1) → (2, 2), (3, 1) → (6, 2), and A (3, 2) → A′ (6, 4).', 'Every side doubles: a side of 2 becomes 4.', 'The shape keeps its angles; only the size changes.'],
+     trap:'Adding the scale factor: (1, 1) → (3, 3). A dilation multiplies.',
+     tries:[function(){ return bg.dil.f('adv', 0); }, function(){ return bg.dil.f('adv', 1); }]},
+    {t:'Lengths and areas', h:L.tbl(['Scale factor','Each side','Perimeter','Area'], [['2','× 2','× 2','× 4'],['3','× 3','× 3','× 9']]),
+     key:'Lengths grow by the scale factor. Area grows by scale factor × scale factor.',
+     tries:[function(){ return bg.dil.f('adv', 2); }, function(){ return bg.dil.f('adv', 3); }]}
   ]}],
-  gens:bg, repIds:['quad','qdist','qpoly','refl','symm'],
+  gens:bg, repIds:['quad','qdist','qpoly','refl','symm','dil'],
   next:'Stay in the Advanced (Go Further) path of this unit for more practice.'
 };
 window.V2 = {key:'u11', lessons:lessons, gens:gens, repIds:['read','dist','table'], test:test, bridge:bridge};
