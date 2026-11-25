@@ -77,6 +77,8 @@ window.G5I = (function () {
     pie: S(`<circle cx="32" cy="32" r="24" ${soft}/><path d="M32 32V8a24 24 0 0 1 22.8 31.4Z" ${ink} opacity=".85"/><path d="M32 32L12 45" /><circle cx="32" cy="32" r="24"/>`),
     mean: S(`<path d="M6 56h52"/><rect x="10" y="26" width="12" height="30" rx="2" ${soft}/><rect x="26" y="38" width="12" height="18" rx="2" ${soft}/><rect x="42" y="32" width="12" height="24" rx="2" ${soft}/><path d="M6 34h52" stroke-dasharray="4 5" stroke-width="3"/>`),
     outlier: S(`<path d="M6 50h52"/><g ${ink}><circle cx="12" cy="40" r="3.5"/><circle cx="20" cy="40" r="3.5"/><circle cx="20" cy="31" r="3.5"/><circle cx="28" cy="40" r="3.5"/><circle cx="28" cy="31" r="3.5"/><circle cx="28" cy="22" r="3.5"/><circle cx="36" cy="40" r="3.5"/></g><circle cx="53" cy="40" r="6" ${soft}/>${dot(53, 40, 3.5)}`),
+    /* data changes: a balance beam with a new weight dropping in */
+    meanshift: S(`<path d="M6 44h52"/><path d="M32 44l-6 12h12Z" ${soft}/><rect x="10" y="30" width="10" height="14" rx="2" ${soft}/><rect x="24" y="30" width="10" height="14" rx="2" ${soft}/><rect x="44" y="16" width="10" height="10" rx="2" ${ink}/><path d="M49 30v8M45 34l4 4 4-4" stroke-width="3"/>`),
     chance: S(`<path d="M32 10v12M32 22L16 38M32 22l16 16M16 38L10 52M16 38l6 14M48 38l-6 14M48 38l6 14" stroke-width="3"/><circle cx="32" cy="10" r="5" ${soft}/><circle cx="16" cy="38" r="5" ${soft}/><circle cx="48" cy="38" r="5" ${soft}/>${dot(10, 54, 4)}${dot(22, 54, 4)}${dot(42, 54, 4)}${dot(54, 54, 4)}`),
     /* ---- number sense / patterns ---- */
     orderops: S(`<path d="M18 8c-8 8-8 40 0 48M46 8c8 8 8 40 0 48"/><rect x="22" y="24" width="20" height="16" rx="4" ${soft}/><path d="M32 18v-8M28 14h8" stroke-width="3"/><path d="M27 32h10" stroke-width="3"/>`),
@@ -170,7 +172,7 @@ window.G5I = (function () {
     u7L1: 'percent', u7L2: 'convert', u7L3: 'compare', u7B1: 'pie',
     u8L1: 'unlike', u8L2: 'mixed', u8L3: 'wholefrac', u8B1: 'fracops', u8B2: 'mixmul', u8B3: 'bigsmall',
     u9L1: 'angle', u9L4: 'perimarea', u9L2: 'triangle', u9L5: 'circle', u9L3: 'volume',
-    u10L1: 'mean', u10L2: 'lineplot', u10L3: 'chance', u10B1: 'outlier',
+    u10L1: 'mean', u10L2: 'lineplot', u10L3: 'chance', u10B1: 'outlier', u10B2: 'meanshift',
     u11L1: 'plot', u11L2: 'story', u11B1: 'quadrants', u11B2: 'axisdist', u11B3: 'quadpoly', u11B4: 'reflect',
     u12L1: 'negative', u12L2: 'intorder', u12L3: 'zeropair', u12L4: 'addopp',
     u12B1: 'intmul', u12B2: 'orderops', u12B3: 'elevation', u12B4: 'exponent'

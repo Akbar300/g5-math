@@ -55,16 +55,55 @@ var bg = {
     var m = L.ri(4, 10), d = L.ri(1, 3), a = [m - 2*d, m - d, m, m + d, m + 2*d];
     var add = m + L.pick([-3, 4, 5]);
     return mc('The mean of ' + a.join(', ') + ' is ' + m + '. If ' + add + ' is added to the data, the mean will…', add > m ? 'go up' : 'go down', [[add > m ? 'go down' : 'go up', 'A value ' + (add > m ? 'above' : 'below') + ' the balance point tips it that way.'], ['stay the same', 'Only a value exactly equal to the mean keeps it the same.']], 'The mean is the balance point. A new value ' + (add > m ? 'above' : 'below') + ' it tips the balance.');
-  }}
+  }},
+  mchg: {name:'When the data changes', f:function(lv, kind){ for (var t = 0; t < 12; t++) { var it = mchgQ(lv, kind); if (it) return it; } return null; }}
 };
+/* Effect of a change on the mean (and median, range). Whole-number means only. */
+function sum(a){ return a.reduce(function(x, y){ return x + y; }, 0); }
+function med(a){ var b = a.slice().sort(function(x, y){ return x - y; }), n = b.length; return n % 2 ? b[(n - 1) / 2] : (b[n / 2 - 1] + b[n / 2]) / 2; }
+function r1(x){ var y = Math.round(x * 10) / 10; return (y === x ? '' : 'about ') + y; }
+function mchgQ(lv, kind){
+  var k = kind != null ? kind : L.pick([0, 0, 1, 1, 2, 3, 4]);
+  var n = L.ri(3, 5), m = L.ri(6, 20), a = [];
+  for (var i = 0; i < n - 1; i++) a.push(m + L.ri(-4, 4));
+  a.push(m*n - sum(a)); if (a[n - 1] <= 0 || a[n - 1] > 40) return null; a = L.shuffle(a);
+  if (k === 0) { var nm = m + L.pick([1, 2, -1, 2]), add = nm*(n + 1) - m*n; if (add <= 0 || add > 60) return null;
+    return {type:'num', fmt:'TYPE IN', q:'Data: ' + a.join(', ') + '. The mean is ' + m + '. A new value, <b>' + add + '</b>, is added. What is the new mean?', a:nm, why:'Old total: ' + m + ' × ' + n + ' = ' + m*n + '. New total: ' + m*n + ' + ' + add + ' = ' + nm*(n + 1) + '. Now there are ' + (n + 1) + ' values: ' + nm*(n + 1) + ' ÷ ' + (n + 1) + ' = <b>' + nm + '</b>.'}; }
+  if (k === 1) { var ri = L.ri(0, n - 1), out = a[ri], rest = a.filter(function(_, j){ return j !== ri; }), tot = sum(rest);
+    if (tot % (n - 1)) return null; var nm2 = tot / (n - 1); if (nm2 === m) return null;
+    return {type:'num', fmt:'TYPE IN', q:'The mean of ' + a.join(', ') + ' is ' + m + '. If <b>' + out + '</b> is removed, what is the new mean?', a:nm2, why:'Total without ' + out + ': ' + m*n + ' − ' + out + ' = ' + tot + '. ' + (n - 1) + ' values left: ' + tot + ' ÷ ' + (n - 1) + ' = <b>' + nm2 + '</b>. ' + (out < m ? 'Removing a value below the mean raised it.' : 'Removing a value above the mean lowered it.')}; }
+  if (k === 2) { var target = m + L.ri(1, 4), need = target*(n + 1) - m*n; if (need > 100 || need <= 0) return null;
+    return {type:'num', fmt:'TYPE IN', q:'Quiz scores so far: ' + a.join(', ') + ' (mean ' + m + '). What score on the next quiz makes the mean exactly <b>' + target + '</b>?', a:need, why:'Needed total: ' + target + ' × ' + (n + 1) + ' = ' + target*(n + 1) + '. Total so far: ' + m*n + '. ' + target*(n + 1) + ' − ' + m*n + ' = <b>' + need + '</b>.'}; }
+  if (k === 3) { var big = Math.max.apply(null, a) + L.ri(25, 40), b2 = a.concat([big]);
+    var dM = Math.round((sum(b2) / b2.length - m) * 10) / 10, dMed = med(b2) - med(a), rng0 = Math.max.apply(null, a) - Math.min.apply(null, a), rng1 = big - Math.min.apply(null, a);
+    return mc('Data: ' + a.join(', ') + '. An outlier, <b>' + big + '</b>, is added. Which measure changes the <b>most</b>?', 'the range', [
+      ['the median', 'The median only moves to the next middle spot: ' + med(a) + ' → ' + med(b2) + '.'],
+      ['the mean', 'The mean moves (' + m + ' → ' + r1(sum(b2) / b2.length) + '), but the range jumps from ' + rng0 + ' to ' + rng1 + '.'],
+      ['none of them', 'An outlier changes the range a lot.']],
+      'Range: ' + rng0 + ' → ' + rng1 + '. Mean: ' + m + ' → ' + r1(sum(b2) / b2.length) + '. Median: ' + med(a) + ' → ' + med(b2) + '. The range and the mean are pulled by the outlier; the median barely moves.'); }
+  var v = L.pick([m, m + L.ri(3, 6), m - L.ri(3, 5)]); if (v <= 0) return null;
+  var c = a.concat([v]), mean2 = sum(c) / c.length, dir = mean2 > m ? 'goes up' : mean2 < m ? 'goes down' : 'stays the same';
+  return mc('The mean of ' + a.join(', ') + ' is ' + m + '. What happens to the mean if <b>' + v + '</b> is added?', 'it ' + dir, ['it goes up', 'it goes down', 'it stays the same'].filter(function(x){ return x !== 'it ' + dir; }).map(function(x){ return [x, v === m ? 'A value equal to the mean keeps the balance.' : 'A value ' + (v > m ? 'above' : 'below') + ' the mean tips the balance that way.']; }),
+    v === m ? 'Adding a value equal to the mean keeps the mean the same: ' + m + '.' : 'New mean: ' + sum(c) + ' ÷ ' + c.length + ' = ' + r1(mean2) + '. A value ' + (v > m ? 'above' : 'below') + ' the mean pulls it ' + (v > m ? 'up' : 'down') + '.');
+}
 var bridge = {
   title:'Go Further: outliers & the balance point', tab:'🚀 Go Further',
-  intro:'Advanced Units 1 and 10 go deeper on the mean: it is the <b>balance point</b> of a line plot, and <b>outliers</b> can pull it far away.',
+  intro:'Advanced Units 1 and 10 go deeper on the mean: it is the <b>balance point</b> of a line plot, and <b>outliers</b> can pull it far away. You will also find a new mean when a value is added or removed.',
   lessons:[{id:'u10B1', name:'Balance & outliers', icon:'🎯', cards:[
     {t:'The mean balances the data', h:'<p>Put the data on a line plot like weights on a seesaw. The mean is where it balances.</p><p>2, 4, 6, 8, 10 → balance point 6.</p>'},
     {t:'Outliers', h:'<p>An <b>outlier</b> is far from the rest: 31, 33, 30, 34, <b>80</b>.</p>' + L.tbl(['','With 80','Without 80'], [['mean','41.6','32'],['median','33','32']]) + '<p>The mean jumped almost 10; the median moved 1.</p>', tr:bg.outl.f()}
+  ]},{id:'u10B2', name:'When the data changes', icon:'🔄', cards:[
+    {t:'Add a value: find the new mean', h:'<p>Scores 6, 8, 10 have a mean of 8. A new score, 12, comes in.</p>' + L.tbl(['','Before','After'], [['values','3','4'],['total','8 × 3 = 24','24 + 12 = 36'],['mean','8','36 ÷ 4 = <b>9</b>']]),
+     key:'Total = mean × how many. Change the total, change the count, then divide again.',
+     trap:'Averaging the old mean with the new value: (8 + 12) ÷ 2 = 10. That treats 3 old scores like 1.',
+     tr:function(){ return bg.mchg.f('adv', 0); }},
+    {t:'Remove a value', h:'<p>Five quiz scores have a mean of 80, so the total is 400. Drop the lowest score, 60.</p><div class="big">(400 − 60) ÷ 4 = 85</div><p>Removing a value <b>below</b> the mean pulls the mean <b>up</b>.</p>',
+     tries:[function(){ return bg.mchg.f('adv', 1); }, function(){ return bg.mchg.f('adv', 4); }]},
+    {t:'Who moves the most?', h:L.tbl(['Change','Mean','Median','Range'], [['add a value equal to the mean','same','may shift a little','same or wider'],['add a value above the mean','up','up a little or same','may widen'],['add an outlier','pulled a lot','barely moves','jumps']]),
+     aap:'Target mean: scores 85, 92 and 88 total 265. For a mean of 90 on 4 quizzes you need 360 in all, so the next score must be 360 − 265 = 95.',
+     tries:[function(){ return bg.mchg.f('adv', 3); }, function(){ return bg.mchg.f('adv', 2); }]}
   ]}],
-  gens:bg, repIds:['outl','bal'],
+  gens:bg, repIds:['outl','bal','mchg'],
   next:'Stay in the Advanced (Go Further) path of this unit for more practice.'
 };
 window.V2 = {key:'u10', lessons:lessons, test:test, bridge:bridge, gens:gens, repIds:['mean','median','count','prob']};
