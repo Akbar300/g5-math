@@ -396,7 +396,7 @@
   /* ======================= treeBuilder { stages:[['H','T'],['red','blue','green']] } ======================= */
   function treeBuilder(o) {
     const { root, fb } = shell('xm-tree');
-    const stages = o.stages; let depth = 0;
+    const stages = o.stages; let depth = o.start != null ? o.start : 1;
     const box = h('div', 'xm-treebox'), outs = h('div', 'xm-outs'), ctr = row();
     root.appendChild(box); root.appendChild(ctr); root.appendChild(fb); root.appendChild(outs);
     const draw = () => {
@@ -418,10 +418,11 @@
       const counts = stages.slice(0, depth).map((x) => x.length);
       outs.innerHTML = depth ? '<b>Outcomes:</b> ' + leaves.map((p) => p.join('-')).join(', ') : '';
       if (depth === 0) say(fb, null, 'Tap Grow to branch the first choice.');
-      else say(fb, depth === stages.length, `${counts.join(' × ')} = <b>${leaves.length}</b> outcome${leaves.length > 1 ? 's' : ''}` + (depth === stages.length ? ' ✓ Multiply the choices at each step.' : '. Grow the next step.'));
+      else if (depth === stages.length) say(fb, true, `${counts.join(' × ')} = <b>${leaves.length}</b> outcomes ✓ Multiply the choices at each step.`);
+      else say(fb, null, `${leaves.length} branches so far. Tap Grow: each one splits into ${stages[depth].length}.`);
       ctr.innerHTML = '';
       if (depth < stages.length) ctr.appendChild(btn('Grow ▶', () => { depth++; draw(); }, 'go'));
-      ctr.appendChild(btn('↺ Reset', () => { depth = 0; draw(); }));
+      ctr.appendChild(btn('↺ Reset', () => { depth = o.start != null ? o.start : 1; draw(); }));
     };
     draw(); return root;
   }

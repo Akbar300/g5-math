@@ -121,7 +121,6 @@
       'From percent to a count': {
         viz: () => ix('percentBar', { whole: 20, parts: 20, cuts: [20, 10, 4], target: 35 }),
         watch: { id: 'pctof', p: 35, n: 20 },
-        viz: () => V.hundredGrid(35, { fill: '#ffc43d', label: '35% of 20 students = 7' }),
         steps: ['35% means 35 per 100, or 0.35.', 'Multiply the percent (as a decimal) by the total: 0.35 × 20 = 7.', 'Check: 7 out of 20 is 35% because 7 ÷ 20 = 0.35.'],
         trap: 'Do not just drop the percent sign (35% of 20 is not 35).',
         aap: 'AAP: 15% of 80 students is 0.15 × 80 = 12. Try 12.5% of 80 as a stretch (10).',
@@ -743,7 +742,6 @@
       'Fraction, decimal, percent': {
         viz: () => ix('percentBar', { whole: 100, parts: 5, cuts: [5, 10], target: 60 }),
         watch: { id: 'scale100', n: 3, d: 5 },
-        viz: () => ixGrid({ start: 60, pct: true, fill: '#0fb39c', challenges: [{ n: 3, d: 5 }, { pct: 75 }, { dec: '0.2' }, { n: 1, d: 2 }, { pct: 5 }] }),
         steps: ['Write the fraction as hundredths when you can: ' + fr(3, 5) + ' = ' + fr(60, 100) + ' = 0.60 = 60%.', 'The other way: 40% = ' + fr(40, 100) + ' = ' + fr(2, 5) + ' = 0.4.', 'All three names can sit on the same point.'],
         trap: '0.4 is 40%, not 4%. 7% is 0.07, not 0.7.',
         aap: '12.5% is 0.125, which is also ' + fr(1, 8) + '. Percents can have a decimal, just like other numbers.',
@@ -1092,7 +1090,6 @@
       'From percent to people': {
         viz: () => ix('percentBar', { whole: 40, parts: 10, cuts: [10, 4, 2], target: 25 }),
         watch: { id: 'pctof', p: 25, n: 40, wrong: '25' },
-        viz: () => V.hundredGrid(25, { fill: '#ffc43d', label: '25% of 40 students = 10' }),
         steps: ['Change the percent to a decimal: 25% = 0.25.', 'Multiply by the total: 0.25 × 40 = 10.', 'Check: 10 out of 40 is 25%.'],
         trap: 'Using the percent as a count (25% of 40 is not 25 students).',
         aap: 'AAP: 15% of 80 is 12. 12.5% of 80 is 10. Half of 25% is 12.5%.',
