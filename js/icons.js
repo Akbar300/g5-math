@@ -123,7 +123,7 @@ window.G5I = (function () {
     /* ---- geometry ---- */
     angle: S(`<path d="M10 52h46M10 52L44 14"/><path d="M28 52a18 18 0 0 0-5.6-13" ${soft} stroke-width="3"/>${dot(10, 52, 4)}`),
     perimarea: S(`<rect x="8" y="14" width="48" height="36" rx="2" ${soft} stroke-dasharray="0"/><path d="M20 14v36M32 14v36M44 14v36M8 26h48M8 38h48" stroke-width="1.5" opacity=".5"/><rect x="8" y="14" width="48" height="36" rx="2" stroke-width="5"/>`),
-    triangle: S(`<path d="M6 52L22 12h36L42 52Z" ${soft}/><path d="M22 12v40" stroke-dasharray="4 4" stroke-width="2.5"/><path d="M22 46h6v6" stroke-width="2.5"/>`),
+    triangle: S(`<path d="M24 12H58L40 52" stroke-dasharray="4 5" stroke-width="3" opacity=".55"/><path d="M6 52L24 12L40 52Z" ${soft}/><path d="M24 12v40" stroke-dasharray="3 4" stroke-width="2.5"/><path d="M24 46h6v6" stroke-width="2.5"/>`),
     circle: S(`<circle cx="32" cy="32" r="24" ${soft}/><path d="M32 32h24"/>${dot(32, 32, 4)}`),
     volume: S(`<path d="M10 22L32 12l22 10v24L32 56 10 46Z" ${soft}/><path d="M10 22l22 10 22-10M32 32v24"/><path d="M21 17l22 10M21 27v24M43 27v24M10 34l22 10 22-10" stroke-width="1.8" opacity=".55"/>`),
     /* ---- coordinates ---- */
