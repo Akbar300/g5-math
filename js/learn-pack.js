@@ -1185,8 +1185,8 @@
       'Same-size pieces first': {
         viz: () => V.fractionBar(3, 4, { fill: '#0fb39c', label: '3/4 = 9/12' }),
         steps: ['You can add or subtract fractions only when the pieces are the same size.', 'Find a common denominator (often the LCM).', fr(3, 4) + ' − ' + fr(1, 6) + ': LCM 12, so ' + fr(9, 12) + ' − ' + fr(2, 12) + ' = ' + fr(7, 12) + '.'],
-        trap: 'Never add or subtract the denominators (3/4 − 1/6 is not 2/10). The denominator is the size of a piece, not a count to combine.',
-        aap: 'AAP: ' + fr(5, 6) + ' + ' + fr(3, 8) + ' uses 24: ' + fr(20, 24) + ' + ' + fr(9, 24) + ' = ' + fr(29, 24) + ' = ' + mixed(1, 5, 24) + '.',
+        trap: 'Never add or subtract the denominators (' + fr(3, 4) + ' − ' + fr(1, 6) + ' is not ' + fr(2, 10) + '). The denominator is the size of a piece, not a count to combine.',
+        aap: 'AAP: ' + fr(5, 6) + ' + ' + fr(3, 8) + ' uses 24:<br>' + fr(20, 24) + ' + ' + fr(9, 24) + ' = ' + fr(29, 24) + ' = ' + mixed(1, 5, 24) + '.',
         tries: [
           () => mc('What is ' + fr(3, 4) + ' − ' + fr(1, 6) + '?', fr(7, 12), [[fr(2, 2), 'Do not subtract the denominators.'], [fr(2, 10), 'Do not subtract the denominators.'], [fr(5, 12), '3/4 = 9/12, not 7/12.']], 'LCM 12: 9/12 − 2/12 = 7/12.'),
           () => num('What common denominator works for 4ths and 6ths?', 12, 'The least common multiple of 4 and 6 is 12.')
