@@ -1,3 +1,46 @@
+/* KVoice: pick the most natural English voice this device has (Edge "Natural", Apple Premium/Enhanced,
+   Google US English) and skip Apple's novelty/robot voices. KVoice.apply(u) sets voice, lang, pitch. */
+(function (w) {
+  var synth = w.speechSynthesis, best = null;
+  var BAD = /compact|novelty|eloquence|bad news|bells|boing|bubbles|cellos|zarvox|whisper|trinoids|albert|jester|organ|wobble|good news|superstar|grandma|grandpa|rocko|reed|sandy|shelley|flo\b|eddy|junior|ralph|fred/i;
+  function score(v) {
+    var n = v.name || '', l = (v.lang || '').replace('_', '-'), s = 0;
+    if (!/^en/i.test(l)) return -1;
+    if (BAD.test(n)) return 0;
+    s += /^en-US/i.test(l) ? 40 : /^en-(GB|AU|CA|IE)/i.test(l) ? 25 : 15;
+    if (/natural|neural/i.test(n)) s += 70;          // Edge online voices: the best free ones
+    else if (/premium/i.test(n)) s += 60;            // Apple downloaded voices
+    else if (/enhanced/i.test(n)) s += 50;
+    else if (/google us english/i.test(n)) s += 45;  // Chrome
+    else if (/google/i.test(n)) s += 30;
+    if (/ava|zoe|samantha|aria|jenny|ana\b|allison|evan|nathan|serena|emma|michelle|guy|andrew|brian/i.test(n)) s += 15;
+    if (v['default']) s += 2;
+    return s;
+  }
+  function pick() {
+    try {
+      var vs = (synth && synth.getVoices()) || [], top = -1;
+      best = null;
+      for (var i = 0; i < vs.length; i++) { var sc = score(vs[i]); if (sc > top) { top = sc; best = vs[i]; } }
+    } catch (e) { best = null; }
+    return best;
+  }
+  if (synth) { pick(); try { synth.addEventListener('voiceschanged', pick); } catch (e) { try { synth.onvoiceschanged = pick; } catch (e2) {} } }
+  w.KVoice = {
+    pick: pick,
+    voice: function () { return best || pick(); },
+    apply: function (u) {
+      var v = best || pick();
+      if (v) u.voice = v;
+      u.lang = (v && v.lang) || 'en-US';
+      /* Raised pitch makes every voice sound more synthetic; natural voices sound best at 1. */
+      u.pitch = 1;
+      return u;
+    },
+    available: function () { return !!(synth && w.SpeechSynthesisUtterance); }
+  };
+})(window);
+
 /* Watch it pop-out + optional narration (Unit 9). Loaded after js/explain.js; the page opts in with window.EX_POPOUT = true.
 
    EXSpeech  narration through the browser's speechSynthesis. Off by default, the choice is remembered (localStorage
@@ -16,19 +59,26 @@
   const can = !!(synth && w.SpeechSynthesisUtterance);
   let on = false, voice = null, guard = 0;
   try { on = localStorage.getItem(KEY) === '1'; } catch (e) {}
-  function pickVoice() {
-    if (!can) return;
-    try {
-      const vs = synth.getVoices() || [];
-      voice = vs.find((v) => /^en[-_]US/i.test(v.lang) && /samantha|google us|aria|jenny|zira|allison|ava/i.test(v.name)) ||
-        vs.find((v) => /^en[-_]US/i.test(v.lang)) || vs.find((v) => /^en/i.test(v.lang)) || null;
-    } catch (e) { voice = null; }
-  }
+  function pickVoice() { voice = w.KVoice ? w.KVoice.pick() : null; }
   if (can) { pickVoice(); try { synth.addEventListener('voiceschanged', pickVoice); } catch (e) {} }
 
+  const DEN = { 2: ['half', 'halves'], 3: ['third', 'thirds'], 4: ['fourth', 'fourths'], 5: ['fifth', 'fifths'], 6: ['sixth', 'sixths'],
+    7: ['seventh', 'sevenths'], 8: ['eighth', 'eighths'], 9: ['ninth', 'ninths'], 10: ['tenth', 'tenths'], 12: ['twelfth', 'twelfths'],
+    16: ['sixteenth', 'sixteenths'], 20: ['twentieth', 'twentieths'], 25: ['twenty-fifth', 'twenty-fifths'], 50: ['fiftieth', 'fiftieths'],
+    100: ['hundredth', 'hundredths'], 1000: ['thousandth', 'thousandths'] };
+  function fracWords(n, d) {
+    const w2 = DEN[+d];
+    return w2 ? n + ' ' + (+n === 1 ? w2[0] : w2[1]) : n + ' over ' + d;
+  }
   /* Caption → words a kid hears. "½ × 10 × 12 = 60" → "one half times 10 times 12 equals 60". */
   function speakable(html) {
-    let t = String(html || '').replace(/<[^>]+>/g, ' ');
+    let t = String(html || '');
+    /* Stacked fractions → "3 fourths", mixed numbers → "2 and 1 half". */
+    t = t.replace(/<span class="mix">\s*(\d+)\s*<span class="frac"><span class="n">(\d+)<\/span>\s*<span class="d">(\d+)<\/span><\/span>\s*<\/span>/g, (m, a, n, d) => ' ' + a + ' and ' + fracWords(n, d) + ' ');
+    t = t.replace(/<span class="frac"><span class="n">(\d+)<\/span>\s*<span class="d">(\d+)<\/span><\/span>/g, (m, n, d) => ' ' + fracWords(n, d) + ' ');
+    t = t.replace(/<[^>]+>/g, ' ');
+    t = t.replace(/\b(\d+)\s*\/\s*(\d+)\b/g, (m, n, d) => fracWords(n, d));
+    t = t.replace(/(\d)\s*%/g, '$1 percent');
     t = t.replace(/(\d+)\.(\d+)/g, (m, a, b) => a + ' point ' + b.split('').join(' '));
     t = t.replace(/½/g, ' one half ').replace(/×/g, ' times ').replace(/÷/g, ' divided by ').replace(/≈/g, ' about ')
       .replace(/=/g, ' equals ').replace(/[−–]/g, ' minus ').replace(/\+/g, ' plus ').replace(/π/g, ' pie ')
@@ -48,8 +98,8 @@
       try {
         synth.cancel();
         const u = new w.SpeechSynthesisUtterance(words);
-        u.lang = 'en-US'; if (voice) u.voice = voice;
-        u.rate = (speed || 1) < 1 ? 0.82 : 0.95; u.pitch = 1.05;
+        u.lang = 'en-US'; if (voice) u.voice = voice; if (w.KVoice) w.KVoice.apply(u);
+        u.rate = (speed || 1) < 1 ? 0.82 : 0.95;
         u.onend = finish; u.onerror = finish;
         /* Some browsers never fire onend; never let the lesson stall waiting for it. */
         guard = setTimeout(finish, 2500 + words.split(' ').length * 520 / Math.min(1, speed || 1));
