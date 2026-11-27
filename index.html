@@ -91,5 +91,9 @@
       `<a class="hb-arena" href="${g.file}"><span class="hb-arena-ico">${icon(g.id, g.emoji)}</span><span><b>${g.title}</b><span>${g.short || g.blurb}</span></span></a>`
     ).join('');
   </script>
+  <!-- Cross-device sync: the link page opens this hub with #ks=<token>&kid=k2. Loading sync.js here lets the hub store that
+       token for this site, so every unit page (same site) is linked after one tap on the link page. -->
+  <script src="https://ballirim.vercel.app/sync.js"></script>
+  <script>try { if (window.KidsSync) KidsSync.init({ app: 'g5-math-hub', api: 'https://ballirim.vercel.app', kid: 'k2' }); } catch (e) {}</script>
 </body>
 </html>
