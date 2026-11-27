@@ -1401,9 +1401,17 @@ function paperDivide(dividend, divisor) {
   function mount(UNIT) {
     if (w.WP && typeof WP.attach === 'function') WP.attach(UNIT);
     const root = document.getElementById('app');
-    const key = 'g5lab_' + UNIT.id;
+    /* Cross-device sync (offline-first; does nothing if sync.js did not load). One synced record per unit. */
+    const KS = w.KidsSync || null;
+    if (KS) { try { KS.init({ app: 'g5-math-' + String(UNIT.id).toLowerCase().replace(/[^a-z0-9-]/g, '-'), api: 'https://ballirim.vercel.app', kid: 'k2' }); } catch (e) {} }
+    const key = KS ? KS.key('g5lab_' + UNIT.id) : 'g5lab_' + UNIT.id;
     let M = store(key) || { xp: 0, lvl: 'core', les: {}, sk: {}, tab: 'learn' };
-    const save = () => store(key, M);
+    const syncPick = () => ({ xp: M.xp, lvl: M.lvl, les: M.les, sk: M.sk });
+    let lastSync = '';
+    const save = () => {
+      store(key, M);
+      if (KS) { try { const j = JSON.stringify(syncPick()); if (j !== lastSync) { lastSync = j; KS.saveState(JSON.parse(j)); } } catch (e) {} }
+    };
 
     /* Unit color and number come from the hub catalog (js/catalog.js) when it is loaded. */
     const CAT = ((w.CATALOG && CATALOG.units) || []).concat((w.CATALOG && CATALOG.bridge) || []).find((u) => u.id === UNIT.id) || {};
@@ -1599,6 +1607,7 @@ function paperDivide(dividend, divisor) {
       }
       function credit(id, ok) {
         const rec = M.sk[id] || (M.sk[id] = { c: 0, n: 0, d: [] });
+        if (KS) { try { KS.log({ subject: 'math', skill: '5-' + UNIT.id + '-' + id, correct: !!ok }); } catch (e) {} }
         rec.n++; if (ok) { rec.c++; const t = U.today(); if (rec.d.indexOf(t) < 0) rec.d.push(t); M.xp += 5; }
         save(); setXP();
       }
@@ -1831,6 +1840,23 @@ function paperDivide(dividend, divisor) {
     }
 
     show(M.tab || 'learn');
+
+    if (KS) {
+      try {
+        KS.saveState(syncPick());
+        KS.loadState().then((m) => {
+          if (!m) return;
+          const before = JSON.stringify(syncPick());
+          M = Object.assign({}, M, { xp: m.xp != null ? m.xp : M.xp, lvl: m.lvl || M.lvl, les: m.les || M.les, sk: m.sk || M.sk });
+          if (JSON.stringify(syncPick()) === before) return;
+          lastSync = JSON.stringify(syncPick());
+          store(key, M);
+          setXP();
+          shell.querySelectorAll('.lvl-toggle button').forEach((x) => x.classList.toggle('on', x.dataset.l === M.lvl));
+          if (M.tab === 'learn') show('learn');
+        }).catch(() => {});
+      } catch (e) {}
+    }
   }
 
   function getPrintRoot() {
