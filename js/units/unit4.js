@@ -1122,7 +1122,7 @@
     var k = kind != null ? kind : L.pick([0, 0, 1, 1, 2, 3]);
     var m = L.ri(2, 4), C = L.pick([['hours', 'miles'], ['packs', 'stickers'], ['minutes', 'laps'], ['tickets', 'dollars']]);
     var xs = [1, 2, 3].map(function (x) { return x; }), pts = xs.map(function (x) { return [x, m * x, '(' + x + ', ' + m * x + ')']; });
-    if (k === 0) return { type: 'num', fmt: 'TYPE IN', q: 'The graph shows ' + C[1] + ' for ' + C[0] + '. How many ' + C[1] + ' for <b>1</b> ' + C[0].replace(/s$/, '') + '? (the unit rate)' + graph(pts, [{ m: m, b: 0 }], 10), a: m, why: 'Find x = 1 on the line: the point is (1, ' + m + '). That is <b>' + m + ' ' + C[1] + ' per ' + C[0].replace(/s$/, '') + '</b>. Every step right 1 goes up ' + m + '.' };
+    if (k === 0) return { type: 'num', fmt: 'TYPE IN', q: 'The graph shows ' + C[1] + ' for ' + C[0] + '. How many ' + C[1] + ' for <b>1</b> ' + C[0].replace(/s$/, '') + '? (the unit rate)' + graph(pts, [{ m: m, b: 0 }], 3 * m > 10 ? 12 : 10), a: m, why: 'Find x = 1 on the line: the point is (1, ' + m + '). That is <b>' + m + ' ' + C[1] + ' per ' + C[0].replace(/s$/, '') + '</b>. Every step right 1 goes up ' + m + '.' };
     if (k === 1) { var X = L.ri(5, 9);
       return mc('The points (1, ' + m + '), (2, ' + 2 * m + '), (3, ' + 3 * m + ') lie on a straight line through (0, 0). Which point is also on the line?', '(' + X + ', ' + m * X + ')', [
         ['(' + X + ', ' + (m * 3 + (X - 3)) + ')', 'That adds 1 each step. Each step right 1 goes up ' + m + '.'],

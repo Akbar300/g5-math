@@ -2137,7 +2137,7 @@ function paperDivide(dividend, divisor) {
     /* Header mark: the unit's drawn icon (js/icons.js) in the unit color; old emoji if icons.js is missing. */
     const uSvg = (w.G5I && G5I.get(UNIT.id)) || '';
     const headMark = uSvg ? '<span class="print-uico" aria-hidden="true">' + uSvg + '</span>' : UNIT.emoji + ' ';
-    const qHead = '<h1>' + headMark + UNIT.title + ' · ' + levelName + ' Practice</h1><div class="print-head-meta">Grade 5 · US Letter</div>';
+    const qHead = '<h1>' + headMark + UNIT.title + ' · ' + levelName + ' Practice</h1><div class="print-head-meta">Grade 5</div>';
     const items = [];
     const practicePages = [];
     const addPracticePage = () => {

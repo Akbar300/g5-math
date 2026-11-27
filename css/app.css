@@ -2203,3 +2203,12 @@ html[data-theme="dark"] .zp-n{background:#45201a;border-color:#ff8a70;color:#ffd
 .ldiv-r input.cell{width:48px}
 @media (max-width:360px){.paper{--pc:32px}.ldiv{--ldiv-cell:34px}}
 .nw{white-space:nowrap}
+
+/* Printouts always use the light palette, even when the page is in dark mode
+   (dark grid/visual colors used to print as a black graph). */
+#print-root,#print-measure{--blue:#2f80ed;--btn-face:#ffffff;--card:#ffffff;--chip-bg:#fff7e8;--coral:#ff5a36;--cp-axis:#1b2437;--cp-bg:#f7fbff;--cp-dot:#ff5a36;--cp-dot-ring:#1b2437;--cp-ghost:#9aa8bf;--cp-major:#a9bbd3;--cp-minor:#d3deec;--cp-num:#3d4a63;--cp-star:#f5a300;--cp-x:#2563eb;--cp-y:#0e9f6e;--gold:#ffc43d;--gv-cl:#cbd9ee;--gv-cr:#adc2df;--gv-cs:#5b7aa6;--gv-ct:#e6eef9;--gv-green:#2b8a0e;--gv-hl:#ffc43d;--gv-hr:#e0a21a;--gv-hs:#a26a00;--gv-ht:#ffe08a;--gv-vl:#a68cf2;--gv-vr:#7f62d6;--gv-vs:#5a3fc0;--gv-vt:#d6c8ff;--highlight:#fff3a0;--ink:#1b2437;--lime:#62c918;--line:#eadcc6;--muted:#4d5a73;--no-bg:#ffe4dc;--no-line:var(--coral);--ok-bg:#e9f9d8;--ok-line:var(--lime);--on-bg:#1b2437;--on-fg:#ffffff;--opt-right-bg:#f1fde6;--opt-wrong-bg:#fff0eb;--overlay:rgba(27,36,55,.45);--paper:#fff8ee;--paper-carry:#fff6f2;--paper-cell:#fffdf6;--remember-bg:#fff4cc;--remember-edge:var(--gold);--rose:#ff6b9a;--sel-glow:rgba(47,128,237,.2);--shadow:0 8px 24px rgba(27,36,55,.08);--sky:#dff3ff;--stat-bg:#fff7e8;--teal:#0fb39c;--violet:#6c4ee0;--viz-blue:#2f80ed;--viz-coral:#ff5a36;--viz-empty:#ffffff;--viz-gold:#ffc43d;--viz-lime:#62c918;--viz-rose:#ff6b9a;--viz-teal:#0fb39c;--viz-violet:#6c4ee0;--wash-a:#ffe7c2;--wash-b:#cdefff;--why-bg:#eef7ff;--why-edge:var(--blue)}
+#print-root,#print-measure{--ic:#1f63c6}
+#print-root .c-blue,#print-measure .c-blue{--ic:#1f63c6}#print-root .c-violet,#print-measure .c-violet{--ic:#5a3cc9}
+#print-root .c-coral,#print-measure .c-coral{--ic:#d23c1b}#print-root .c-gold,#print-measure .c-gold{--ic:#8a5a00}
+#print-root .c-teal,#print-measure .c-teal{--ic:#0a8574}#print-root .c-rose,#print-measure .c-rose{--ic:#c9356b}
+#print-root .c-lime,#print-measure .c-lime{--ic:#3d7f0c}
