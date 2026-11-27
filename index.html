@@ -1,101 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Grade 5 Math</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=IBM+Plex+Mono:wght@600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/app.css">
-  <script src="js/theme.js"></script>
-</head>
-<body>
-  <div class="hub hb">
-    <header class="hb-top">
-      <span class="hb-mark" aria-hidden="true">5</span>
-      <h1>Grade 5 Math</h1>
-      <button type="button" class="icon-btn theme-toggle" data-theme-toggle></button>
-    </header>
-    <section class="hb-hero" id="hero" aria-label="In class now"></section>
-    <h2 class="hb-h2">Your year, unit by unit</h2>
-    <ol class="hb-trail" id="units"></ol>
-    <section class="hb-bridge" id="bridgeSec" aria-labelledby="bridgeH" hidden>
-      <h2 class="hb-h2" id="bridgeH">AAP bridge</h2>
-      <p class="hb-bridge-sub">Grade 6 topics that the Advanced class pulls into Grade 5. Not on the class calendar: open any time.</p>
-      <ol class="hb-trail hb-trail-bridge" id="bridge"></ol>
-    </section>
-    <section class="hb-arenas" aria-labelledby="arenasH">
-      <h2 class="hb-h2" id="arenasH">Paper-method arenas</h2>
-      <p class="hb-arenas-sub">Step-by-step practice on paper-style problems.</p>
-      <div class="hb-arena-row" id="games"></div>
-    </section>
-    <footer class="hb-foot">
-      <p id="sub"></p>
-      <p>Aligned to FCPS Grade 5 Math, FCPS Grade 5 Advanced Math, and the 2023 Virginia Math SOL. Each unit has a Core path and an Advanced (Go Further) path. Class dates are estimates from the FCPS calendar.</p>
-    </footer>
-  </div>
-  <script src="js/catalog.js"></script>
-  <script src="js/icons.js"></script>
-  <script>
-    const C = CATALOG;
-    document.getElementById('sub').textContent = C.sub;
-    const I = window.HUB_ICONS || {};
-    /* Local date (not UTC), so the unit doesn't flip early in the evening. */
-    const d0 = new Date();
-    const today = [d0.getFullYear(), String(d0.getMonth() + 1).padStart(2, '0'), String(d0.getDate()).padStart(2, '0')].join('-');
-    const live = C.units.find(u => today >= u.dates[0] && today <= u.dates[1]);
-    const upcoming = C.units.find(u => u.dates[0] > today);
-    const cur = live || upcoming || C.units[C.units.length - 1];
-    const next = C.units[C.units.indexOf(cur) + 1];
-    const fmt = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); };
-    const icon = (id, fallback) => I[id] || `<span class="hb-emoji">${fallback}</span>`;
-
-    const dots = C.units.map(u => {
-      const st = u === cur ? 'cur' : (u.dates[1] < today ? 'past' : '');
-      return `<i class="${st}" title="Unit ${u.num}"></i>`;
-    }).join('');
-    document.getElementById('hero').className = `hb-hero c-${cur.color || 'teal'}`;
-    document.getElementById('hero').innerHTML = `
-      <div class="hb-hero-txt">
-        <p class="hb-kicker">${live ? 'In class now' : 'Up next in class'}</p>
-        <h2 class="hb-hero-title"><span>Unit ${cur.num}</span>${cur.title}</h2>
-        <p class="hb-hero-line">${cur.short || cur.blurb}</p>
-        <a class="hb-go" href="${cur.file}">Open Unit ${cur.num}</a>
-        <div class="hb-year" aria-label="Unit ${cur.num} of ${C.units.length}"><span class="hb-dots">${dots}</span><span>Unit ${cur.num} of ${C.units.length}, ${fmt(cur.dates[0])} to ${fmt(cur.dates[1])}</span></div>
-      </div>
-      <div class="hb-hero-art">${icon(cur.id, cur.emoji)}</div>`;
-
-    document.getElementById('units').innerHTML = C.units.map(u => {
-      const st = u === cur ? 'is-now' : (u === next ? 'is-next' : (u.dates[1] < today ? 'is-past' : 'is-later'));
-      const tag = { 'is-now': live ? 'Now' : 'Next', 'is-next': 'Next', 'is-past': 'Review', 'is-later': '' }[st];
-      return `<li class="hb-unit c-${u.color || 'teal'} ${st}"><a href="${u.file}">
-        <span class="hb-node">${icon(u.id, u.emoji)}</span>
-        <span class="hb-txt"><span class="hb-num">Unit ${u.num}</span><b>${u.title}</b><span class="hb-short">${u.short || u.blurb}</span></span>
-        ${tag ? `<span class="hb-tag">${tag}</span>` : ''}
-      </a></li>`;
-    }).join('');
-
-    /* AAP bridge units (CATALOG.bridge): after the class units, so the class-order trail and the "Unit N of 11" count are unchanged. */
-    const B = C.bridge || [];
-    if (B.length) {
-      document.getElementById('bridgeSec').hidden = false;
-      document.getElementById('bridge').innerHTML = B.map(u => `<li class="hb-unit c-${u.color || 'teal'} is-aap"><a href="${u.file}">
-        <span class="hb-node">${icon(u.id, u.emoji)}</span>
-        <span class="hb-txt"><span class="hb-num">Unit ${u.num} · AAP</span><b>${u.title}</b><span class="hb-short">${u.short || u.blurb}</span></span>
-        <span class="hb-tag">Advanced</span>
-      </a></li>`).join('');
-    }
-
-    document.getElementById('games').innerHTML = C.games.map(g =>
-      `<a class="hb-arena" href="${g.file}"><span class="hb-arena-ico">${icon(g.id, g.emoji)}</span><span><b>${g.title}</b><span>${g.short || g.blurb}</span></span></a>`
-    ).join('');
-  </script>
-  <!-- Cross-device sync: the link page opens this hub with #ks=<token>&kid=k2. Loading sync.js here lets the hub store that
-       token for this site, so every unit page (same site) is linked after one tap on the link page. -->
-  <script src="https://ballirim.vercel.app/sync.js"></script>
-  <script>try { if (window.KidsSync) KidsSync.init({ app: 'g5-math-hub', api: 'https://ballirim.vercel.app', kid: 'k2' }); } catch (e) {}</script>
-</body>
-</html>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex"><title>Moving to the new home…</title>
+<style>body{margin:0;font:18px/1.5 system-ui,sans-serif;background:#111;color:#eee;display:grid;place-items:center;min-height:100vh;text-align:center}
+main{padding:24px;max-width:420px}a{display:block;margin:12px 0;padding:14px;border-radius:12px;background:#3b82f6;color:#fff;text-decoration:none;font-weight:700}</style></head>
+<body><main><h1>Grade 5 Math has moved</h1><p id="m">Taking your progress with you…</p><div id="pick"></div></main>
+<script>
+/* Platform v6 Phase 4: this address moved under the family hub. Pack this device's saved progress into the URL
+   fragment (never sent to any server) and open the room at its new address; the hub's carry.js copies it in. */
+(function () {
+  var HUB = 'https://ballirim.vercel.app', CFG = {"base": "/arslan/math/", "title": "Grade 5 Math"};
+  function pack() {
+    var o = {};
+    try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('ks:') !== 0) o[k] = localStorage.getItem(k); } } catch (e) {}
+    if (!Object.keys(o).length) return '';
+    var bytes = new TextEncoder().encode(JSON.stringify(o)), bin = '';
+    for (var j = 0; j < bytes.length; j++) bin += String.fromCharCode(bytes[j]);
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  function sub(p) {
+    p = p.replace(/^\/+/, '');
+    if (p && !/\.[a-z0-9]+$/i.test(p) && !/\/$/.test(p)) p += '.html';   // old site used clean URLs
+    if (p === 'index.html') p = '';
+    return p;
+  }
+  function go(base) {
+    var c = pack(), h = location.hash.replace(/^#/, '');
+    var url = HUB + base + sub(location.pathname) + location.search;
+    if (c) url += '#carry=' + c + (h ? '&h=' + encodeURIComponent(h) : '');
+    else if (h) url += '#' + h;
+    location.replace(url);
+  }
+  if (CFG.byGrade) {
+    var g = null;
+    try { g = (JSON.parse(localStorage.getItem(CFG.byGrade.key) || '{}') || {}).grade; } catch (e) {}
+    if (CFG.byGrade.map[g]) return go(CFG.byGrade.map[g]);
+    document.getElementById('m').textContent = 'Who is writing on this device?';
+    Object.keys(CFG.byGrade.choices).forEach(function (label) {
+      var a = document.createElement('a'); a.href = '#'; a.textContent = label;
+      a.onclick = function (e) { e.preventDefault(); go(CFG.byGrade.choices[label]); };
+      document.getElementById('pick').appendChild(a);
+    });
+    return;
+  }
+  go(CFG.base);
+})();
+</script></body></html>
